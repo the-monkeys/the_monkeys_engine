@@ -4,6 +4,7 @@ import (
 	"log"
 	"net"
 
+	isv "github.com/89minutes/the_new_project/apis/interservice/blogs/pb"
 	"github.com/89minutes/the_new_project/services/blogsandposts_service/blog_service/config"
 	"github.com/89minutes/the_new_project/services/blogsandposts_service/blog_service/pb"
 	"github.com/89minutes/the_new_project/services/blogsandposts_service/blog_service/service"
@@ -33,10 +34,12 @@ func main() {
 	}
 
 	blogService := service.NewBlogService(*osClient, logger)
+	interservice := service.NewInterservice(*osClient, logger)
 
 	grpcServer := grpc.NewServer()
 
 	pb.RegisterBlogsAndPostServiceServer(grpcServer, blogService)
+	isv.RegisterBlogServiceServer(grpcServer, interservice)
 
 	logrus.Info("art and post service is running on address: ", cfg.BlogAndPostSvcURL)
 	if err := grpcServer.Serve(lis); err != nil {
