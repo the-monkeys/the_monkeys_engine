@@ -2,14 +2,15 @@ package server
 
 import (
 	"context"
+	"fmt"
 	"io"
 	"log"
 	"net/http"
 
 	"database/sql"
 
+	isv "github.com/89minutes/the_new_project/apis/interservice/blogs/pb"
 	"github.com/89minutes/the_new_project/services/user_service/service/database"
-	"github.com/89minutes/the_new_project/services/user_service/service/interservice_comm/toblog"
 	"github.com/89minutes/the_new_project/services/user_service/service/pb"
 	"github.com/89minutes/the_new_project/services/user_service/service/utils"
 	"github.com/sirupsen/logrus"
@@ -20,11 +21,11 @@ import (
 type UserService struct {
 	db          *database.UserDbHandler
 	log         *logrus.Logger
-	blogService *toblog.BlogClient
+	blogService isv.BlogServiceClient
 	pb.UnimplementedUserServiceServer
 }
 
-func NewUserService(usd *database.UserDbHandler, log *logrus.Logger, blogService *toblog.BlogClient) *UserService {
+func NewUserService(usd *database.UserDbHandler, log *logrus.Logger, blogService isv.BlogServiceClient) *UserService {
 	return &UserService{db: usd, log: log, blogService: blogService}
 }
 
@@ -148,7 +149,13 @@ func (us *UserService) DeleteMyProfile(ctx context.Context, req *pb.DeleteMyAcco
 		}
 	}
 	// TODO: Set all the users status key in the blog as disabled and not show users blog to the portal.
-	us.blogService.UpdateBlogsUserDeactivated(resp.Email)
+	isvRes, err := us.blogService.SetUserDeactivated(context.Background(), &isv.SetUserDeactivatedReq{Email: resp.Email})
+	if err != nil {
+		fmt.Printf("err: %v\n", err)
+		return nil, status.Errorf(codes.Internal, "failed to find the record, error: %v", err)
+	}
+
+	fmt.Printf("isvRes: %v\n", isvRes)
 
 	return &pb.DeleteMyAccountRes{
 		Status: http.StatusOK,

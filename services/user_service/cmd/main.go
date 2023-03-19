@@ -3,9 +3,9 @@ package main
 import (
 	"net"
 
+	isv "github.com/89minutes/the_new_project/apis/interservice/blogs/pb"
 	"github.com/89minutes/the_new_project/services/user_service/service/config"
 	"github.com/89minutes/the_new_project/services/user_service/service/database"
-	"github.com/89minutes/the_new_project/services/user_service/service/interservice_comm/toblog"
 	"github.com/89minutes/the_new_project/services/user_service/service/pb"
 	"github.com/89minutes/the_new_project/services/user_service/service/server"
 	"github.com/sirupsen/logrus"
@@ -25,11 +25,14 @@ func main() {
 	if err != nil {
 		log.Errorf("failed to listen at port %v, error: %+v", cfg.UserSrvPort, err)
 	}
-	conn, err := BlogServiceConn(cfg.BlogAndPostSvcURL)
+
+	conn, err := grpc.Dial(cfg.BlogAndPostSvcURL, grpc.WithInsecure())
 	if err != nil {
-		logrus.Fatalln("could not connect to the blog service: %v", err)
+		log.Errorf("failed to dial to blog service at %v, error: %+v", cfg.BlogAndPostSvcURL, err)
+		return
 	}
-	userService := server.NewUserService(db, log, toblog.NewClient(conn))
+
+	userService := server.NewUserService(db, log, isv.NewBlogServiceClient(conn))
 
 	grpcServer := grpc.NewServer()
 
