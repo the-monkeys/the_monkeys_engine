@@ -5,6 +5,7 @@ import (
 	"log"
 
 	"github.com/89minutes/the_new_project/apis/interservice/blogs/pb"
+	"github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
 )
 
@@ -16,10 +17,13 @@ func NewClient(conn *grpc.ClientConn) *BlogClient {
 	return &BlogClient{blogServiceClient: pb.NewBlogServiceClient(conn)}
 }
 
-// TODO: Update error handling
-func (bc *BlogClient) UpdateBlogsUserDeactivated(conn *grpc.ClientConn) {
+// TODO: Update error handling and return error
+func (bc *BlogClient) UpdateBlogsUserDeactivated(email string) {
+	logrus.Infof("Requesting to update user's blog status for: %s", email)
 	// send a request to the server
-	res, err := bc.blogServiceClient.SetUserDeactivated(context.Background(), &pb.SetUserDeactivatedReq{})
+	res, err := bc.blogServiceClient.SetUserDeactivated(context.Background(), &pb.SetUserDeactivatedReq{
+		Email: email,
+	})
 	if err != nil {
 		log.Fatalf("could not greet: %v", err)
 	}
