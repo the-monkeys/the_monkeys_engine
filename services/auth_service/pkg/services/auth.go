@@ -86,9 +86,10 @@ func (s *AuthServer) Register(ctx context.Context, req *pb.RegisterRequest) (*pb
 	}
 
 	return &pb.RegisterResponse{
-		Status: http.StatusCreated,
-		Error:  "",
-		Token:  token,
+		Status:        http.StatusCreated,
+		Error:         "",
+		Token:         token,
+		EmailVerified: false,
 	}, nil
 }
 
@@ -97,8 +98,8 @@ func (s *AuthServer) Login(ctx context.Context, req *pb.LoginRequest) (*pb.Login
 	var user models.TheMonkeysUser
 
 	// Check if the email exists
-	err := s.dbCli.PsqlClient.QueryRow("SELECT email, password, deactivated FROM the_monkeys_user WHERE email=$1;", req.GetEmail()).
-		Scan(&user.Email, &user.Password, &user.Deactivated)
+	err := s.dbCli.PsqlClient.QueryRow("SELECT email, password, deactivated, email_verified FROM the_monkeys_user WHERE email=$1;", req.GetEmail()).
+		Scan(&user.Email, &user.Password, &user.Deactivated, &user.EmailVerified)
 	if err != nil {
 		logrus.Errorf("cannot login as the email %s doesn't exist, error: %+v", req.Email, err)
 		return &pb.LoginResponse{
@@ -137,8 +138,9 @@ func (s *AuthServer) Login(ctx context.Context, req *pb.LoginRequest) (*pb.Login
 
 	logrus.Infof("user containing email: %s, has been assigned a token", req.Email)
 	return &pb.LoginResponse{
-		Status: http.StatusOK,
-		Token:  token,
+		Status:        http.StatusOK,
+		Token:         token,
+		EmailVerified: user.EmailVerified,
 	}, nil
 }
 

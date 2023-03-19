@@ -31,6 +31,7 @@ message RegisterResponse {
   int64 status = 1;
   string error = 2;
   string token = 3;
+  bool emailVerified = 4;
 }
 
 message LoginRequest {
@@ -42,6 +43,7 @@ message LoginResponse {
   int64 status = 1;
   string error = 2;
   string token = 3;
+  bool emailVerified = 4;
 }
 
 message ValidateRequest { 

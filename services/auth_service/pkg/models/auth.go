@@ -21,6 +21,7 @@ type TheMonkeysUser struct {
 	MobileVerificationTimeout time.Time `json:"mobile_verification_timeout"`
 	Deactivated               bool      `json:"deactivated"`
 	LoginMethod               string    `json:"login_method"`
+	EmailVerified             bool      `json:"email_verified"`
 }
 
 type PasswordReset struct {
