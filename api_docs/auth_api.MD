@@ -2,7 +2,7 @@
 
 ### Request
 ```
-curl --location --request POST 'https://localhost:8080/api/v1/auth/register' \
+curl --location --request POST 'https://themonkeys.tech/api/v1/auth/register' \
 --header 'Content-Type: application/json' \
 --data-raw '{
     "first_name": "Firstname",
