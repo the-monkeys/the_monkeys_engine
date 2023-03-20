@@ -1,7 +1,7 @@
 ## Get Profile
 Request
 ```
-curl --location --request GET 'https://localhost:8080/api/v1/profile/user/23' \
+curl --location --request GET 'https://themonkeys.tech/api/v1/profile/user/23' \
 --header 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MDc2NTg3NTIsImlzcyI6ImdvLWdycGMtYXV0aC1zdmMiLCJJZCI6MCwiRW1haWwiOiJtYWlsLnRoZW1vbmtleXMubGlmZUBnbWFpbC5jb20ifQ.6tAe7sgLJCkwPsQ9ZZJ_TZaPqVr4E7ZNihjD-0Md1nc'
 ```
 
@@ -24,7 +24,7 @@ Response
 ## Upload Profile details
 Request
 ```
-curl --location --request POST 'https://localhost:8080/api/v1/profile/user/23' \
+curl --location --request POST 'https://themonkeys.tech/api/v1/profile/user/23' \
 --header 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MDc2NTg3NTIsImlzcyI6ImdvLWdycGMtYXV0aC1zdmMiLCJJZCI6MCwiRW1haWwiOiJtYWlsLnRoZW1vbmtleXMubGlmZUBnbWFpbC5jb20ifQ.6tAe7sgLJCkwPsQ9ZZJ_TZaPqVr4E7ZNihjD-0Md1nc' \
 --header 'Content-Type: application/json' \
 --data-raw '{
@@ -49,7 +49,7 @@ Response
 ## Get Profile pics
 Request
 ```
-curl --location --request GET 'https://localhost:8080/api/v1/profile/user/pic/23' \
+curl --location --request GET 'https://themonkeys.tech/api/v1/profile/user/pic/23' \
 --header 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MDk0NzkwNjksImlzcyI6ImdvLWdycGMtYXV0aC1zdmMiLCJJZCI6MCwiRW1haWwiOiJtYWlsLnRoZW1vbmtleXMubGlmZUBnbWFpbC5jb20ifQ.7O9NHabJqTHowQorUZ2ToSjkkgyGg3RljjLm07RBHf4'
 ```
 

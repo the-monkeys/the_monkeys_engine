@@ -2,7 +2,7 @@
 
 ### Request
 ```
-curl --location --request POST 'https://localhost:8080/api/v1/auth/register' \
+curl --location --request POST 'https://themonkeys.tech/api/v1/auth/register' \
 --header 'Content-Type: application/json' \
 --data-raw '{
     "first_name": "Firstname",
@@ -26,7 +26,7 @@ NOTE: The register API take email as the username, once registration id done, it
 
 ### Request
 ```
-curl --location --request POST 'https://localhost:8080/api/v1/auth/login' \
+curl --location --request POST 'https://themonkeys.tech/api/v1/auth/login' \
 --header 'Content-Type: application/json' \
 --data-raw '{
     "email": "username@gmail.com",
@@ -53,7 +53,7 @@ Password reset has 3 different apis:
 ### Forgot password request
 Request
 ```
-curl --location --request POST 'https://localhost:8080/api/v1/auth/forgot-pass' \
+curl --location --request POST 'https://themonkeys.tech/api/v1/auth/forgot-pass' \
 --header 'Content-Type: application/json' \
 --data-raw '{
     "email": "davetweetlive@gmail.com"
@@ -68,7 +68,7 @@ Get an email containing a verification URL
 ### Verify Email
 Request
 ```
-curl --location --request GET 'https://localhost:8080/api/v1/auth/reset-password?verificationparams'
+curl --location --request GET 'https://themonkeys.tech/api/v1/auth/reset-password?verificationparams'
 ```
 
 Response
@@ -82,7 +82,7 @@ Response
 ### Reset Password
 Request
 ```
-curl --location --request POST 'https://localhost:8080/api/v1/auth/update-password' \
+curl --location --request POST 'https://themonkeys.tech/api/v1/auth/update-password' \
 --header 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MDk0Njg3ODMsImlzcyI6ImdvLWdycGMtYXV0aC1zdmMiLCJJZCI6MjMsIkVtYWlsIjoiZGF2ZXR3ZWV0bGl2ZUBnbWFpbC5jb20ifQ.4yZt3q54EE0fls8JbUZdldQ1QY0e1NIQVELetw7p3wU' \
 --header 'Content-Type: application/json' \
 --data-raw '{
@@ -101,7 +101,7 @@ Response
 ## Email Verification
 Request
 ```
-curl --location --request POST 'https://localhost:8080/api/v1/auth/req-email-verification' \
+curl --location --request POST 'https://themonkeys.tech/api/v1/auth/req-email-verification' \
 --header 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MDk0Njg3ODMsImlzcyI6ImdvLWdycGMtYXV0aC1zdmMiLCJJZCI6MjMsIkVtYWlsIjoiZGF2ZXR3ZWV0bGl2ZUBnbWFpbC5jb20ifQ.4yZt3q54EE0fls8JbUZdldQ1QY0e1NIQVELetw7p3wU' \
 --header 'Content-Type: application/json' \
 --data-raw '{
@@ -120,7 +120,7 @@ Response
 ## Verify Email from clicking Email link
 Request
 ```
-curl --location --request POST 'https://localhost:8080/api/v1/auth/verify-email?user=mail.themonkeys.life@gmail.com&evpw=WodTB2rJ8SobMgQ1nrtR245jxOrsovFiKVY9DYwAq9CuixIQ9sziMSyLhJjL97xH'
+curl --location --request POST 'https://themonkeys.tech/api/v1/auth/verify-email?user=mail.themonkeys.life@gmail.com&evpw=WodTB2rJ8SobMgQ1nrtR245jxOrsovFiKVY9DYwAq9CuixIQ9sziMSyLhJjL97xH'
 ```
 Response
 ```
