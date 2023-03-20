@@ -22,7 +22,9 @@ func NewInterservice(client openSearchClient,
 }
 
 func (blog *Interservice) SetUserDeactivated(ctx context.Context, req *pb.SetUserDeactivatedReq) (*pb.SetUserDeactivatedRes, error) {
-	blog.logger.Info("User %v is deactivated", req.Email)
+	blog.logger.Infof("User is deactivated: %v", req.Email)
+
+	// TODO: Set all the users status key in the blog as disabled and not show users blog to the portal.
 
 	return &pb.SetUserDeactivatedRes{
 		Status:  http.StatusOK,

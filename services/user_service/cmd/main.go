@@ -3,6 +3,7 @@ package main
 import (
 	"net"
 
+	isv "github.com/89minutes/the_new_project/apis/interservice/blogs/pb"
 	"github.com/89minutes/the_new_project/services/user_service/service/config"
 	"github.com/89minutes/the_new_project/services/user_service/service/database"
 	"github.com/89minutes/the_new_project/services/user_service/service/pb"
@@ -25,14 +26,17 @@ func main() {
 		log.Errorf("failed to listen at port %v, error: %+v", cfg.UserSrvPort, err)
 	}
 
-	userService := server.NewUserService(db, log)
+	conn, err := grpc.Dial(cfg.BlogAndPostSvcURL, grpc.WithInsecure())
+	if err != nil {
+		log.Errorf("failed to dial to blog service at %v, error: %+v", cfg.BlogAndPostSvcURL, err)
+		return
+	}
+
+	userService := server.NewUserService(db, log, isv.NewBlogServiceClient(conn))
 
 	grpcServer := grpc.NewServer()
 
 	pb.RegisterUserServiceServer(grpcServer, userService)
-	if err = BlogServiceConn(cfg.BlogAndPostSvcURL); err != nil {
-		logrus.Fatalln("could not connect to the blog service: %v", err)
-	}
 
 	log.Infof("the user service started at: %v", cfg.UserSrvPort)
 	if err := grpcServer.Serve(lis); err != nil {
@@ -40,13 +44,13 @@ func main() {
 	}
 }
 
-func BlogServiceConn(addr string) error {
+func BlogServiceConn(addr string) (*grpc.ClientConn, error) {
 	logrus.Infof("gRPC dialing to the blog server: %v", addr)
 	conn, err := grpc.Dial(addr, grpc.WithInsecure())
 	if err != nil {
-		return err
+		return nil, err
 	}
 	defer conn.Close()
 
-	return nil
+	return conn, err
 }

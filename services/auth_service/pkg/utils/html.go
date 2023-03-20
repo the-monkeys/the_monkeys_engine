@@ -9,7 +9,7 @@ import (
 var Address string
 
 func init() {
-	// Remove the address hardcoded and provide production URL from env
+	// TODO: Remove the address hardcoded and provide production URL from env
 	Address = "themonkeys.tech"
 	logrus.Infof("email verification address: %v", Address)
 }
