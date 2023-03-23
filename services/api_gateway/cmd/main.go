@@ -44,6 +44,14 @@ func main() {
 
 	// enable CORS
 	server.router.Use(cors.Default())
+	//Firebase Call
+	fireAuth, err := auth.SetupFirebase()
+	if err != nil {
+		logrus.Fatalf("firebase initialization failed")
+	}
+	server.router.Use(func(ctx *gin.Context) {
+		ctx.Set("firebaseAuth", fireAuth)
+	})
 
 	// Register REST routes for all the microservice
 	authClient := auth.RegisterRouter(server.router, &cfg)

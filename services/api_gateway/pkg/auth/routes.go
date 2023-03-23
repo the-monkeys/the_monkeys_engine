@@ -2,6 +2,7 @@ package auth
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"strconv"
 	"strings"
@@ -40,6 +41,7 @@ func RegisterRouter(router *gin.Engine, cfg *config.Address) *ServiceClient {
 
 	routes.POST("/register", asc.Register)
 	routes.POST("/login", asc.Login)
+	routes.POST("/googleLogin", asc.GRegister)
 
 	// Forgot password
 	routes.POST("/forgot-pass", asc.ForgotPassword)
@@ -53,6 +55,12 @@ func RegisterRouter(router *gin.Engine, cfg *config.Address) *ServiceClient {
 	routes.POST("/req-email-verification", asc.ReqEmailVerification)
 
 	return asc
+}
+
+func (asc *ServiceClient) GRegister(ctx *gin.Context) {
+	//TODO:implement google auth in this handler
+	gauthData := FirebaseAuthChq(ctx)
+	fmt.Printf("body: %v\n", gauthData)
 }
 
 func (asc *ServiceClient) Register(ctx *gin.Context) {
