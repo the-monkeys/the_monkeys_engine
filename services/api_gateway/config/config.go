@@ -12,6 +12,7 @@ type Address struct {
 	StoryService    string `mapstructure:"STORY_SERVICE"`
 	UserService     string `mapstructure:"USER_SERVICE"`
 	BlogService     string `mapstructure:"BLOG_SERVICE"`
+	FileService     string `mapstructure:"FILE_SERVICE"`
 }
 
 func LoadGatewayConfig() (cfg Address, err error) {
