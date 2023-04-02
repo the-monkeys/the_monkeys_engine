@@ -46,9 +46,9 @@ func (fs *FileService) UploadBlogFile(stream pb.UploadBlogFile_UploadBlogFileSer
 	if _, err := os.Stat(fs.path + "/" + blogId); os.IsNotExist(err) {
 		logrus.Infof("the directory, %s doesn't exists", dirName)
 
-		err := os.Mkdir(fs.path+"/"+blogId, 0755)
+		err := os.MkdirAll(fs.path+"/"+blogId, 0755)
 		if err != nil {
-			logrus.Errorf("cannot create a directory for this blog id: %d", blogId)
+			logrus.Errorf("cannot create a directory for this blog id: %s", blogId)
 			return err
 		}
 	}
@@ -59,7 +59,7 @@ func (fs *FileService) UploadBlogFile(stream pb.UploadBlogFile_UploadBlogFileSer
 
 		err := ioutil.WriteFile(filePath, byteSlice, 0644)
 		if err != nil {
-			logrus.Errorf("cannot create a file for this blog id: %d", blogId)
+			logrus.Errorf("cannot create a file for this blog id: %s", blogId)
 			return err
 		}
 	}
