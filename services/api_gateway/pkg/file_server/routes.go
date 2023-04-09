@@ -78,14 +78,14 @@ func (asc *FileServiceClient) UploadBlogFile(ctx *gin.Context) {
 		log.Fatal("cannot send file info to server: ", err, stream.RecvMsg(nil))
 	}
 
-	_, err = stream.CloseAndRecv()
+	resp, err := stream.CloseAndRecv()
 	if err != nil {
 		ctx.AbortWithError(http.StatusInternalServerError, err)
 		return
 	}
 
 	// log.Printf("%+v\n", response)
-	ctx.JSON(http.StatusAccepted, "uploaded")
+	ctx.JSON(http.StatusAccepted, resp)
 }
 
 func (asc *FileServiceClient) GetBlogFile(ctx *gin.Context) {

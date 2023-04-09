@@ -6,8 +6,10 @@ import (
 	"io/ioutil"
 	"net/http"
 	"os"
-"strings"
+	"strings"
+
 	"github.com/89minutes/the_new_project/services/file_server/service/pb"
+	"github.com/89minutes/the_new_project/services/file_server/service/utils"
 	"github.com/sirupsen/logrus"
 )
 
@@ -39,14 +41,14 @@ func (fs *FileService) UploadBlogFile(stream pb.UploadBlogFile_UploadBlogFileSer
 	}
 	logrus.Infof("Uploading a file for blog id: %v", blogId)
 
-	dirName := fs.path + "/" + blogId
-	filePath := fs.path + "/" + blogId + "/" + fileName
+	fileName = utils.RemoveSpecialChar(fileName)
+	dirPath, filePath := utils.ConstructPath(fs.path, blogId, fileName)
 
 	// Check if directory exists, if not create it
-	if _, err := os.Stat(fs.path + "/" + blogId); os.IsNotExist(err) {
-		logrus.Infof("the directory, %s doesn't exists", dirName)
+	if _, err := os.Stat(dirPath); os.IsNotExist(err) {
+		logrus.Infof("the directory, %s doesn't exists", dirPath)
 
-		err := os.MkdirAll(fs.path+"/"+blogId, 0755)
+		err := os.MkdirAll(dirPath, 0755)
 		if err != nil {
 			logrus.Errorf("cannot create a directory for this blog id: %s", blogId)
 			return err
@@ -64,8 +66,10 @@ func (fs *FileService) UploadBlogFile(stream pb.UploadBlogFile_UploadBlogFileSer
 		}
 	}
 
+	logrus.Infof("done uploading file: %s", filePath)
 	return stream.SendAndClose(&pb.UploadBlogFileRes{
-		Status: http.StatusOK,
+		Status:      http.StatusOK,
+		NewFileName: fileName,
 	})
 }
 

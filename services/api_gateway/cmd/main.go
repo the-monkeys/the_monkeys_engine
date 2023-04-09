@@ -42,7 +42,7 @@ func main() {
 	server.router = gin.New()
 	server.router.Use(gin.Recovery())
 	server.router.Use(gin.Logger())
-
+	server.router.MaxMultipartMemory = 8 << 20
 	// enable CORS
 	server.router.Use(cors.Default())
 
