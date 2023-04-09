@@ -37,9 +37,9 @@ func RegisterUserRouter(router *gin.Engine, cfg *config.Address, authClient *aut
 		Client: NewFileServiceClient(cfg),
 	}
 	routes := router.Group("/api/v1/files")
+	routes.GET("/post/:id/:fileName", usc.GetBlogFile)
 	routes.Use(mware.AuthRequired)
 	routes.POST("/post/:id", usc.UploadBlogFile)
-	routes.GET("/post/:id/:fileName", usc.GetBlogFile)
 	routes.DELETE("/post/:id/:fileName", usc.DeleteBlogFile)
 	return usc
 }
@@ -112,10 +112,11 @@ func (asc *FileServiceClient) GetBlogFile(ctx *gin.Context) {
 		return
 	}
 
-	ctx.Header("Content-Disposition", "attachment; filename=file-name.txt")
-	ctx.Data(http.StatusOK, "application/octet-stream", resp.Data)
+	// ctx.Header("Content-Disposition", "attachment; filename=file-name.txt")
+	// ctx.Data(http.StatusOK, "application/octet-stream", resp.Data)
 
-	ctx.JSON(http.StatusAccepted, "uploaded")
+	// ctx.JSON(http.StatusAccepted, "uploaded")
+	ctx.Writer.Write(resp.Data)
 }
 
 func (asc *FileServiceClient) DeleteBlogFile(ctx *gin.Context) {
