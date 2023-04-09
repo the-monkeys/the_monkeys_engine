@@ -12,6 +12,7 @@ import (
 	"github.com/89minutes/the_new_project/services/api_gateway/pkg/article"
 	"github.com/89minutes/the_new_project/services/api_gateway/pkg/auth"
 	"github.com/89minutes/the_new_project/services/api_gateway/pkg/blogsandposts"
+	"github.com/89minutes/the_new_project/services/api_gateway/pkg/file_server"
 	"github.com/89minutes/the_new_project/services/api_gateway/pkg/user_service"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
@@ -56,6 +57,7 @@ func main() {
 	article.RegisterArticleRoutes(server.router, &cfg, authClient)
 	user_service.RegisterUserRouter(server.router, &cfg, authClient)
 	blogsandposts.RegisterBlogRouter(server.router, &cfg, authClient)
+	file_server.RegisterUserRouter(server.router, &cfg, authClient)
 
 	server.start(context.Background(), cfg)
 

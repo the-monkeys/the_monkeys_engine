@@ -150,6 +150,7 @@ THE_MONKEYS_SERVICES=(
     "auth_service"
     "blogsandposts_service"
     "user_service"
+    "file_server"
 )
 
 # create a new user and group for the monkeys

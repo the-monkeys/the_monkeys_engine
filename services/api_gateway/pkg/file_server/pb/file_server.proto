@@ -1,0 +1,48 @@
+syntax = "proto3";
+
+package auth;
+
+option go_package = "./services/api_gateway/pkg/file_server/pb";
+
+// import "google/protobuf/timestamp.proto";
+
+message UploadBlogFileReq {
+    string blogId = 1;
+	bytes data = 2;
+    string fileName = 3;
+    // int64 id = 4;
+}
+
+message UploadBlogFileRes {
+    int64 status = 1;
+    string error = 2;
+    int64 id = 3;
+}
+
+message GetBlogFileReq {
+	string blogId = 1;
+    string fileName = 2;
+}
+
+message GetBlogFileRes {
+	bytes data = 1;
+    int64 status = 2;
+    string error = 3;
+}
+
+message DeleteBlogFileReq {
+	string blogId = 1;
+    string fileName = 2;
+}
+
+message DeleteBlogFileRes {
+	string message = 1;
+    int64 status = 2;
+    string error = 3;
+}
+
+service UploadBlogFile {
+    rpc UploadBlogFile(stream UploadBlogFileReq) returns (UploadBlogFileRes) {};
+	rpc GetBlogFile(GetBlogFileReq) returns (stream GetBlogFileRes) {};
+	rpc DeleteBlogFile(DeleteBlogFileReq) returns (DeleteBlogFileRes) {};
+}
