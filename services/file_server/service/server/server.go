@@ -6,7 +6,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"os"
-
+"strings"
 	"github.com/89minutes/the_new_project/services/file_server/service/pb"
 	"github.com/sirupsen/logrus"
 )
@@ -74,7 +74,8 @@ func (fs *FileService) GetBlogFile(req *pb.GetBlogFileReq, stream pb.UploadBlogF
 	fileName := fs.path + "/" + req.BlogId + "/" + req.FileName
 	logrus.Infof("there is a request to retrieve the file, %s", fileName)
 
-	fileBytes, err := ioutil.ReadFile(fileName)
+	rawFileName := strings.ReplaceAll(fileName, "\n", "")
+	fileBytes, err := ioutil.ReadFile(rawFileName)
 	if err != nil {
 		logrus.Errorf("cannot read the file: %s, error: %v", fileName, fileBytes)
 		return err
