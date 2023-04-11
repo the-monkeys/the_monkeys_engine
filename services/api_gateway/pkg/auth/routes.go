@@ -47,6 +47,9 @@ func RegisterRouter(router *gin.Engine, cfg *config.Address) *ServiceClient {
 
 	routes.POST("/verify-email", asc.VerifyEmail)
 
+	// is verified
+	routes.GET("/is-verified", asc.IsUserAuthenticated)
+
 	mware := InitAuthMiddleware(asc)
 	routes.Use(mware.AuthRequired)
 	routes.POST("/update-password", asc.UpdatePassword)
@@ -306,4 +309,39 @@ func (asc *ServiceClient) ReqEmailVerification(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusOK, &res)
+}
+
+func (asc *ServiceClient) IsUserAuthenticated(ctx *gin.Context) {
+	authorization := ctx.Request.Header.Get("authorization")
+
+	if authorization == "" {
+		ctx.AbortWithStatus(http.StatusUnauthorized)
+		return
+	}
+
+	token := strings.Split(authorization, "Bearer ")
+
+	if len(token) < 2 {
+		ctx.AbortWithStatus(http.StatusUnauthorized)
+		return
+	}
+	user := ctx.Request.Header.Get("user")
+	if user == "" {
+		ctx.AbortWithStatus(http.StatusUnauthorized)
+		return
+	}
+	res, err := asc.Client.Validate(context.Background(), &pb.ValidateRequest{
+		Token: token[1],
+	})
+	if err != nil || res.Status != http.StatusOK {
+		ctx.AbortWithStatus(http.StatusUnauthorized)
+		return
+	}
+
+	if res.User != user {
+		ctx.AbortWithStatus(http.StatusUnauthorized)
+		return
+	}
+
+	ctx.JSON(http.StatusOK, "authorized")
 }
