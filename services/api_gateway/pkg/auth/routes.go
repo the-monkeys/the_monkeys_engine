@@ -47,8 +47,8 @@ func RegisterRouter(router *gin.Engine, cfg *config.Address) *ServiceClient {
 
 	routes.POST("/verify-email", asc.VerifyEmail)
 
-	// is verified
-	routes.GET("/is-verified", asc.IsUserAuthenticated)
+	// Is the user authenticated
+	routes.GET("/is-authenticated", asc.IsUserAuthenticated)
 
 	mware := InitAuthMiddleware(asc)
 	routes.Use(mware.AuthRequired)

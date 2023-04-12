@@ -133,7 +133,7 @@ Response
 ## Is user authenticated
 Request
 ```
-curl --location 'https://localhost:8080/api/v1/auth/is-verified' \
+curl --location 'https://localhost:8080/api/v1/auth/is-authenticated' \
 --header 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.asdddsfgfythjtgf546545324r34fewr32q432345.tPH1rFR8O7z-kG2tqNRmnqPBysciK2cMUxdJm9uo12g' \
 --header 'user: username@domain.com'
 ```

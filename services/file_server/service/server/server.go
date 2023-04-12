@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"os"
+	"path/filepath"
 	"strings"
 
 	"github.com/89minutes/the_new_project/services/file_server/service/pb"
@@ -75,7 +76,7 @@ func (fs *FileService) UploadBlogFile(stream pb.UploadBlogFile_UploadBlogFileSer
 
 // TODO: return error 404 if file doesn't exist
 func (fs *FileService) GetBlogFile(req *pb.GetBlogFileReq, stream pb.UploadBlogFile_GetBlogFileServer) error {
-	fileName := fs.path + "/" + req.BlogId + "/" + req.FileName
+	fileName := filepath.Join(fs.path, req.BlogId, req.FileName)
 	logrus.Infof("there is a request to retrieve the file, %s", fileName)
 
 	rawFileName := strings.ReplaceAll(fileName, "\n", "")
@@ -95,7 +96,7 @@ func (fs *FileService) GetBlogFile(req *pb.GetBlogFileReq, stream pb.UploadBlogF
 }
 
 func (fs *FileService) DeleteBlogFile(ctx context.Context, req *pb.DeleteBlogFileReq) (*pb.DeleteBlogFileRes, error) {
-	filePath := fs.path + "/" + req.BlogId + "/" + req.FileName
+	filePath := filepath.Join(fs.path, req.BlogId, req.FileName)
 
 	logrus.Infof("there is a request to delete the file, %s", filePath)
 
