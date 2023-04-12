@@ -2,26 +2,27 @@
 
 ## Upload file from blog text editor
 
+Method: POST
 Request:
 ```
-curl --location 'https://127.0.0.1:8080/api/v1/files/post/123' \
---header 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.asddffwer342121.LOWXYurnPaSWljfygdyY0Xuurn69dwBZcv5z0x9SaMY' \
---form 'file=@"/home/dave/Pictures/signal-2023-01-26-235210_002.jpeg"'
+curl --location 'https://themonkeys.tech/api/v1/files/post/123' \
+--header 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MTI1Nzg0NDMsImlzcyI6ImdvLWdycGMtYXV0aC1zdmMiLCJJZCI6MCwiRW1haWwiOiJkYXZldHdlZXRsaXZlQGdtYWlsLmNvbSJ9.LOWXYurnPaSWljfygdyY0Xuurn69dwBZcv5z0x9SaMY' \
+--form 'file=@"/home/dave/Pictures/kI92gPS8_400x400.jpg"'
 ```
 
 Response
 ```
 {
     "status": 200,
-    "newFileName": "signal20230126235210002.jpeg"
+    "newFileName": "kI92gPS8400x400.jpg"
 }
 ```
 
 ## Get file from blog text editor
-
+Method: GET
 Request:
 ```
-curl --location 'https://127.0.0.1:8080/api/v1/files/post/123/signal20230126235210002.jpeg'
+curl --location 'https://themonkeys.tech/api/v1/files/post/123/kI92gPS8400x400.jpg'
 ```
 
 Response
@@ -30,9 +31,10 @@ images/signal2023012623521.jpg
 ```
 
 ## Delete a file
+Method: DELETE
 Request
 ```
-curl --location --request DELETE 'https://127.0.0.1:8080/api/v1/files/post/123/signal20230126235210002.jpeg' \
+curl --location --request DELETE 'https://themonkeys.tech/api/v1/files/post/123/kI92gPS8400x400.jpg' \
 --header 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MTI1Nzg0NDMsImlzcyI6ImdvLWdycGMtYXV0aC1zdmMiLCJJZCI6MCwiRW1haWwiOiJkYXZldHdlZXRsaXZlQGdtYWlsLmNvbSJ9.LOWXYurnPaSWljfygdyY0Xuurn69dwBZcv5z0x9SaMY'
 ```
 
