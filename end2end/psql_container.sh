@@ -42,7 +42,6 @@ sudo docker run --restart always -d --name $OPENSEARCH_CONTAINER -p 9200:9200 -p
 
 echo "Docker containers have been created and running!"
 
-MIGRATION_DIR=psql/migration
 
 # Install Golang Migrate
 curl -L https://github.com/golang-migrate/migrate/releases/download/v4.15.0/migrate.linux-amd64.tar.gz | tar xvz
