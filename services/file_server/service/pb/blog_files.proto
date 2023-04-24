@@ -17,6 +17,7 @@ message UploadBlogFileRes {
     int64 status = 1;
     string error = 2;
     int64 id = 3;
+    string newFileName = 4;
 }
 
 message GetBlogFileReq {

@@ -41,12 +41,33 @@ func RegisterBlogRouter(router *gin.Engine, cfg *config.Address, authClient *aut
 
 	routes.Use(mware.AuthRequired)
 
+	routes.POST("/create/:id", blogCli.CreateAPost)
+
 	routes.POST("/", blogCli.CreateABlog)
 	routes.PUT("/edit/:id", blogCli.EditArticles)
 	routes.PATCH("/edit/:id", blogCli.EditArticles)
 	routes.DELETE("/delete/:id", blogCli.DeleteBlogById)
 
 	return blogCli
+}
+
+func (asc *BlogServiceClient) CreateAPost(ctx *gin.Context) {
+	id := ctx.Param("id")
+
+	body := Post{}
+	if err := ctx.BindJSON(&body); err != nil {
+		logrus.Errorf("cannot bind json to struct, error: %v", err)
+		_ = ctx.AbortWithError(http.StatusBadRequest, err)
+		return
+	}
+
+	body.Id = id
+	logrus.Infof("The Post: %+v", body)
+
+	// TODO: Make the RPC call here
+
+	ctx.JSON(http.StatusAccepted, body)
+
 }
 
 func (asc *BlogServiceClient) CreateABlog(ctx *gin.Context) {

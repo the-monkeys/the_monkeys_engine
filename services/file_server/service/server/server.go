@@ -6,8 +6,11 @@ import (
 	"io/ioutil"
 	"net/http"
 	"os"
-"strings"
+	"path/filepath"
+	"strings"
+
 	"github.com/89minutes/the_new_project/services/file_server/service/pb"
+	"github.com/89minutes/the_new_project/services/file_server/service/utils"
 	"github.com/sirupsen/logrus"
 )
 
@@ -39,14 +42,14 @@ func (fs *FileService) UploadBlogFile(stream pb.UploadBlogFile_UploadBlogFileSer
 	}
 	logrus.Infof("Uploading a file for blog id: %v", blogId)
 
-	dirName := fs.path + "/" + blogId
-	filePath := fs.path + "/" + blogId + "/" + fileName
+	fileName = utils.RemoveSpecialChar(fileName)
+	dirPath, filePath := utils.ConstructPath(fs.path, blogId, fileName)
 
 	// Check if directory exists, if not create it
-	if _, err := os.Stat(fs.path + "/" + blogId); os.IsNotExist(err) {
-		logrus.Infof("the directory, %s doesn't exists", dirName)
+	if _, err := os.Stat(dirPath); os.IsNotExist(err) {
+		logrus.Infof("the directory, %s doesn't exists", dirPath)
 
-		err := os.MkdirAll(fs.path+"/"+blogId, 0755)
+		err := os.MkdirAll(dirPath, 0755)
 		if err != nil {
 			logrus.Errorf("cannot create a directory for this blog id: %s", blogId)
 			return err
@@ -64,14 +67,16 @@ func (fs *FileService) UploadBlogFile(stream pb.UploadBlogFile_UploadBlogFileSer
 		}
 	}
 
+	logrus.Infof("done uploading file: %s", filePath)
 	return stream.SendAndClose(&pb.UploadBlogFileRes{
-		Status: http.StatusOK,
+		Status:      http.StatusOK,
+		NewFileName: fileName,
 	})
 }
 
 // TODO: return error 404 if file doesn't exist
 func (fs *FileService) GetBlogFile(req *pb.GetBlogFileReq, stream pb.UploadBlogFile_GetBlogFileServer) error {
-	fileName := fs.path + "/" + req.BlogId + "/" + req.FileName
+	fileName := filepath.Join(fs.path, req.BlogId, req.FileName)
 	logrus.Infof("there is a request to retrieve the file, %s", fileName)
 
 	rawFileName := strings.ReplaceAll(fileName, "\n", "")
@@ -91,7 +96,7 @@ func (fs *FileService) GetBlogFile(req *pb.GetBlogFileReq, stream pb.UploadBlogF
 }
 
 func (fs *FileService) DeleteBlogFile(ctx context.Context, req *pb.DeleteBlogFileReq) (*pb.DeleteBlogFileRes, error) {
-	filePath := fs.path + "/" + req.BlogId + "/" + req.FileName
+	filePath := filepath.Join(fs.path, req.BlogId, req.FileName)
 
 	logrus.Infof("there is a request to delete the file, %s", filePath)
 
