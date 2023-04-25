@@ -9,12 +9,12 @@ import (
 	"time"
 
 	"github.com/89minutes/the_new_project/services/api_gateway/config"
+	"github.com/89minutes/the_new_project/services/api_gateway/middleware"
 	"github.com/89minutes/the_new_project/services/api_gateway/pkg/article"
 	"github.com/89minutes/the_new_project/services/api_gateway/pkg/auth"
 	"github.com/89minutes/the_new_project/services/api_gateway/pkg/blogsandposts"
 	"github.com/89minutes/the_new_project/services/api_gateway/pkg/file_server"
 	"github.com/89minutes/the_new_project/services/api_gateway/pkg/user_service"
-	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
 )
@@ -45,13 +45,7 @@ func main() {
 	server.router.MaxMultipartMemory = 8 << 20
 
 	// enable CORS
-	config := cors.DefaultConfig()
-	config.AllowOrigins = []string{
-		"https://deploy-preview-43--aquamarine-stardust-75747a.netlify.app",
-		"https://themonkeys.life",
-	}
-
-	server.router.Use(cors.New(config))
+	server.router.Use(middleware.CORSMiddleware())
 
 	// Register REST routes for all the microservice
 	authClient := auth.RegisterRouter(server.router, &cfg)
