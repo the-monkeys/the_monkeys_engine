@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"strings"
 	"time"
@@ -293,4 +294,67 @@ func (blog *BlogService) GetBlogsByTag(req *pb.GetBlogsByTagReq, stream pb.Blogs
 	}
 
 	return nil
+}
+
+func (blog *BlogService) DraftAndPublish(ctx context.Context, req *pb.BlogRequest) (*pb.BlogResponse, error) {
+	blog.logger.Infof("the document %s is being accessed", req.GetId())
+	exists, err := blog.osClient.client.Exists(utils.OpensearchArticleIndex, req.GetId())
+	if err != nil {
+		fmt.Println("Error checking if document exists: ", err)
+		return nil, err
+	}
+
+	if exists.StatusCode == http.StatusNotFound {
+		blog.logger.Infof("cannot find the existing document, creating a document with id %v", req.GetId())
+		// Lower cased tags and trim spaces
+		for i, v := range req.Tags {
+			req.Tags[i] = strings.ToLower(strings.TrimSpace(v))
+		}
+
+		req.CanEdit = true
+		req.Ownership = pb.BlogRequest_THE_USER
+
+		// Assign to models struct
+		newBlog := models.BlogsService{
+			Id:                 req.Id,
+			HTMLContent:        req.HTMLContent,
+			RawContent:         formattedToRawContent(req.HTMLContent), // TODO: get correct raw content
+			CreateTime:         time.Now().Format("2006-01-02T15:04:05Z07:00"),
+			UpdateTime:         time.Now().Format("2006-01-02T15:04:05Z07:00"),
+			AuthorName:         req.AuthorName,
+			AuthorEmail:        req.AuthorEmail,
+			AuthorStatus:       "active",
+			Published:          &req.Published,
+			NoOfViews:          0,
+			Tags:               req.Tags,
+			CanEdit:            &req.CanEdit,
+			OwnerShip:          pb.BlogRequest_Ownership_name[0],
+			Category:           "general", // TODO: Changes category based on sentiment analysis
+			FirstPublishedTime: "",
+			LastEditedTime:     time.Now().Format("2006-01-02T15:04:05Z07:00"),
+		}
+
+		// Create the articles
+		resp, err := blog.osClient.CreateABlog(newBlog)
+		if err != nil {
+			blog.logger.Infof("cannot save the blog, error: %+v", err)
+			return nil, err
+		}
+
+		if resp.StatusCode == http.StatusBadRequest {
+			blog.logger.Errorf("cannot save the blog bad request, error: %+v", err)
+			return nil, common.BadRequest
+		}
+
+		blog.logger.Infof("user %v created a blog successfully: %v", req.GetId(), req.GetId())
+
+		return &pb.BlogResponse{
+			DocId:   req.GetId(),
+			Message: "created a new blog",
+		}, nil
+	}
+
+	blog.logger.Infof("found the existing document, updating the document with id %v", req.GetId())
+	// TODO: Update the blog document
+	return &pb.BlogResponse{}, nil
 }

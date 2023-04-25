@@ -29,6 +29,7 @@ type BlogsAndPostServiceClient interface {
 	EditBlogById(ctx context.Context, in *EditBlogRequest, opts ...grpc.CallOption) (*EditBlogResponse, error)
 	DeleteBlogById(ctx context.Context, in *DeleteBlogByIdRequest, opts ...grpc.CallOption) (*DeleteBlogByIdResponse, error)
 	GetBlogsByTag(ctx context.Context, in *GetBlogsByTagReq, opts ...grpc.CallOption) (BlogsAndPostService_GetBlogsByTagClient, error)
+	DraftAndPublish(ctx context.Context, in *BlogRequest, opts ...grpc.CallOption) (*BlogResponse, error)
 }
 
 type blogsAndPostServiceClient struct {
@@ -139,6 +140,15 @@ func (x *blogsAndPostServiceGetBlogsByTagClient) Recv() (*GetBlogsResponse, erro
 	return m, nil
 }
 
+func (c *blogsAndPostServiceClient) DraftAndPublish(ctx context.Context, in *BlogRequest, opts ...grpc.CallOption) (*BlogResponse, error) {
+	out := new(BlogResponse)
+	err := c.cc.Invoke(ctx, "/auth.BlogsAndPostService/DraftAndPublish", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // BlogsAndPostServiceServer is the server API for BlogsAndPostService service.
 // All implementations must embed UnimplementedBlogsAndPostServiceServer
 // for forward compatibility
@@ -149,6 +159,7 @@ type BlogsAndPostServiceServer interface {
 	EditBlogById(context.Context, *EditBlogRequest) (*EditBlogResponse, error)
 	DeleteBlogById(context.Context, *DeleteBlogByIdRequest) (*DeleteBlogByIdResponse, error)
 	GetBlogsByTag(*GetBlogsByTagReq, BlogsAndPostService_GetBlogsByTagServer) error
+	DraftAndPublish(context.Context, *BlogRequest) (*BlogResponse, error)
 	mustEmbedUnimplementedBlogsAndPostServiceServer()
 }
 
@@ -173,6 +184,9 @@ func (UnimplementedBlogsAndPostServiceServer) DeleteBlogById(context.Context, *D
 }
 func (UnimplementedBlogsAndPostServiceServer) GetBlogsByTag(*GetBlogsByTagReq, BlogsAndPostService_GetBlogsByTagServer) error {
 	return status.Errorf(codes.Unimplemented, "method GetBlogsByTag not implemented")
+}
+func (UnimplementedBlogsAndPostServiceServer) DraftAndPublish(context.Context, *BlogRequest) (*BlogResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DraftAndPublish not implemented")
 }
 func (UnimplementedBlogsAndPostServiceServer) mustEmbedUnimplementedBlogsAndPostServiceServer() {}
 
@@ -301,6 +315,24 @@ func (x *blogsAndPostServiceGetBlogsByTagServer) Send(m *GetBlogsResponse) error
 	return x.ServerStream.SendMsg(m)
 }
 
+func _BlogsAndPostService_DraftAndPublish_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(BlogRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BlogsAndPostServiceServer).DraftAndPublish(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/auth.BlogsAndPostService/DraftAndPublish",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BlogsAndPostServiceServer).DraftAndPublish(ctx, req.(*BlogRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // BlogsAndPostService_ServiceDesc is the grpc.ServiceDesc for BlogsAndPostService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -323,6 +355,10 @@ var BlogsAndPostService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "DeleteBlogById",
 			Handler:    _BlogsAndPostService_DeleteBlogById_Handler,
+		},
+		{
+			MethodName: "DraftAndPublish",
+			Handler:    _BlogsAndPostService_DraftAndPublish_Handler,
 		},
 	},
 	Streams: []grpc.StreamDesc{

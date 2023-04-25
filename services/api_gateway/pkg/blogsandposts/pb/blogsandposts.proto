@@ -87,6 +87,35 @@ message GetBlogsByTagReq {
   string tagName = 1;
 }
 
+message BlogRequest {
+  string id = 1;
+  string HTMLContent = 2;
+  string rawContent = 3;
+  google.protobuf.Timestamp createTime = 4;
+  google.protobuf.Timestamp updateTime = 5;
+  string authorName = 6;
+  string authorEmail = 7;
+  string authorStatus = 8;
+  bool published = 9;
+  repeated string Tags = 10;
+  bool canEdit = 11;
+  Ownership ownership = 12;
+  string category = 13;
+
+  enum Ownership {
+    THE_USER = 0;
+    THE_MONKEYS = 1;
+    THE_PARTNER = 2;
+  }
+}
+
+message BlogResponse {
+string docId = 1;
+string message = 2;
+string error = 3;
+}
+
+
 service BlogsAndPostService {
     rpc CreateABlog(CreateBlogRequest) returns (CreateBlogResponse) {};
     rpc Get100Blogs(google.protobuf.Empty) returns (stream GetBlogsResponse) {};
@@ -94,4 +123,6 @@ service BlogsAndPostService {
     rpc EditBlogById(EditBlogRequest) returns (EditBlogResponse){};
     rpc DeleteBlogById(DeleteBlogByIdRequest) returns (DeleteBlogByIdResponse){};
     rpc GetBlogsByTag(GetBlogsByTagReq) returns (stream GetBlogsResponse){};
+
+    rpc DraftAndPublish(BlogRequest) returns (BlogResponse) {};
 }

@@ -143,3 +143,36 @@ func (oso *openSearchClient) GetLast100ArticlesByTag(tag string) (*opensearchapi
 
 	return searchResponse, nil
 }
+
+// CreateAnArticle creates a document for an article posted by a user
+func (oso *openSearchClient) CreateABlog(article models.BlogsService) (*opensearchapi.Response, error) {
+	oso.log.Infof("received an article with id: %s", article.Id)
+
+	bs, err := json.Marshal(article)
+	if err != nil {
+		oso.log.Errorf("cannot marshal the article, error: %v", err)
+		return nil, err
+	}
+
+	document := strings.NewReader(string(bs))
+
+	osReq := opensearchapi.IndexRequest{
+		Index:      utils.OpensearchArticleIndex,
+		DocumentID: article.Id,
+		Body:       document,
+	}
+
+	insertResponse, err := osReq.Do(context.Background(), oso.client)
+	if err != nil {
+		oso.log.Errorf("error while creating/drafting article, error: %+v", err)
+		return insertResponse, err
+	}
+
+	if insertResponse.IsError() {
+		oso.log.Errorf("error creating an article, insert response: %+v", insertResponse)
+		return insertResponse, err
+	}
+
+	oso.log.Infof("successfully created an article for user: %s, insert response: %+v", article.AuthorEmail, insertResponse)
+	return insertResponse, nil
+}
