@@ -43,8 +43,15 @@ func main() {
 	server.router.Use(gin.Recovery())
 	server.router.Use(gin.Logger())
 	server.router.MaxMultipartMemory = 8 << 20
+
 	// enable CORS
-	server.router.Use(cors.Default())
+	config := cors.DefaultConfig()
+	config.AllowOrigins = []string{
+		"https://deploy-preview-43--aquamarine-stardust-75747a.netlify.app",
+		"https://themonkeys.life",
+	}
+
+	server.router.Use(cors.New(config))
 
 	// Register REST routes for all the microservice
 	authClient := auth.RegisterRouter(server.router, &cfg)
