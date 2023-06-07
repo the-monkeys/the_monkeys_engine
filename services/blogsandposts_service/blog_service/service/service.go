@@ -296,6 +296,7 @@ func (blog *BlogService) GetBlogsByTag(req *pb.GetBlogsByTagReq, stream pb.Blogs
 	return nil
 }
 
+// TODO: Needs to be edited based on the Quill or editor.js integration
 func (blog *BlogService) DraftAndPublish(ctx context.Context, req *pb.BlogRequest) (*pb.BlogResponse, error) {
 	blog.logger.Infof("the document %s is being accessed", req.GetId())
 	exists, err := blog.osClient.client.Exists(utils.OpensearchArticleIndex, req.GetId())
