@@ -105,6 +105,7 @@ func (us *UserService) UploadProfile(stream pb.UserService_UploadProfileServer) 
 }
 
 func (us *UserService) Download(req *pb.GetProfilePicReq, stream pb.UserService_DownloadServer) error {
+	us.log.Infof("profile pic is requested for user %v", req.Id)
 	xb := []byte{}
 	err := us.db.Psql.QueryRow("SELECT profile_pic from the_monkeys_user WHERE id=$1", req.Id).Scan(&xb)
 	if err != nil {

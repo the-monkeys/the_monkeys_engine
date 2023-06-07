@@ -177,8 +177,7 @@ func (asc *UserServiceClient) GetProfilePic(ctx *gin.Context) {
 		return
 	}
 
-	ctx.Header("Content-Disposition", "attachment; filename=file-name.txt")
-	ctx.Data(http.StatusOK, "application/octet-stream", resp.Data)
+	ctx.Writer.Write(resp.Data)
 }
 
 func (asc *UserServiceClient) DeleteMyAccount(ctx *gin.Context) {

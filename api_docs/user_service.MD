@@ -46,6 +46,19 @@ Response
 }
 ```
 
+## Upload Profile Picture
+Request
+```
+curl --location 'https://localhost:8080/api/v1/profile/user/pic/12' \
+--header 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MDc2NTg3NTIsImlzcyI6ImdvLWdycGMtYXV0aC1zdmMiLCJJZCI6MCwiRW1haWwiOiJtYWlsLnRoZW1vbmtleXMubGlmZUBnbWFpbC5jb20ifQ.6tAe7sgLJCkwPsQ9ZZJ_TZaPqVr4E7ZNihjD-0Md1nc' \
+--form 'image=@"/home/dave/Pictures/kI92gPS8_400x400.jpg"'
+```
+
+Response
+```
+   "uploaded" 
+```
+
 ## Get Profile pics
 Request
 ```

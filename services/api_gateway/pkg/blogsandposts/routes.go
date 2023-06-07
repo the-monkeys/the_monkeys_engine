@@ -41,17 +41,18 @@ func RegisterBlogRouter(router *gin.Engine, cfg *config.Address, authClient *aut
 
 	routes.Use(mware.AuthRequired)
 
-	routes.POST("/create/:id", blogCli.CreateAPost)
-
 	routes.POST("/", blogCli.CreateABlog)
 	routes.PUT("/edit/:id", blogCli.EditArticles)
 	routes.PATCH("/edit/:id", blogCli.EditArticles)
 	routes.DELETE("/delete/:id", blogCli.DeleteBlogById)
 
+	// Based on the editor.js APIS
+	routes.POST("/create/:id", blogCli.DraftAndPublish)
+
 	return blogCli
 }
 
-func (asc *BlogServiceClient) CreateAPost(ctx *gin.Context) {
+func (asc *BlogServiceClient) DraftAndPublish(ctx *gin.Context) {
 	id := ctx.Param("id")
 
 	body := Post{}
@@ -62,11 +63,19 @@ func (asc *BlogServiceClient) CreateAPost(ctx *gin.Context) {
 	}
 
 	body.Id = id
+	// TODO: Remove this line
 	logrus.Infof("The Post: %+v", body)
 
-	// TODO: Make the RPC call here
+	res, err := asc.Client.DraftAndPublish(context.Background(), &pb.BlogRequest{
+		Id: body.Id,
+	})
 
-	ctx.JSON(http.StatusAccepted, body)
+	if err != nil {
+		_ = ctx.AbortWithError(http.StatusBadGateway, err)
+		return
+	}
+
+	ctx.JSON(http.StatusAccepted, &res)
 
 }
 

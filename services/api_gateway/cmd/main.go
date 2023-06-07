@@ -9,12 +9,12 @@ import (
 	"time"
 
 	"github.com/89minutes/the_new_project/services/api_gateway/config"
+	"github.com/89minutes/the_new_project/services/api_gateway/middleware"
 	"github.com/89minutes/the_new_project/services/api_gateway/pkg/article"
 	"github.com/89minutes/the_new_project/services/api_gateway/pkg/auth"
 	"github.com/89minutes/the_new_project/services/api_gateway/pkg/blogsandposts"
 	"github.com/89minutes/the_new_project/services/api_gateway/pkg/file_server"
 	"github.com/89minutes/the_new_project/services/api_gateway/pkg/user_service"
-	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
 )
@@ -43,8 +43,9 @@ func main() {
 	server.router.Use(gin.Recovery())
 	server.router.Use(gin.Logger())
 	server.router.MaxMultipartMemory = 8 << 20
+
 	// enable CORS
-	server.router.Use(cors.Default())
+	server.router.Use(middleware.CORSMiddleware())
 
 	// Register REST routes for all the microservice
 	authClient := auth.RegisterRouter(server.router, &cfg)

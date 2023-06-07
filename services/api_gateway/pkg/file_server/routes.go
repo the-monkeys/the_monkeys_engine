@@ -112,6 +112,7 @@ func (asc *FileServiceClient) GetBlogFile(ctx *gin.Context) {
 		return
 	}
 
+	// TODO: Remove the comment lines
 	// ctx.Header("Content-Disposition", "attachment; filename=file-name.txt")
 	// ctx.Data(http.StatusOK, "application/octet-stream", resp.Data)
 

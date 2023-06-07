@@ -23,20 +23,22 @@ type Blogs struct {
 }
 
 type BlogsService struct {
-	Id           string                         `json:"id"`
-	HTMLContent  string                         `json:"html_content"`
-	RawContent   string                         `json:"raw_content"`
-	CreateTime   string                         `json:"create_time"`
-	UpdateTime   string                         `json:"update_time"`
-	AuthorName   string                         `json:"author_name"`
-	AuthorEmail  string                         `json:"author_email"`
-	AuthorStatus string                         `json:"author_status"`
-	Published    *bool                          `json:"published"`
-	NoOfViews    int                            `json:"no_of_views"`
-	Tags         []string                       `json:"tags"`
-	CanEdit      *bool                          `json:"can_edit"`
-	OwnerShip    pb.CreateBlogRequest_Ownership `json:"content_ownership"`
-	Category     string                         `json:"category"`
+	Id                 string   `json:"id"`
+	HTMLContent        string   `json:"html_content"`
+	RawContent         string   `json:"raw_content"`
+	CreateTime         string   `json:"create_time"`
+	UpdateTime         string   `json:"update_time"`
+	AuthorName         string   `json:"author_name"`
+	AuthorEmail        string   `json:"author_email"`
+	AuthorStatus       string   `json:"author_status"`
+	Published          *bool    `json:"published"`
+	NoOfViews          int      `json:"no_of_views"`
+	Tags               []string `json:"tags"`
+	CanEdit            *bool    `json:"can_edit"`
+	OwnerShip          string   `json:"content_ownership"`
+	Category           string   `json:"category"`
+	FirstPublishedTime string   `json:"first_published_time"`
+	LastEditedTime     string   `json:"last_edited_time"`
 }
 
 type GetArticleResp struct {
