@@ -67,16 +67,16 @@ func main() {
 func (s *Server) start(ctx context.Context, addr config.Address) {
 	// TLS certificate and key
 	var tlsCert, tlsKey string
-	if os.Getenv("NO_TLS") != "1" {
-		tlsCert = os.Getenv("TLS_CERT")
-		if tlsCert == "" {
-			tlsCert = "/the_monkeys/vault/certs/cert.pem"
-		}
-		tlsKey = os.Getenv("TLS_KEY")
-		if tlsKey == "" {
-			tlsKey = "/the_monkeys/vault/certs/prv_key.pem"
-		}
-	}
+	// if os.Getenv("NO_TLS") != "1" {
+	// 	tlsCert = os.Getenv("TLS_CERT")
+	// 	if tlsCert == "" {
+	// 		// tlsCert = "/the_monkeys/vault/certs/cert.pem"
+	// 	}
+	// 	tlsKey = os.Getenv("TLS_KEY")
+	// 	if tlsKey == "" {
+	// 		tlsKey = "/the_monkeys/vault/certs/prv_key.pem"
+	// 	}
+	// }
 
 	// Launch the server (this is a blocking call)
 	s.launchServer(ctx, addr, tlsCert, tlsKey)
@@ -117,16 +117,16 @@ func (s *Server) launchServer(ctx context.Context, addr config.Address, tlsCert,
 	}()
 
 	// Start the HTTPS server in a background goroutine
-	if enableTLS {
-		go func() {
-			logrus.Printf("HTTPS server listening at https://%s\n", addr.APIGatewayHTTPS)
-			err := httpsSrv.ListenAndServeTLS(tlsCert, tlsKey)
-			if err != http.ErrServerClosed {
-				logrus.Errorf("cannot start the http server, error: %+v", err)
-				panic(err)
-			}
-		}()
-	}
+	// if enableTLS {
+	// 	go func() {
+	// 		logrus.Printf("HTTPS server listening at https://%s\n", addr.APIGatewayHTTPS)
+	// 		err := httpsSrv.ListenAndServeTLS(tlsCert, tlsKey)
+	// 		if err != http.ErrServerClosed {
+	// 			logrus.Errorf("cannot start the http server, error: %+v", err)
+	// 			panic(err)
+	// 		}
+	// 	}()
+	// }
 
 	// Listen to SIGINT and SIGTERM signals
 	ch := make(chan os.Signal, 1)

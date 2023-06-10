@@ -65,7 +65,8 @@ func (s *AuthServer) Register(ctx context.Context, req *pb.RegisterRequest) (*pb
 	user.LoginMethod = pb.RegisterRequest_LoginMethod_name[pb.RegisterRequest_LoginMethod_value[req.LoginMethod.String()]]
 
 	logrus.Infof("registering the user with email %v", req.Email)
-	if err := s.dbCli.RegisterUser(user); err != nil {
+	userId, err := s.dbCli.RegisterUser(user)
+	if err != nil {
 		return nil, err
 	}
 
@@ -90,6 +91,7 @@ func (s *AuthServer) Register(ctx context.Context, req *pb.RegisterRequest) (*pb
 		Error:         "",
 		Token:         token,
 		EmailVerified: false,
+		UserId:        userId,
 	}, nil
 }
 
@@ -98,8 +100,8 @@ func (s *AuthServer) Login(ctx context.Context, req *pb.LoginRequest) (*pb.Login
 	var user models.TheMonkeysUser
 
 	// Check if the email exists
-	err := s.dbCli.PsqlClient.QueryRow("SELECT email, password, deactivated, email_verified FROM the_monkeys_user WHERE email=$1;", req.GetEmail()).
-		Scan(&user.Email, &user.Password, &user.Deactivated, &user.EmailVerified)
+	err := s.dbCli.PsqlClient.QueryRow("SELECT id, email, password, deactivated, email_verified FROM the_monkeys_user WHERE email=$1;", req.GetEmail()).
+		Scan(&user.Id, &user.Email, &user.Password, &user.Deactivated, &user.EmailVerified)
 	if err != nil {
 		logrus.Errorf("cannot login as the email %s doesn't exist, error: %+v", req.Email, err)
 		return &pb.LoginResponse{
@@ -141,6 +143,7 @@ func (s *AuthServer) Login(ctx context.Context, req *pb.LoginRequest) (*pb.Login
 		Status:        http.StatusOK,
 		Token:         token,
 		EmailVerified: user.EmailVerified,
+		UserId:        user.Id,
 	}, nil
 }
 
