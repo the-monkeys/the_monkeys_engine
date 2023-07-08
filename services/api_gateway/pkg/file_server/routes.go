@@ -37,10 +37,18 @@ func RegisterUserRouter(router *gin.Engine, cfg *config.Address, authClient *aut
 		Client: NewFileServiceClient(cfg),
 	}
 	routes := router.Group("/api/v1/files")
+
 	routes.GET("/post/:id/:fileName", usc.GetBlogFile)
+
+	// route defined to get profile pic
+
 	routes.Use(mware.AuthRequired)
 	routes.POST("/post/:id", usc.UploadBlogFile)
 	routes.DELETE("/post/:id/:fileName", usc.DeleteBlogFile)
+
+	// route defined to access profile
+	routes.POST("/profile/:user_id/profile", usc.UploadProfilePic)
+
 	return usc
 }
 
@@ -136,4 +144,48 @@ func (asc *FileServiceClient) DeleteBlogFile(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusAccepted, res)
+}
+
+func (asc *FileServiceClient) UploadProfilePic(ctx *gin.Context) {
+	// get Id of the blog from the URL
+	userId := ctx.Param("user_id")
+
+	// Get file from the form file section
+	file, fileHeader, err := ctx.Request.FormFile("profile_pic")
+	if err != nil {
+		ctx.AbortWithError(http.StatusBadRequest, err)
+		return
+	}
+	defer file.Close()
+
+	// Read the file and make it slice of bytes
+	imageData, err := ioutil.ReadAll(file)
+	if err != nil {
+		fmt.Println("Error reading image data:", err)
+	}
+
+	stream, err := asc.Client.UploadProfilePic(context.Background())
+	if err != nil {
+		ctx.AbortWithError(http.StatusInternalServerError, err)
+		return
+	}
+
+	chunk := &pb.UploadProfilePicReq{
+		UserId:   userId,
+		Data:     imageData,
+		FileType: fileHeader.Filename,
+	}
+	err = stream.Send(chunk)
+	if err != nil {
+		log.Fatal("cannot send file info to server: ", err, stream.RecvMsg(nil))
+	}
+
+	resp, err := stream.CloseAndRecv()
+	if err != nil {
+		ctx.AbortWithError(http.StatusInternalServerError, err)
+		return
+	}
+
+	// log.Printf("%+v\n", response)
+	ctx.JSON(http.StatusAccepted, resp)
 }

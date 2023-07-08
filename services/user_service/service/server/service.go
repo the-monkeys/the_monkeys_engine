@@ -3,7 +3,6 @@ package server
 import (
 	"context"
 	"fmt"
-	"io"
 	"log"
 	"net/http"
 
@@ -75,51 +74,6 @@ func (us *UserService) SetMyProfile(ctx context.Context, req *pb.SetMyProfileReq
 	return &pb.SetMyProfileRes{
 		Status: http.StatusOK,
 	}, nil
-}
-
-func (us *UserService) UploadProfile(stream pb.UserService_UploadProfileServer) error {
-	var byteSlice []byte
-	var chunkId int64
-	for {
-		chunk, err := stream.Recv()
-		if err == io.EOF {
-			break
-		}
-		if err != nil {
-			return err
-		}
-
-		byteSlice = append(byteSlice, chunk.Data...)
-		chunkId = chunk.Id
-	}
-	us.log.Infof("updating profile pic for user: %v", chunkId)
-	err := us.db.UploadProfilePic(byteSlice, chunkId)
-	if err != nil {
-		return err
-	}
-
-	return stream.SendAndClose(&pb.UploadProfilePicRes{
-		Status: http.StatusOK,
-		Id:     chunkId,
-	})
-}
-
-func (us *UserService) Download(req *pb.GetProfilePicReq, stream pb.UserService_DownloadServer) error {
-	us.log.Infof("profile pic is requested for user %v", req.Id)
-	xb := []byte{}
-	err := us.db.Psql.QueryRow("SELECT profile_pic from the_monkeys_user WHERE id=$1", req.Id).Scan(&xb)
-	if err != nil {
-		us.log.Errorf("cannot get the profile pic, error: %v", err)
-		return utils.Errors(err)
-	}
-
-	if err := stream.Send(&pb.GetProfilePicRes{
-		Data: xb,
-	}); err != nil {
-		us.log.Errorf("error while sending stream, error %+v", err)
-	}
-
-	return nil
 }
 
 func (us *UserService) DeleteMyProfile(ctx context.Context, req *pb.DeleteMyAccountReq) (*pb.DeleteMyAccountRes, error) {

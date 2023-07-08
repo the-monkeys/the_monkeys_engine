@@ -10,6 +10,9 @@ proto:
 	protoc services/file_server/service/pb/*.proto --go_out=. --go-grpc_out=.
 
 
+proto-gen:
+	protoc apis/grpc/**/*.proto --go_out=. --go-grpc_out=.
+
 proto-gen-interservices:
 	protoc apis/interservice/**/*.proto --go_out=. --go-grpc_out=.
 
@@ -20,8 +23,7 @@ sql-gen:
 	migrate create -ext sql -dir psql/migration -seq $$INPUT_VALUE
 
 
-# TODO: Make the following changes in db connectons
-# 2. SSL mode enable
+# TODO: Enable SSL for psql
 migrate-up:
 	migrate -path psql/migration -database "postgresql://${PSQLUSER}:${PSQLPASS}@${PSQLHOST}:${PSQLPORT}/${PSQLDB}?sslmode=disable" -verbose up
 

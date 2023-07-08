@@ -390,6 +390,368 @@ func (x *DeleteBlogFileRes) GetError() string {
 	return ""
 }
 
+type UploadProfilePicReq struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Data     []byte `protobuf:"bytes,1,opt,name=data,proto3" json:"data,omitempty"`
+	UserId   string `protobuf:"bytes,2,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
+	FileType string `protobuf:"bytes,3,opt,name=file_type,json=fileType,proto3" json:"file_type,omitempty"`
+}
+
+func (x *UploadProfilePicReq) Reset() {
+	*x = UploadProfilePicReq{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_services_api_gateway_pkg_file_server_pb_file_server_proto_msgTypes[6]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *UploadProfilePicReq) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UploadProfilePicReq) ProtoMessage() {}
+
+func (x *UploadProfilePicReq) ProtoReflect() protoreflect.Message {
+	mi := &file_services_api_gateway_pkg_file_server_pb_file_server_proto_msgTypes[6]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UploadProfilePicReq.ProtoReflect.Descriptor instead.
+func (*UploadProfilePicReq) Descriptor() ([]byte, []int) {
+	return file_services_api_gateway_pkg_file_server_pb_file_server_proto_rawDescGZIP(), []int{6}
+}
+
+func (x *UploadProfilePicReq) GetData() []byte {
+	if x != nil {
+		return x.Data
+	}
+	return nil
+}
+
+func (x *UploadProfilePicReq) GetUserId() string {
+	if x != nil {
+		return x.UserId
+	}
+	return ""
+}
+
+func (x *UploadProfilePicReq) GetFileType() string {
+	if x != nil {
+		return x.FileType
+	}
+	return ""
+}
+
+type UploadProfilePicRes struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Status   int64  `protobuf:"varint,1,opt,name=status,proto3" json:"status,omitempty"`
+	Error    string `protobuf:"bytes,2,opt,name=error,proto3" json:"error,omitempty"`
+	FileName string `protobuf:"bytes,3,opt,name=file_name,json=fileName,proto3" json:"file_name,omitempty"`
+}
+
+func (x *UploadProfilePicRes) Reset() {
+	*x = UploadProfilePicRes{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_services_api_gateway_pkg_file_server_pb_file_server_proto_msgTypes[7]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *UploadProfilePicRes) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UploadProfilePicRes) ProtoMessage() {}
+
+func (x *UploadProfilePicRes) ProtoReflect() protoreflect.Message {
+	mi := &file_services_api_gateway_pkg_file_server_pb_file_server_proto_msgTypes[7]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UploadProfilePicRes.ProtoReflect.Descriptor instead.
+func (*UploadProfilePicRes) Descriptor() ([]byte, []int) {
+	return file_services_api_gateway_pkg_file_server_pb_file_server_proto_rawDescGZIP(), []int{7}
+}
+
+func (x *UploadProfilePicRes) GetStatus() int64 {
+	if x != nil {
+		return x.Status
+	}
+	return 0
+}
+
+func (x *UploadProfilePicRes) GetError() string {
+	if x != nil {
+		return x.Error
+	}
+	return ""
+}
+
+func (x *UploadProfilePicRes) GetFileName() string {
+	if x != nil {
+		return x.FileName
+	}
+	return ""
+}
+
+type GetProfilePicReq struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	UserId   string `protobuf:"bytes,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
+	FileName string `protobuf:"bytes,2,opt,name=file_name,json=fileName,proto3" json:"file_name,omitempty"`
+}
+
+func (x *GetProfilePicReq) Reset() {
+	*x = GetProfilePicReq{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_services_api_gateway_pkg_file_server_pb_file_server_proto_msgTypes[8]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *GetProfilePicReq) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetProfilePicReq) ProtoMessage() {}
+
+func (x *GetProfilePicReq) ProtoReflect() protoreflect.Message {
+	mi := &file_services_api_gateway_pkg_file_server_pb_file_server_proto_msgTypes[8]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetProfilePicReq.ProtoReflect.Descriptor instead.
+func (*GetProfilePicReq) Descriptor() ([]byte, []int) {
+	return file_services_api_gateway_pkg_file_server_pb_file_server_proto_rawDescGZIP(), []int{8}
+}
+
+func (x *GetProfilePicReq) GetUserId() string {
+	if x != nil {
+		return x.UserId
+	}
+	return ""
+}
+
+func (x *GetProfilePicReq) GetFileName() string {
+	if x != nil {
+		return x.FileName
+	}
+	return ""
+}
+
+type GetProfilePicRes struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Data    []byte `protobuf:"bytes,1,opt,name=data,proto3" json:"data,omitempty"`
+	Message string `protobuf:"bytes,2,opt,name=message,proto3" json:"message,omitempty"`
+	Error   string `protobuf:"bytes,3,opt,name=error,proto3" json:"error,omitempty"`
+}
+
+func (x *GetProfilePicRes) Reset() {
+	*x = GetProfilePicRes{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_services_api_gateway_pkg_file_server_pb_file_server_proto_msgTypes[9]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *GetProfilePicRes) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetProfilePicRes) ProtoMessage() {}
+
+func (x *GetProfilePicRes) ProtoReflect() protoreflect.Message {
+	mi := &file_services_api_gateway_pkg_file_server_pb_file_server_proto_msgTypes[9]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetProfilePicRes.ProtoReflect.Descriptor instead.
+func (*GetProfilePicRes) Descriptor() ([]byte, []int) {
+	return file_services_api_gateway_pkg_file_server_pb_file_server_proto_rawDescGZIP(), []int{9}
+}
+
+func (x *GetProfilePicRes) GetData() []byte {
+	if x != nil {
+		return x.Data
+	}
+	return nil
+}
+
+func (x *GetProfilePicRes) GetMessage() string {
+	if x != nil {
+		return x.Message
+	}
+	return ""
+}
+
+func (x *GetProfilePicRes) GetError() string {
+	if x != nil {
+		return x.Error
+	}
+	return ""
+}
+
+type DeleteProfilePicReq struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	UserId   string `protobuf:"bytes,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
+	FileName string `protobuf:"bytes,2,opt,name=file_name,json=fileName,proto3" json:"file_name,omitempty"`
+}
+
+func (x *DeleteProfilePicReq) Reset() {
+	*x = DeleteProfilePicReq{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_services_api_gateway_pkg_file_server_pb_file_server_proto_msgTypes[10]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *DeleteProfilePicReq) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DeleteProfilePicReq) ProtoMessage() {}
+
+func (x *DeleteProfilePicReq) ProtoReflect() protoreflect.Message {
+	mi := &file_services_api_gateway_pkg_file_server_pb_file_server_proto_msgTypes[10]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DeleteProfilePicReq.ProtoReflect.Descriptor instead.
+func (*DeleteProfilePicReq) Descriptor() ([]byte, []int) {
+	return file_services_api_gateway_pkg_file_server_pb_file_server_proto_rawDescGZIP(), []int{10}
+}
+
+func (x *DeleteProfilePicReq) GetUserId() string {
+	if x != nil {
+		return x.UserId
+	}
+	return ""
+}
+
+func (x *DeleteProfilePicReq) GetFileName() string {
+	if x != nil {
+		return x.FileName
+	}
+	return ""
+}
+
+type DeleteProfilePicRes struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Message string `protobuf:"bytes,1,opt,name=message,proto3" json:"message,omitempty"`
+	Status  int64  `protobuf:"varint,2,opt,name=status,proto3" json:"status,omitempty"`
+	Error   string `protobuf:"bytes,3,opt,name=error,proto3" json:"error,omitempty"`
+}
+
+func (x *DeleteProfilePicRes) Reset() {
+	*x = DeleteProfilePicRes{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_services_api_gateway_pkg_file_server_pb_file_server_proto_msgTypes[11]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *DeleteProfilePicRes) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DeleteProfilePicRes) ProtoMessage() {}
+
+func (x *DeleteProfilePicRes) ProtoReflect() protoreflect.Message {
+	mi := &file_services_api_gateway_pkg_file_server_pb_file_server_proto_msgTypes[11]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DeleteProfilePicRes.ProtoReflect.Descriptor instead.
+func (*DeleteProfilePicRes) Descriptor() ([]byte, []int) {
+	return file_services_api_gateway_pkg_file_server_pb_file_server_proto_rawDescGZIP(), []int{11}
+}
+
+func (x *DeleteProfilePicRes) GetMessage() string {
+	if x != nil {
+		return x.Message
+	}
+	return ""
+}
+
+func (x *DeleteProfilePicRes) GetStatus() int64 {
+	if x != nil {
+		return x.Status
+	}
+	return 0
+}
+
+func (x *DeleteProfilePicRes) GetError() string {
+	if x != nil {
+		return x.Error
+	}
+	return ""
+}
+
 var File_services_api_gateway_pkg_file_server_pb_file_server_proto protoreflect.FileDescriptor
 
 var file_services_api_gateway_pkg_file_server_pb_file_server_proto_rawDesc = []byte{
@@ -430,8 +792,55 @@ var file_services_api_gateway_pkg_file_server_pb_file_server_proto_rawDesc = []b
 	0x73, 0x73, 0x61, 0x67, 0x65, 0x12, 0x16, 0x0a, 0x06, 0x73, 0x74, 0x61, 0x74, 0x75, 0x73, 0x18,
 	0x02, 0x20, 0x01, 0x28, 0x03, 0x52, 0x06, 0x73, 0x74, 0x61, 0x74, 0x75, 0x73, 0x12, 0x14, 0x0a,
 	0x05, 0x65, 0x72, 0x72, 0x6f, 0x72, 0x18, 0x03, 0x20, 0x01, 0x28, 0x09, 0x52, 0x05, 0x65, 0x72,
-	0x72, 0x6f, 0x72, 0x32, 0xdd, 0x01, 0x0a, 0x0e, 0x55, 0x70, 0x6c, 0x6f, 0x61, 0x64, 0x42, 0x6c,
-	0x6f, 0x67, 0x46, 0x69, 0x6c, 0x65, 0x12, 0x46, 0x0a, 0x0e, 0x55, 0x70, 0x6c, 0x6f, 0x61, 0x64,
+	0x72, 0x6f, 0x72, 0x22, 0x5f, 0x0a, 0x13, 0x55, 0x70, 0x6c, 0x6f, 0x61, 0x64, 0x50, 0x72, 0x6f,
+	0x66, 0x69, 0x6c, 0x65, 0x50, 0x69, 0x63, 0x52, 0x65, 0x71, 0x12, 0x12, 0x0a, 0x04, 0x64, 0x61,
+	0x74, 0x61, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0c, 0x52, 0x04, 0x64, 0x61, 0x74, 0x61, 0x12, 0x17,
+	0x0a, 0x07, 0x75, 0x73, 0x65, 0x72, 0x5f, 0x69, 0x64, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52,
+	0x06, 0x75, 0x73, 0x65, 0x72, 0x49, 0x64, 0x12, 0x1b, 0x0a, 0x09, 0x66, 0x69, 0x6c, 0x65, 0x5f,
+	0x74, 0x79, 0x70, 0x65, 0x18, 0x03, 0x20, 0x01, 0x28, 0x09, 0x52, 0x08, 0x66, 0x69, 0x6c, 0x65,
+	0x54, 0x79, 0x70, 0x65, 0x22, 0x60, 0x0a, 0x13, 0x55, 0x70, 0x6c, 0x6f, 0x61, 0x64, 0x50, 0x72,
+	0x6f, 0x66, 0x69, 0x6c, 0x65, 0x50, 0x69, 0x63, 0x52, 0x65, 0x73, 0x12, 0x16, 0x0a, 0x06, 0x73,
+	0x74, 0x61, 0x74, 0x75, 0x73, 0x18, 0x01, 0x20, 0x01, 0x28, 0x03, 0x52, 0x06, 0x73, 0x74, 0x61,
+	0x74, 0x75, 0x73, 0x12, 0x14, 0x0a, 0x05, 0x65, 0x72, 0x72, 0x6f, 0x72, 0x18, 0x02, 0x20, 0x01,
+	0x28, 0x09, 0x52, 0x05, 0x65, 0x72, 0x72, 0x6f, 0x72, 0x12, 0x1b, 0x0a, 0x09, 0x66, 0x69, 0x6c,
+	0x65, 0x5f, 0x6e, 0x61, 0x6d, 0x65, 0x18, 0x03, 0x20, 0x01, 0x28, 0x09, 0x52, 0x08, 0x66, 0x69,
+	0x6c, 0x65, 0x4e, 0x61, 0x6d, 0x65, 0x22, 0x48, 0x0a, 0x10, 0x47, 0x65, 0x74, 0x50, 0x72, 0x6f,
+	0x66, 0x69, 0x6c, 0x65, 0x50, 0x69, 0x63, 0x52, 0x65, 0x71, 0x12, 0x17, 0x0a, 0x07, 0x75, 0x73,
+	0x65, 0x72, 0x5f, 0x69, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x06, 0x75, 0x73, 0x65,
+	0x72, 0x49, 0x64, 0x12, 0x1b, 0x0a, 0x09, 0x66, 0x69, 0x6c, 0x65, 0x5f, 0x6e, 0x61, 0x6d, 0x65,
+	0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x08, 0x66, 0x69, 0x6c, 0x65, 0x4e, 0x61, 0x6d, 0x65,
+	0x22, 0x56, 0x0a, 0x10, 0x47, 0x65, 0x74, 0x50, 0x72, 0x6f, 0x66, 0x69, 0x6c, 0x65, 0x50, 0x69,
+	0x63, 0x52, 0x65, 0x73, 0x12, 0x12, 0x0a, 0x04, 0x64, 0x61, 0x74, 0x61, 0x18, 0x01, 0x20, 0x01,
+	0x28, 0x0c, 0x52, 0x04, 0x64, 0x61, 0x74, 0x61, 0x12, 0x18, 0x0a, 0x07, 0x6d, 0x65, 0x73, 0x73,
+	0x61, 0x67, 0x65, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x07, 0x6d, 0x65, 0x73, 0x73, 0x61,
+	0x67, 0x65, 0x12, 0x14, 0x0a, 0x05, 0x65, 0x72, 0x72, 0x6f, 0x72, 0x18, 0x03, 0x20, 0x01, 0x28,
+	0x09, 0x52, 0x05, 0x65, 0x72, 0x72, 0x6f, 0x72, 0x22, 0x4b, 0x0a, 0x13, 0x44, 0x65, 0x6c, 0x65,
+	0x74, 0x65, 0x50, 0x72, 0x6f, 0x66, 0x69, 0x6c, 0x65, 0x50, 0x69, 0x63, 0x52, 0x65, 0x71, 0x12,
+	0x17, 0x0a, 0x07, 0x75, 0x73, 0x65, 0x72, 0x5f, 0x69, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09,
+	0x52, 0x06, 0x75, 0x73, 0x65, 0x72, 0x49, 0x64, 0x12, 0x1b, 0x0a, 0x09, 0x66, 0x69, 0x6c, 0x65,
+	0x5f, 0x6e, 0x61, 0x6d, 0x65, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x08, 0x66, 0x69, 0x6c,
+	0x65, 0x4e, 0x61, 0x6d, 0x65, 0x22, 0x5d, 0x0a, 0x13, 0x44, 0x65, 0x6c, 0x65, 0x74, 0x65, 0x50,
+	0x72, 0x6f, 0x66, 0x69, 0x6c, 0x65, 0x50, 0x69, 0x63, 0x52, 0x65, 0x73, 0x12, 0x18, 0x0a, 0x07,
+	0x6d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x07, 0x6d,
+	0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x12, 0x16, 0x0a, 0x06, 0x73, 0x74, 0x61, 0x74, 0x75, 0x73,
+	0x18, 0x02, 0x20, 0x01, 0x28, 0x03, 0x52, 0x06, 0x73, 0x74, 0x61, 0x74, 0x75, 0x73, 0x12, 0x14,
+	0x0a, 0x05, 0x65, 0x72, 0x72, 0x6f, 0x72, 0x18, 0x03, 0x20, 0x01, 0x28, 0x09, 0x52, 0x05, 0x65,
+	0x72, 0x72, 0x6f, 0x72, 0x32, 0xbc, 0x03, 0x0a, 0x0e, 0x55, 0x70, 0x6c, 0x6f, 0x61, 0x64, 0x42,
+	0x6c, 0x6f, 0x67, 0x46, 0x69, 0x6c, 0x65, 0x12, 0x4c, 0x0a, 0x10, 0x55, 0x70, 0x6c, 0x6f, 0x61,
+	0x64, 0x50, 0x72, 0x6f, 0x66, 0x69, 0x6c, 0x65, 0x50, 0x69, 0x63, 0x12, 0x19, 0x2e, 0x61, 0x75,
+	0x74, 0x68, 0x2e, 0x55, 0x70, 0x6c, 0x6f, 0x61, 0x64, 0x50, 0x72, 0x6f, 0x66, 0x69, 0x6c, 0x65,
+	0x50, 0x69, 0x63, 0x52, 0x65, 0x71, 0x1a, 0x19, 0x2e, 0x61, 0x75, 0x74, 0x68, 0x2e, 0x55, 0x70,
+	0x6c, 0x6f, 0x61, 0x64, 0x50, 0x72, 0x6f, 0x66, 0x69, 0x6c, 0x65, 0x50, 0x69, 0x63, 0x52, 0x65,
+	0x73, 0x22, 0x00, 0x28, 0x01, 0x12, 0x43, 0x0a, 0x0d, 0x47, 0x65, 0x74, 0x50, 0x72, 0x6f, 0x66,
+	0x69, 0x6c, 0x65, 0x50, 0x69, 0x63, 0x12, 0x16, 0x2e, 0x61, 0x75, 0x74, 0x68, 0x2e, 0x47, 0x65,
+	0x74, 0x50, 0x72, 0x6f, 0x66, 0x69, 0x6c, 0x65, 0x50, 0x69, 0x63, 0x52, 0x65, 0x71, 0x1a, 0x16,
+	0x2e, 0x61, 0x75, 0x74, 0x68, 0x2e, 0x47, 0x65, 0x74, 0x50, 0x72, 0x6f, 0x66, 0x69, 0x6c, 0x65,
+	0x50, 0x69, 0x63, 0x52, 0x65, 0x73, 0x22, 0x00, 0x30, 0x01, 0x12, 0x4a, 0x0a, 0x10, 0x44, 0x65,
+	0x6c, 0x65, 0x74, 0x65, 0x50, 0x72, 0x6f, 0x66, 0x69, 0x6c, 0x65, 0x50, 0x69, 0x63, 0x12, 0x19,
+	0x2e, 0x61, 0x75, 0x74, 0x68, 0x2e, 0x44, 0x65, 0x6c, 0x65, 0x74, 0x65, 0x50, 0x72, 0x6f, 0x66,
+	0x69, 0x6c, 0x65, 0x50, 0x69, 0x63, 0x52, 0x65, 0x71, 0x1a, 0x19, 0x2e, 0x61, 0x75, 0x74, 0x68,
+	0x2e, 0x44, 0x65, 0x6c, 0x65, 0x74, 0x65, 0x50, 0x72, 0x6f, 0x66, 0x69, 0x6c, 0x65, 0x50, 0x69,
+	0x63, 0x52, 0x65, 0x73, 0x22, 0x00, 0x12, 0x46, 0x0a, 0x0e, 0x55, 0x70, 0x6c, 0x6f, 0x61, 0x64,
 	0x42, 0x6c, 0x6f, 0x67, 0x46, 0x69, 0x6c, 0x65, 0x12, 0x17, 0x2e, 0x61, 0x75, 0x74, 0x68, 0x2e,
 	0x55, 0x70, 0x6c, 0x6f, 0x61, 0x64, 0x42, 0x6c, 0x6f, 0x67, 0x46, 0x69, 0x6c, 0x65, 0x52, 0x65,
 	0x71, 0x1a, 0x17, 0x2e, 0x61, 0x75, 0x74, 0x68, 0x2e, 0x55, 0x70, 0x6c, 0x6f, 0x61, 0x64, 0x42,
@@ -462,27 +871,39 @@ func file_services_api_gateway_pkg_file_server_pb_file_server_proto_rawDescGZIP(
 	return file_services_api_gateway_pkg_file_server_pb_file_server_proto_rawDescData
 }
 
-var file_services_api_gateway_pkg_file_server_pb_file_server_proto_msgTypes = make([]protoimpl.MessageInfo, 6)
+var file_services_api_gateway_pkg_file_server_pb_file_server_proto_msgTypes = make([]protoimpl.MessageInfo, 12)
 var file_services_api_gateway_pkg_file_server_pb_file_server_proto_goTypes = []interface{}{
-	(*UploadBlogFileReq)(nil), // 0: auth.UploadBlogFileReq
-	(*UploadBlogFileRes)(nil), // 1: auth.UploadBlogFileRes
-	(*GetBlogFileReq)(nil),    // 2: auth.GetBlogFileReq
-	(*GetBlogFileRes)(nil),    // 3: auth.GetBlogFileRes
-	(*DeleteBlogFileReq)(nil), // 4: auth.DeleteBlogFileReq
-	(*DeleteBlogFileRes)(nil), // 5: auth.DeleteBlogFileRes
+	(*UploadBlogFileReq)(nil),   // 0: auth.UploadBlogFileReq
+	(*UploadBlogFileRes)(nil),   // 1: auth.UploadBlogFileRes
+	(*GetBlogFileReq)(nil),      // 2: auth.GetBlogFileReq
+	(*GetBlogFileRes)(nil),      // 3: auth.GetBlogFileRes
+	(*DeleteBlogFileReq)(nil),   // 4: auth.DeleteBlogFileReq
+	(*DeleteBlogFileRes)(nil),   // 5: auth.DeleteBlogFileRes
+	(*UploadProfilePicReq)(nil), // 6: auth.UploadProfilePicReq
+	(*UploadProfilePicRes)(nil), // 7: auth.UploadProfilePicRes
+	(*GetProfilePicReq)(nil),    // 8: auth.GetProfilePicReq
+	(*GetProfilePicRes)(nil),    // 9: auth.GetProfilePicRes
+	(*DeleteProfilePicReq)(nil), // 10: auth.DeleteProfilePicReq
+	(*DeleteProfilePicRes)(nil), // 11: auth.DeleteProfilePicRes
 }
 var file_services_api_gateway_pkg_file_server_pb_file_server_proto_depIdxs = []int32{
-	0, // 0: auth.UploadBlogFile.UploadBlogFile:input_type -> auth.UploadBlogFileReq
-	2, // 1: auth.UploadBlogFile.GetBlogFile:input_type -> auth.GetBlogFileReq
-	4, // 2: auth.UploadBlogFile.DeleteBlogFile:input_type -> auth.DeleteBlogFileReq
-	1, // 3: auth.UploadBlogFile.UploadBlogFile:output_type -> auth.UploadBlogFileRes
-	3, // 4: auth.UploadBlogFile.GetBlogFile:output_type -> auth.GetBlogFileRes
-	5, // 5: auth.UploadBlogFile.DeleteBlogFile:output_type -> auth.DeleteBlogFileRes
-	3, // [3:6] is the sub-list for method output_type
-	0, // [0:3] is the sub-list for method input_type
-	0, // [0:0] is the sub-list for extension type_name
-	0, // [0:0] is the sub-list for extension extendee
-	0, // [0:0] is the sub-list for field type_name
+	6,  // 0: auth.UploadBlogFile.UploadProfilePic:input_type -> auth.UploadProfilePicReq
+	8,  // 1: auth.UploadBlogFile.GetProfilePic:input_type -> auth.GetProfilePicReq
+	10, // 2: auth.UploadBlogFile.DeleteProfilePic:input_type -> auth.DeleteProfilePicReq
+	0,  // 3: auth.UploadBlogFile.UploadBlogFile:input_type -> auth.UploadBlogFileReq
+	2,  // 4: auth.UploadBlogFile.GetBlogFile:input_type -> auth.GetBlogFileReq
+	4,  // 5: auth.UploadBlogFile.DeleteBlogFile:input_type -> auth.DeleteBlogFileReq
+	7,  // 6: auth.UploadBlogFile.UploadProfilePic:output_type -> auth.UploadProfilePicRes
+	9,  // 7: auth.UploadBlogFile.GetProfilePic:output_type -> auth.GetProfilePicRes
+	11, // 8: auth.UploadBlogFile.DeleteProfilePic:output_type -> auth.DeleteProfilePicRes
+	1,  // 9: auth.UploadBlogFile.UploadBlogFile:output_type -> auth.UploadBlogFileRes
+	3,  // 10: auth.UploadBlogFile.GetBlogFile:output_type -> auth.GetBlogFileRes
+	5,  // 11: auth.UploadBlogFile.DeleteBlogFile:output_type -> auth.DeleteBlogFileRes
+	6,  // [6:12] is the sub-list for method output_type
+	0,  // [0:6] is the sub-list for method input_type
+	0,  // [0:0] is the sub-list for extension type_name
+	0,  // [0:0] is the sub-list for extension extendee
+	0,  // [0:0] is the sub-list for field type_name
 }
 
 func init() { file_services_api_gateway_pkg_file_server_pb_file_server_proto_init() }
@@ -563,6 +984,78 @@ func file_services_api_gateway_pkg_file_server_pb_file_server_proto_init() {
 				return nil
 			}
 		}
+		file_services_api_gateway_pkg_file_server_pb_file_server_proto_msgTypes[6].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*UploadProfilePicReq); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_services_api_gateway_pkg_file_server_pb_file_server_proto_msgTypes[7].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*UploadProfilePicRes); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_services_api_gateway_pkg_file_server_pb_file_server_proto_msgTypes[8].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*GetProfilePicReq); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_services_api_gateway_pkg_file_server_pb_file_server_proto_msgTypes[9].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*GetProfilePicRes); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_services_api_gateway_pkg_file_server_pb_file_server_proto_msgTypes[10].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*DeleteProfilePicReq); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_services_api_gateway_pkg_file_server_pb_file_server_proto_msgTypes[11].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*DeleteProfilePicRes); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
@@ -570,7 +1063,7 @@ func file_services_api_gateway_pkg_file_server_pb_file_server_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: file_services_api_gateway_pkg_file_server_pb_file_server_proto_rawDesc,
 			NumEnums:      0,
-			NumMessages:   6,
+			NumMessages:   12,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

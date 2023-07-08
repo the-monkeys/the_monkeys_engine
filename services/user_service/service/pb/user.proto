@@ -44,24 +44,24 @@ message SetMyProfileRes {
     int64 id = 3;
 }
 
-message UploadProfilePicReq {
-	bytes data = 1;
-    int64 id = 2;
-}
+// message UploadProfilePicReq {
+// 	bytes data = 1;
+//     int64 id = 2;
+// }
 
-message UploadProfilePicRes {
-    int64 status = 1;
-    string error = 2;
-    int64 id = 3;
-}
+// message UploadProfilePicRes {
+//     int64 status = 1;
+//     string error = 2;
+//     int64 id = 3;
+// }
 
-message GetProfilePicReq {
-	int64 id = 1;
-}
+// message GetProfilePicReq {
+// 	int64 id = 1;
+// }
 
-message GetProfilePicRes {
-	bytes data = 1;
-}
+// message GetProfilePicRes {
+// 	bytes data = 1;
+// }
 
 message DeleteMyAccountReq {
 	int64 id = 1;
@@ -76,7 +76,7 @@ message DeleteMyAccountRes {
 service UserService {
     rpc GetMyProfile(GetMyProfileReq) returns (GetMyProfileRes) {};
     rpc SetMyProfile(SetMyProfileReq) returns (SetMyProfileRes) {};
-    rpc UploadProfile(stream UploadProfilePicReq) returns (UploadProfilePicRes) {};
-	rpc Download(GetProfilePicReq) returns (stream GetProfilePicRes) {};
+    // rpc UploadProfile(stream UploadProfilePicReq) returns (UploadProfilePicRes) {};
+	// rpc Download(GetProfilePicReq) returns (stream GetProfilePicRes) {};
     rpc DeleteMyProfile(DeleteMyAccountReq) returns (DeleteMyAccountRes) {};
 }

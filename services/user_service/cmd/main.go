@@ -4,9 +4,10 @@ import (
 	"net"
 
 	isv "github.com/89minutes/the_new_project/apis/interservice/blogs/pb"
+
 	"github.com/89minutes/the_new_project/services/user_service/service/config"
 	"github.com/89minutes/the_new_project/services/user_service/service/database"
-	"github.com/89minutes/the_new_project/services/user_service/service/pb"
+	us "github.com/89minutes/the_new_project/services/user_service/service/pb"
 	"github.com/89minutes/the_new_project/services/user_service/service/server"
 	"github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
@@ -36,7 +37,7 @@ func main() {
 
 	grpcServer := grpc.NewServer()
 
-	pb.RegisterUserServiceServer(grpcServer, userService)
+	us.RegisterUserServiceServer(grpcServer, userService)
 
 	log.Infof("the user service started at: %v", cfg.UserSrvPort)
 	if err := grpcServer.Serve(lis); err != nil {

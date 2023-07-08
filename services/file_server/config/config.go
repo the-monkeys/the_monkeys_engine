@@ -6,7 +6,7 @@ type Config struct {
 	FileService string `mapstructure:"FILE_SERVICE"`
 }
 
-func LoadUserConfig() (config Config, err error) {
+func LoadFileServerConfig() (config Config, err error) {
 	viper.AddConfigPath("/the_monkeys/etc")
 	viper.SetConfigName("dev")
 	viper.SetConfigType("env")
