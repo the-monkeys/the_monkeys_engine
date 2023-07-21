@@ -148,18 +148,13 @@ func (fs *FileService) UploadProfilePic(stream pb.UploadBlogFile_UploadProfilePi
 		}
 	}
 
-	// Check if file exists, if not create it with sample data
-	if _, err := os.Stat(filePath); os.IsNotExist(err) {
-		logrus.Infof("the file, %s doesn't exists", filePath)
-
-		err := ioutil.WriteFile(filePath, byteSlice, 0644)
-		if err != nil {
-			logrus.Errorf("cannot create a file for this blog id: %s", blogId)
-			return err
-		}
+	err := ioutil.WriteFile(filePath, byteSlice, 0644)
+	if err != nil {
+		logrus.Errorf("cannot create a file for this blog id: %s", blogId)
+		return err
 	}
 
-	logrus.Infof("done uploading file: %s", filePath)
+	logrus.Infof("done uploading profile pic: %s", filePath)
 	return stream.SendAndClose(&pb.UploadProfilePicRes{
 		Status:   http.StatusOK,
 		FileName: fileName,
@@ -169,10 +164,38 @@ func (fs *FileService) UploadProfilePic(stream pb.UploadBlogFile_UploadProfilePi
 
 func (fs *FileService) GetProfilePic(req *pb.GetProfilePicReq, stream pb.UploadBlogFile_GetProfilePicServer) error {
 	logrus.Infof("File server got request to retrieve profile pic")
+	fileName := filepath.Join(fs.profilePicPath, req.UserId, req.FileName)
+	logrus.Infof("there is a request to retrieve the profile pic for user, %s", req.UserId)
+
+	fileBytes, err := ioutil.ReadFile(fileName)
+	if err != nil {
+		logrus.Errorf("cannot read the profile pic: %s, error: %v", fileName, fileBytes)
+		return err
+	}
+
+	if err := stream.Send(&pb.GetProfilePicRes{
+		Data: fileBytes,
+	}); err != nil {
+		logrus.Errorf("error while sending profile pic stream, error %+v", err)
+	}
+
 	return nil
 }
 
 func (fs *FileService) DeleteProfilePic(ctx context.Context, req *pb.DeleteProfilePicReq) (*pb.DeleteProfilePicRes, error) {
 	logrus.Infof("File server got request to delete profile pic")
+	filePath := filepath.Join(fs.profilePicPath, req.UserId, req.FileName)
+
+	logrus.Infof("there is a request to delete the profile pic for user, %s", req.UserId)
+
+	if err := os.Remove(filePath); err != nil {
+		return nil, err
+	}
+
+	return &pb.DeleteProfilePicRes{
+		Message: "successfully deleted",
+		Status:  http.StatusOK,
+	}, nil
+
 	return &pb.DeleteProfilePicRes{}, nil
 }

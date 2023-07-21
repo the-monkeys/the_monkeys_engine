@@ -26,7 +26,7 @@ func main() {
 		log.Errorf("File server failed to listen at port %v, error: %+v", cfg.FileService, err)
 	}
 
-	fileService := server.NewFileService(constant.BLOG_FILES, common.BLOG_FILES)
+	fileService := server.NewFileService(constant.BLOG_FILES, common.PROFILE_PIC_DIR)
 	// newFileServer := server.NewFileServer(common.PROFILE_PIC_DIR, common.BLOG_FILES, log)
 
 	grpcServer := grpc.NewServer()

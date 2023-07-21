@@ -41,6 +41,7 @@ func RegisterUserRouter(router *gin.Engine, cfg *config.Address, authClient *aut
 	routes.GET("/post/:id/:fileName", usc.GetBlogFile)
 
 	// route defined to get profile pic
+	routes.GET("/profile/:user_id/profile", usc.GetProfilePic)
 
 	routes.Use(mware.AuthRequired)
 	routes.POST("/post/:id", usc.UploadBlogFile)
@@ -48,6 +49,7 @@ func RegisterUserRouter(router *gin.Engine, cfg *config.Address, authClient *aut
 
 	// route defined to access profile
 	routes.POST("/profile/:user_id/profile", usc.UploadProfilePic)
+	routes.DELETE("/profile/:user_id/profile", usc.DeleteProfilePic)
 
 	return usc
 }
@@ -188,4 +190,43 @@ func (asc *FileServiceClient) UploadProfilePic(ctx *gin.Context) {
 
 	// log.Printf("%+v\n", response)
 	ctx.JSON(http.StatusAccepted, resp)
+}
+func (asc *FileServiceClient) GetProfilePic(ctx *gin.Context) {
+	userID := ctx.Param("user_id")
+
+	stream, err := asc.Client.GetProfilePic(context.Background(), &pb.GetProfilePicReq{
+		UserId:   userID,
+		FileName: "profile.png",
+	})
+	if err != nil {
+		logrus.Errorf("cannot connect to user rpc server, error: %v", err)
+		_ = ctx.AbortWithError(http.StatusBadGateway, err)
+		return
+	}
+
+	resp, err := stream.Recv()
+	if err != nil {
+		errors.RestError(ctx, err, "file_service")
+		logrus.Errorf("cannot get the stream data, error: %+v", err)
+		return
+	}
+
+	ctx.Writer.Write(resp.Data)
+}
+
+func (asc *FileServiceClient) DeleteProfilePic(ctx *gin.Context) {
+	userId := ctx.Param("user_id")
+
+	res, err := asc.Client.DeleteProfilePic(context.Background(), &pb.DeleteProfilePicReq{
+		UserId:   userId,
+		FileName: "profile.png",
+	})
+
+	if err != nil {
+		logrus.Errorf("cannot connect to user rpc server, error: %v", err)
+		_ = ctx.AbortWithError(http.StatusBadGateway, err)
+		return
+	}
+
+	ctx.JSON(http.StatusAccepted, res)
 }

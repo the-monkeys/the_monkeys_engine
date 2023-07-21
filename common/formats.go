@@ -5,6 +5,6 @@ const (
 )
 
 const (
-	PROFILE_PIC_DIR = "/home/ubuntu/user_profile"
+	PROFILE_PIC_DIR = "/home/dave/user_profile"
 	BLOG_FILES      = "/home/dave/profile"
 )
