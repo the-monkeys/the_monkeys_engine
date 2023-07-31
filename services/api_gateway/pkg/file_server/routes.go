@@ -37,10 +37,20 @@ func RegisterUserRouter(router *gin.Engine, cfg *config.Address, authClient *aut
 		Client: NewFileServiceClient(cfg),
 	}
 	routes := router.Group("/api/v1/files")
+
 	routes.GET("/post/:id/:fileName", usc.GetBlogFile)
+
+	// route defined to get profile pic
+	routes.GET("/profile/:user_id/profile", usc.GetProfilePic)
+
 	routes.Use(mware.AuthRequired)
 	routes.POST("/post/:id", usc.UploadBlogFile)
 	routes.DELETE("/post/:id/:fileName", usc.DeleteBlogFile)
+
+	// route defined to access profile
+	routes.POST("/profile/:user_id/profile", usc.UploadProfilePic)
+	routes.DELETE("/profile/:user_id/profile", usc.DeleteProfilePic)
+
 	return usc
 }
 
@@ -127,6 +137,89 @@ func (asc *FileServiceClient) DeleteBlogFile(ctx *gin.Context) {
 	res, err := asc.Client.DeleteBlogFile(context.Background(), &pb.DeleteBlogFileReq{
 		BlogId:   blogId,
 		FileName: fileName,
+	})
+
+	if err != nil {
+		logrus.Errorf("cannot connect to user rpc server, error: %v", err)
+		_ = ctx.AbortWithError(http.StatusBadGateway, err)
+		return
+	}
+
+	ctx.JSON(http.StatusAccepted, res)
+}
+
+func (asc *FileServiceClient) UploadProfilePic(ctx *gin.Context) {
+	// get Id of the blog from the URL
+	userId := ctx.Param("user_id")
+
+	// Get file from the form file section
+	file, fileHeader, err := ctx.Request.FormFile("profile_pic")
+	if err != nil {
+		ctx.AbortWithError(http.StatusBadRequest, err)
+		return
+	}
+	defer file.Close()
+
+	// Read the file and make it slice of bytes
+	imageData, err := ioutil.ReadAll(file)
+	if err != nil {
+		fmt.Println("Error reading image data:", err)
+	}
+
+	stream, err := asc.Client.UploadProfilePic(context.Background())
+	if err != nil {
+		ctx.AbortWithError(http.StatusInternalServerError, err)
+		return
+	}
+
+	chunk := &pb.UploadProfilePicReq{
+		UserId:   userId,
+		Data:     imageData,
+		FileType: fileHeader.Filename,
+	}
+	err = stream.Send(chunk)
+	if err != nil {
+		log.Fatal("cannot send file info to server: ", err, stream.RecvMsg(nil))
+	}
+
+	resp, err := stream.CloseAndRecv()
+	if err != nil {
+		ctx.AbortWithError(http.StatusInternalServerError, err)
+		return
+	}
+
+	// log.Printf("%+v\n", response)
+	ctx.JSON(http.StatusAccepted, resp)
+}
+func (asc *FileServiceClient) GetProfilePic(ctx *gin.Context) {
+	userID := ctx.Param("user_id")
+
+	stream, err := asc.Client.GetProfilePic(context.Background(), &pb.GetProfilePicReq{
+		UserId:   userID,
+		FileName: "profile.png",
+	})
+	if err != nil {
+		logrus.Errorf("cannot connect to user rpc server, error: %v", err)
+		_ = ctx.AbortWithError(http.StatusBadGateway, err)
+		return
+	}
+
+	resp, err := stream.Recv()
+	if err != nil {
+		errors.RestError(ctx, err, "file_service")
+		logrus.Errorf("cannot get the stream data, error: %+v", err)
+		return
+	}
+
+	ctx.Writer.Write(resp.Data)
+}
+
+func (asc *FileServiceClient) DeleteProfilePic(ctx *gin.Context) {
+	userId := ctx.Param("user_id")
+
+	res, err := asc.Client.DeleteProfilePic(context.Background(), &pb.DeleteProfilePicReq{
+		UserId:   userId,
+		FileName: "profile.png",
 	})
 
 	if err != nil {

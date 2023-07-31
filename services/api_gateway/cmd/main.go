@@ -57,6 +57,7 @@ func main() {
 
 	article.RegisterArticleRoutes(server.router, &cfg, authClient)
 	user_service.RegisterUserRouter(server.router, &cfg, authClient)
+
 	blogsandposts.RegisterBlogRouter(server.router, &cfg, authClient)
 	file_server.RegisterUserRouter(server.router, &cfg, authClient)
 
