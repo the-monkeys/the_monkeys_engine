@@ -20,17 +20,17 @@ proto-gen-interservices:
 sql-gen:
 	echo "Enter the file's name or description (Node keep it short):"
 	@read INPUT_VALUE; \
-	migrate create -ext sql -dir psql/migration -seq $$INPUT_VALUE
+	migrate create -ext sql -dir psql -seq $$INPUT_VALUE
 
 
 # TODO: Enable SSL for psql
 migrate-up:
-	migrate -path psql/migration -database "postgresql://${PSQLUSER}:${PSQLPASS}@${PSQLHOST}:${PSQLPORT}/${PSQLDB}?sslmode=disable" -verbose up
+	migrate -path psql -database "postgresql://${PSQLUSER}:${PSQLPASS}@${PSQLHOST}:${PSQLPORT}/${PSQLDB}?sslmode=disable" -verbose up
 
 migrate-down:
-	migrate -path psql/migration -database "postgresql://${PSQLUSER}:${PSQLPASS}@${PSQLHOST}:${PSQLPORT}/${PSQLDB}?sslmode=disable" -verbose down 1
+	migrate -path psql -database "postgresql://${PSQLUSER}:${PSQLPASS}@${PSQLHOST}:${PSQLPORT}/${PSQLDB}?sslmode=disable" -verbose down 1
 
 migrate-force:
 	echo "Enter a version:"
 	@read INPUT_VALUE; \
-	migrate -path psql/migration -database "postgresql://${PSQLUSER}:${PSQLPASS}@${PSQLHOST}:${PSQLPORT}/${PSQLDB}?sslmode=disable" -verbose force $$INPUT_VALUE
+	migrate -path psql -database "postgresql://${PSQLUSER}:${PSQLPASS}@${PSQLHOST}:${PSQLPORT}/${PSQLDB}?sslmode=disable" -verbose force $$INPUT_VALUE
