@@ -13,6 +13,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 )
 
 type ServiceClient struct {
@@ -21,12 +22,13 @@ type ServiceClient struct {
 }
 
 func InitServiceClient(cfg *config.Address) pb.AuthServiceClient {
-	cc, err := grpc.Dial(cfg.AuthService, grpc.WithInsecure())
+	cc, err := grpc.Dial(cfg.AuthService, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		logrus.Errorf("cannot dial to grpc auth server: %v", err)
+		return nil
 	}
 
-	logrus.Infof("The Gateway is dialing to auth gRPC server at: %v", cfg.AuthService)
+	logrus.Infof("The Gateway is dialing to the auth RPC server at: %v", cfg.AuthService)
 	return pb.NewAuthServiceClient(cc)
 }
 
