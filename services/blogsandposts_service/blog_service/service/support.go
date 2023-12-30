@@ -5,9 +5,9 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/89minutes/the_new_project/services/blogsandposts_service/blog_service/models"
-	"github.com/89minutes/the_new_project/services/blogsandposts_service/blog_service/pb"
 	"github.com/microcosm-cc/bluemonday"
+	"github.com/the-monkeys/the_monkeys/services/blogsandposts_service/blog_service/models"
+	"github.com/the-monkeys/the_monkeys/services/blogsandposts_service/blog_service/pb"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 

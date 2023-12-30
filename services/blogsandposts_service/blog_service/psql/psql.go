@@ -3,8 +3,8 @@ package psql
 import (
 	"database/sql"
 
-	"github.com/89minutes/the_new_project/services/blogsandposts_service/blog_service/models"
 	"github.com/sirupsen/logrus"
+	"github.com/the-monkeys/the_monkeys/services/blogsandposts_service/blog_service/models"
 )
 
 type PostDBHandler struct {

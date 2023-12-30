@@ -6,12 +6,12 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/89minutes/the_new_project/services/article_and_post/pkg/models"
-	"github.com/89minutes/the_new_project/services/article_and_post/pkg/pb"
-	"github.com/89minutes/the_new_project/services/article_and_post/pkg/utils"
 	"github.com/google/uuid"
 	"github.com/opensearch-project/opensearch-go/opensearchapi"
 	"github.com/sirupsen/logrus"
+	"github.com/the-monkeys/the_monkeys/services/article_and_post/pkg/models"
+	"github.com/the-monkeys/the_monkeys/services/article_and_post/pkg/pb"
+	"github.com/the-monkeys/the_monkeys/services/article_and_post/pkg/utils"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/timestamppb"
@@ -88,7 +88,6 @@ func (srv *ArticleServer) CreateArticle(ctx context.Context, req *pb.CreateArtic
 	}, nil
 }
 
-//
 func (srv *ArticleServer) GetArticles(req *pb.GetArticlesRequest, stream pb.ArticleService_GetArticlesServer) error {
 	searchResponse, err := srv.osClient.GetLast100Articles()
 	if err != nil {

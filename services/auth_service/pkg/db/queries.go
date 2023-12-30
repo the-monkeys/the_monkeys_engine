@@ -4,10 +4,10 @@ import (
 	"database/sql"
 	"time"
 
-	"github.com/89minutes/the_new_project/common"
-	"github.com/89minutes/the_new_project/services/auth_service/pkg/models"
-	"github.com/89minutes/the_new_project/services/auth_service/pkg/pb"
 	"github.com/sirupsen/logrus"
+	"github.com/the-monkeys/the_monkeys/common"
+	"github.com/the-monkeys/the_monkeys/services/auth_service/pkg/models"
+	"github.com/the-monkeys/the_monkeys/services/auth_service/pkg/pb"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )

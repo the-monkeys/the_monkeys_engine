@@ -4,10 +4,10 @@ import (
 	"log"
 	"net"
 
-	"github.com/89minutes/the_new_project/services/article_and_post/pkg/config"
-	"github.com/89minutes/the_new_project/services/article_and_post/pkg/pb"
-	"github.com/89minutes/the_new_project/services/article_and_post/pkg/service"
 	"github.com/sirupsen/logrus"
+	"github.com/the-monkeys/the_monkeys/services/article_and_post/pkg/config"
+	"github.com/the-monkeys/the_monkeys/services/article_and_post/pkg/pb"
+	"github.com/the-monkeys/the_monkeys/services/article_and_post/pkg/service"
 	"google.golang.org/grpc"
 )
 

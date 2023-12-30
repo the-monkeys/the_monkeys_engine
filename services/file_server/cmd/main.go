@@ -3,11 +3,11 @@ package main
 import (
 	"net"
 
-	"github.com/89minutes/the_new_project/common"
-	"github.com/89minutes/the_new_project/services/file_server/config"
-	"github.com/89minutes/the_new_project/services/file_server/constant"
-	"github.com/89minutes/the_new_project/services/file_server/service/pb"
-	"github.com/89minutes/the_new_project/services/file_server/service/server"
+	"github.com/the-monkeys/the_monkeys/common"
+	"github.com/the-monkeys/the_monkeys/services/file_server/config"
+	"github.com/the-monkeys/the_monkeys/services/file_server/constant"
+	"github.com/the-monkeys/the_monkeys/services/file_server/service/pb"
+	"github.com/the-monkeys/the_monkeys/services/file_server/service/server"
 
 	"github.com/sirupsen/logrus"
 	"google.golang.org/grpc"

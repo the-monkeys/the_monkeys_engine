@@ -5,12 +5,12 @@ import (
 	"encoding/json"
 	"strings"
 
-	"github.com/89minutes/the_new_project/services/article_and_post/pkg/database"
-	"github.com/89minutes/the_new_project/services/article_and_post/pkg/models"
-	"github.com/89minutes/the_new_project/services/article_and_post/pkg/utils"
 	"github.com/opensearch-project/opensearch-go"
 	"github.com/opensearch-project/opensearch-go/opensearchapi"
 	"github.com/sirupsen/logrus"
+	"github.com/the-monkeys/the_monkeys/services/article_and_post/pkg/database"
+	"github.com/the-monkeys/the_monkeys/services/article_and_post/pkg/models"
+	"github.com/the-monkeys/the_monkeys/services/article_and_post/pkg/utils"
 )
 
 type openSearchClient struct {

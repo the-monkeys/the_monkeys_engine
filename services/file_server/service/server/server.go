@@ -9,9 +9,9 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/89minutes/the_new_project/services/file_server/service/pb"
-	"github.com/89minutes/the_new_project/services/file_server/service/utils"
 	"github.com/sirupsen/logrus"
+	"github.com/the-monkeys/the_monkeys/services/file_server/service/pb"
+	"github.com/the-monkeys/the_monkeys/services/file_server/service/utils"
 )
 
 type FileService struct {

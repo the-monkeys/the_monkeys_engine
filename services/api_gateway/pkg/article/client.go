@@ -3,8 +3,8 @@ package article
 import (
 	"fmt"
 
-	"github.com/89minutes/the_new_project/services/api_gateway/config"
-	"github.com/89minutes/the_new_project/services/article_and_post/pkg/pb"
+	"github.com/the-monkeys/the_monkeys/services/api_gateway/config"
+	"github.com/the-monkeys/the_monkeys/services/article_and_post/pkg/pb"
 	"google.golang.org/grpc"
 )
 

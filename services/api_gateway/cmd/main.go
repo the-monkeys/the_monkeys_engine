@@ -8,15 +8,15 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/89minutes/the_new_project/services/api_gateway/config"
-	"github.com/89minutes/the_new_project/services/api_gateway/middleware"
-	"github.com/89minutes/the_new_project/services/api_gateway/pkg/article"
-	"github.com/89minutes/the_new_project/services/api_gateway/pkg/auth"
-	"github.com/89minutes/the_new_project/services/api_gateway/pkg/blogsandposts"
-	"github.com/89minutes/the_new_project/services/api_gateway/pkg/file_server"
-	"github.com/89minutes/the_new_project/services/api_gateway/pkg/user_service"
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
+	"github.com/the-monkeys/the_monkeys/services/api_gateway/config"
+	"github.com/the-monkeys/the_monkeys/services/api_gateway/middleware"
+	"github.com/the-monkeys/the_monkeys/services/api_gateway/pkg/article"
+	"github.com/the-monkeys/the_monkeys/services/api_gateway/pkg/auth"
+	"github.com/the-monkeys/the_monkeys/services/api_gateway/pkg/blogsandposts"
+	"github.com/the-monkeys/the_monkeys/services/api_gateway/pkg/file_server"
+	"github.com/the-monkeys/the_monkeys/services/api_gateway/pkg/user_service"
 )
 
 type Server struct {

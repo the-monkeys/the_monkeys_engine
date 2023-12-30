@@ -8,11 +8,11 @@ import (
 
 	"database/sql"
 
-	isv "github.com/89minutes/the_new_project/apis/interservice/blogs/pb"
-	"github.com/89minutes/the_new_project/services/user_service/service/database"
-	"github.com/89minutes/the_new_project/services/user_service/service/pb"
-	"github.com/89minutes/the_new_project/services/user_service/service/utils"
 	"github.com/sirupsen/logrus"
+	isv "github.com/the-monkeys/the_monkeys/apis/interservice/blogs/pb"
+	"github.com/the-monkeys/the_monkeys/services/user_service/service/database"
+	"github.com/the-monkeys/the_monkeys/services/user_service/service/pb"
+	"github.com/the-monkeys/the_monkeys/services/user_service/service/utils"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )

@@ -3,12 +3,12 @@ package main
 import (
 	"net"
 
-	"github.com/89minutes/the_new_project/services/auth_service/pkg/config"
-	"github.com/89minutes/the_new_project/services/auth_service/pkg/db"
-	"github.com/89minutes/the_new_project/services/auth_service/pkg/pb"
-	"github.com/89minutes/the_new_project/services/auth_service/pkg/services"
-	"github.com/89minutes/the_new_project/services/auth_service/pkg/utils"
 	"github.com/sirupsen/logrus"
+	"github.com/the-monkeys/the_monkeys/services/auth_service/pkg/config"
+	"github.com/the-monkeys/the_monkeys/services/auth_service/pkg/db"
+	"github.com/the-monkeys/the_monkeys/services/auth_service/pkg/pb"
+	"github.com/the-monkeys/the_monkeys/services/auth_service/pkg/services"
+	"github.com/the-monkeys/the_monkeys/services/auth_service/pkg/utils"
 	"google.golang.org/grpc"
 )
 

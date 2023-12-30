@@ -4,10 +4,10 @@ import (
 	"log"
 	"net"
 
-	isv "github.com/89minutes/the_new_project/apis/interservice/blogs/pb"
-	"github.com/89minutes/the_new_project/services/blogsandposts_service/blog_service/config"
-	"github.com/89minutes/the_new_project/services/blogsandposts_service/blog_service/pb"
-	"github.com/89minutes/the_new_project/services/blogsandposts_service/blog_service/service"
+	isv "github.com/the-monkeys/the_monkeys/apis/interservice/blogs/pb"
+	"github.com/the-monkeys/the_monkeys/services/blogsandposts_service/blog_service/config"
+	"github.com/the-monkeys/the_monkeys/services/blogsandposts_service/blog_service/pb"
+	"github.com/the-monkeys/the_monkeys/services/blogsandposts_service/blog_service/service"
 
 	"github.com/sirupsen/logrus"
 	"google.golang.org/grpc"

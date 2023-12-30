@@ -3,13 +3,11 @@ package main
 import (
 	"net"
 
-	isv "github.com/89minutes/the_new_project/apis/interservice/blogs/pb"
-
-	"github.com/89minutes/the_new_project/services/user_service/service/config"
-	"github.com/89minutes/the_new_project/services/user_service/service/database"
-	us "github.com/89minutes/the_new_project/services/user_service/service/pb"
-	"github.com/89minutes/the_new_project/services/user_service/service/server"
 	"github.com/sirupsen/logrus"
+	isv "github.com/the-monkeys/the_monkeys/apis/interservice/blogs/pb"
+	"github.com/the-monkeys/the_monkeys/services/user_service/service/config"
+	"github.com/the-monkeys/the_monkeys/services/user_service/service/database"
+	"github.com/the-monkeys/the_monkeys/services/user_service/service/server"
 	"google.golang.org/grpc"
 )
 

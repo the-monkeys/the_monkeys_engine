@@ -5,11 +5,11 @@ import (
 	"errors"
 	"time"
 
-	"github.com/89minutes/the_new_project/common"
-	"github.com/89minutes/the_new_project/services/user_service/service/models"
-	"github.com/89minutes/the_new_project/services/user_service/service/pb"
 	_ "github.com/lib/pq"
 	"github.com/sirupsen/logrus"
+	"github.com/the-monkeys/the_monkeys/common"
+	"github.com/the-monkeys/the_monkeys/services/user_service/service/models"
+	"github.com/the-monkeys/the_monkeys/services/user_service/service/pb"
 )
 
 type UserDbHandler struct {

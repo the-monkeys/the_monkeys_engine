@@ -4,9 +4,9 @@ import (
 	"errors"
 	"time"
 
-	"github.com/89minutes/the_new_project/services/auth_service/pkg/models"
 	"github.com/golang-jwt/jwt"
 	"github.com/sirupsen/logrus"
+	"github.com/the-monkeys/the_monkeys/services/auth_service/pkg/models"
 )
 
 type JwtWrapper struct {

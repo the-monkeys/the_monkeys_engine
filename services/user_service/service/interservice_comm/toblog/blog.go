@@ -4,8 +4,8 @@ import (
 	"context"
 	"log"
 
-	"github.com/89minutes/the_new_project/apis/interservice/blogs/pb"
 	"github.com/sirupsen/logrus"
+	"github.com/the-monkeys/the_monkeys/apis/interservice/blogs/pb"
 	"google.golang.org/grpc"
 )
 

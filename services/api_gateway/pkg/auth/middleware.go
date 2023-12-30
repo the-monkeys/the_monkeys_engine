@@ -5,8 +5,8 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/89minutes/the_new_project/services/api_gateway/pkg/auth/pb"
 	"github.com/gin-gonic/gin"
+	"github.com/the-monkeys/the_monkeys/services/api_gateway/pkg/auth/pb"
 )
 
 type AuthMiddlewareConfig struct {

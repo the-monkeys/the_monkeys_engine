@@ -6,12 +6,12 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/89minutes/the_new_project/common"
-	"github.com/89minutes/the_new_project/services/api_gateway/config"
-	"github.com/89minutes/the_new_project/services/api_gateway/errors"
-	"github.com/89minutes/the_new_project/services/api_gateway/pkg/auth/pb"
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
+	"github.com/the-monkeys/the_monkeys/common"
+	"github.com/the-monkeys/the_monkeys/services/api_gateway/config"
+	"github.com/the-monkeys/the_monkeys/services/api_gateway/errors"
+	"github.com/the-monkeys/the_monkeys/services/api_gateway/pkg/auth/pb"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 )

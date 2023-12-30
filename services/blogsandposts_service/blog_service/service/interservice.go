@@ -4,9 +4,9 @@ import (
 	"context"
 	"net/http"
 
-	"github.com/89minutes/the_new_project/apis/interservice/blogs/pb"
-	"github.com/89minutes/the_new_project/services/blogsandposts_service/blog_service/psql"
 	"github.com/sirupsen/logrus"
+	"github.com/the-monkeys/the_monkeys/apis/interservice/blogs/pb"
+	"github.com/the-monkeys/the_monkeys/services/blogsandposts_service/blog_service/psql"
 )
 
 type Interservice struct {
