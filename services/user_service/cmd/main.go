@@ -7,6 +7,7 @@ import (
 	isv "github.com/the-monkeys/the_monkeys/apis/interservice/blogs/pb"
 	"github.com/the-monkeys/the_monkeys/services/user_service/service/config"
 	"github.com/the-monkeys/the_monkeys/services/user_service/service/database"
+	"github.com/the-monkeys/the_monkeys/services/user_service/service/pb"
 	"github.com/the-monkeys/the_monkeys/services/user_service/service/server"
 	"google.golang.org/grpc"
 )
@@ -35,7 +36,7 @@ func main() {
 
 	grpcServer := grpc.NewServer()
 
-	us.RegisterUserServiceServer(grpcServer, userService)
+	pb.RegisterUserServiceServer(grpcServer, userService)
 
 	log.Infof("the user service started at: %v", cfg.UserSrvPort)
 	if err := grpcServer.Serve(lis); err != nil {
