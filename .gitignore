@@ -25,6 +25,7 @@ certs/*
 certs_old/*
 test/blogs.json
 dev.env
+.env
 tracker
 
 # TODO: remove these two files and lines
