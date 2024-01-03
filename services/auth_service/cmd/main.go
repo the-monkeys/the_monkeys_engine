@@ -19,6 +19,9 @@ func main() {
 	}
 
 	dbHandler, err := db.NewAuthDBHandler(cfg.DBUrl)
+	if err != nil {
+		logrus.Fatalf("cannot connect the the db: %+v", err)
+	}
 
 	jwt := utils.JwtWrapper{
 		SecretKey:       cfg.JWTSecretKey,

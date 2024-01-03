@@ -34,3 +34,6 @@ migrate-force:
 	echo "Enter a version:"
 	@read INPUT_VALUE; \
 	migrate -path schema-migrations -database "postgresql://${PSQLUSER}:${PSQLPASS}@${PSQLHOST}:${PSQLPORT}/${PSQLDB}?sslmode=disable" -verbose force $$INPUT_VALUE
+
+run:
+	./build.sh
