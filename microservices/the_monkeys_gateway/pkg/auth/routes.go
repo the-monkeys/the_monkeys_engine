@@ -9,9 +9,10 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
 	"github.com/the-monkeys/the_monkeys/common"
-	"github.com/the-monkeys/the_monkeys/microservices/api_gateway/config"
-	"github.com/the-monkeys/the_monkeys/microservices/api_gateway/errors"
-	"github.com/the-monkeys/the_monkeys/microservices/api_gateway/pkg/auth/pb"
+	"github.com/the-monkeys/the_monkeys/config"
+
+	"github.com/the-monkeys/the_monkeys/microservices/the_monkeys_gateway/errors"
+	"github.com/the-monkeys/the_monkeys/microservices/the_monkeys_gateway/pkg/auth/pb"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 )
@@ -21,18 +22,18 @@ type ServiceClient struct {
 	Log    logrus.Logger
 }
 
-func InitServiceClient(cfg *config.Address) pb.AuthServiceClient {
-	cc, err := grpc.Dial(cfg.AuthService, grpc.WithTransportCredentials(insecure.NewCredentials()))
+func InitServiceClient(cfg *config.Config) pb.AuthServiceClient {
+	cc, err := grpc.Dial(cfg.Microservices.TheMonkeysAuthz, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		logrus.Errorf("cannot dial to grpc auth server: %v", err)
 		return nil
 	}
 
-	logrus.Infof("The Gateway is dialing to the auth RPC server at: %v", cfg.AuthService)
+	logrus.Infof("The monkeys gateway is dialing to the auth rpc server at: %v", cfg.Microservices.TheMonkeysAuthz)
 	return pb.NewAuthServiceClient(cc)
 }
 
-func RegisterRouter(router *gin.Engine, cfg *config.Address) *ServiceClient {
+func RegisterRouter(router *gin.Engine, cfg *config.Config) *ServiceClient {
 
 	asc := &ServiceClient{
 		Client: InitServiceClient(cfg),

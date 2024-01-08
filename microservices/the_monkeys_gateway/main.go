@@ -10,13 +10,10 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
-	"github.com/the-monkeys/the_monkeys/microservices/api_gateway/config"
-	"github.com/the-monkeys/the_monkeys/microservices/api_gateway/middleware"
-	"github.com/the-monkeys/the_monkeys/microservices/api_gateway/pkg/article"
-	"github.com/the-monkeys/the_monkeys/microservices/api_gateway/pkg/auth"
-	"github.com/the-monkeys/the_monkeys/microservices/api_gateway/pkg/blogsandposts"
-	"github.com/the-monkeys/the_monkeys/microservices/api_gateway/pkg/file_server"
-	"github.com/the-monkeys/the_monkeys/microservices/api_gateway/pkg/user_service"
+	"github.com/the-monkeys/the_monkeys/config"
+	"github.com/the-monkeys/the_monkeys/microservices/the_monkeys_gateway/middleware"
+	"github.com/the-monkeys/the_monkeys/microservices/the_monkeys_gateway/pkg/auth"
+	"github.com/the-monkeys/the_monkeys/microservices/the_monkeys_gateway/pkg/user_service"
 )
 
 type Server struct {
@@ -29,7 +26,7 @@ func newServer() *Server {
 
 func main() {
 	// Load API Gateway configuration
-	cfg, err := config.LoadGatewayConfig()
+	cfg, err := config.GetConfig()
 	if err != nil {
 		logrus.Fatalf("failed to load the config: %v", err)
 	}
@@ -48,24 +45,24 @@ func main() {
 	server.router.Use(middleware.CORSMiddleware())
 
 	// Register REST routes for all the microservice
-	authClient := auth.RegisterRouter(server.router, &cfg)
+	authClient := auth.RegisterRouter(server.router, cfg)
 	authClient.Log.SetReportCaller(true)
 	authClient.Log.SetFormatter(&logrus.TextFormatter{
 		DisableColors: false,
 		FullTimestamp: false,
 	})
 
-	article.RegisterArticleRoutes(server.router, &cfg, authClient)
-	user_service.RegisterUserRouter(server.router, &cfg, authClient)
+	user_service.RegisterUserRouter(server.router, cfg, authClient)
+	// article.RegisterArticleRoutes(server.router, cfg, authClient)
 
-	blogsandposts.RegisterBlogRouter(server.router, &cfg, authClient)
-	file_server.RegisterUserRouter(server.router, &cfg, authClient)
+	// blogsandposts.RegisterBlogRouter(server.router, &cfg, authClient)
+	// file_server.RegisterUserRouter(server.router, &cfg, authClient)
 
 	server.start(context.Background(), cfg)
 
 }
 
-func (s *Server) start(ctx context.Context, addr config.Address) {
+func (s *Server) start(ctx context.Context, config *config.Config) {
 	// TLS certificate and key
 	var tlsCert, tlsKey string
 	// if os.Getenv("NO_TLS") != "1" {
@@ -80,17 +77,17 @@ func (s *Server) start(ctx context.Context, addr config.Address) {
 	// }
 
 	// Launch the server (this is a blocking call)
-	s.launchServer(ctx, addr, tlsCert, tlsKey)
+	s.launchServer(ctx, config, tlsCert, tlsKey)
 }
 
 // Start the server
-func (s *Server) launchServer(ctx context.Context, addr config.Address, tlsCert, tlsKey string) {
+func (s *Server) launchServer(ctx context.Context, config *config.Config, tlsCert, tlsKey string) {
 	// If we don't have a TLS certificate, don't enable TLS
 	enableTLS := (tlsCert != "" && tlsKey != "")
 
 	// HTTP server (no TLS)
 	httpSrv := &http.Server{
-		Addr:           addr.APIGatewayHTTP,
+		Addr:           config.TheMonkeysGateway.HTTP,
 		Handler:        s.router,
 		MaxHeaderBytes: 1 << 20,
 		ReadTimeout:    10 * time.Second,
@@ -99,7 +96,7 @@ func (s *Server) launchServer(ctx context.Context, addr config.Address, tlsCert,
 
 	// HTTPS server (with TLS)
 	httpsSrv := &http.Server{
-		Addr:           addr.APIGatewayHTTPS,
+		Addr:           config.TheMonkeysGateway.HTTPS,
 		Handler:        s.router,
 		MaxHeaderBytes: 1 << 20,
 		ReadTimeout:    10 * time.Second,
@@ -108,7 +105,7 @@ func (s *Server) launchServer(ctx context.Context, addr config.Address, tlsCert,
 
 	// Start the HTTP server in a background goroutine
 	go func() {
-		logrus.Printf("HTTP server listening at http://%s\n", addr.APIGatewayHTTP)
+		logrus.Printf("The monkeys gateway is listening at http://%s\n", config.TheMonkeysGateway.HTTP)
 		// Next call blocks until the server is shut down
 		err := httpSrv.ListenAndServe()
 		if err != http.ErrServerClosed {

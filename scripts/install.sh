@@ -145,7 +145,7 @@ EOF
 }
 
 THE_MONKEYS_SERVICES=(
-    "api_gateway"
+    "the_monkeys_gateway"
     "article_and_post"
     "auth_service"
     "blogsandposts_service"

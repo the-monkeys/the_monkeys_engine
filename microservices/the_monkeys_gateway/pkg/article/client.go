@@ -3,8 +3,8 @@ package article
 import (
 	"fmt"
 
-	"github.com/the-monkeys/the_monkeys/microservices/api_gateway/config"
 	"github.com/the-monkeys/the_monkeys/microservices/article_and_post/pkg/pb"
+	"github.com/the-monkeys/the_monkeys/microservices/the_monkeys_gateway/config"
 	"google.golang.org/grpc"
 )
 

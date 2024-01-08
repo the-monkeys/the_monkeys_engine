@@ -10,10 +10,10 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
-	"github.com/the-monkeys/the_monkeys/microservices/api_gateway/config"
-	"github.com/the-monkeys/the_monkeys/microservices/api_gateway/errors"
-	"github.com/the-monkeys/the_monkeys/microservices/api_gateway/pkg/auth"
-	"github.com/the-monkeys/the_monkeys/microservices/api_gateway/pkg/file_server/pb"
+	"github.com/the-monkeys/the_monkeys/microservices/the_monkeys_gateway/config"
+	"github.com/the-monkeys/the_monkeys/microservices/the_monkeys_gateway/errors"
+	"github.com/the-monkeys/the_monkeys/microservices/the_monkeys_gateway/pkg/auth"
+	"github.com/the-monkeys/the_monkeys/microservices/the_monkeys_gateway/pkg/file_server/pb"
 	"google.golang.org/grpc"
 )
 

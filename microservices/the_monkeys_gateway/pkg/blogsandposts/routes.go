@@ -8,9 +8,9 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"github.com/sirupsen/logrus"
-	"github.com/the-monkeys/the_monkeys/microservices/api_gateway/config"
-	"github.com/the-monkeys/the_monkeys/microservices/api_gateway/pkg/auth"
-	"github.com/the-monkeys/the_monkeys/microservices/api_gateway/pkg/blogsandposts/pb"
+	"github.com/the-monkeys/the_monkeys/microservices/the_monkeys_gateway/config"
+	"github.com/the-monkeys/the_monkeys/microservices/the_monkeys_gateway/pkg/auth"
+	"github.com/the-monkeys/the_monkeys/microservices/the_monkeys_gateway/pkg/blogsandposts/pb"
 	"google.golang.org/grpc"
 	"google.golang.org/protobuf/types/known/emptypb"
 )

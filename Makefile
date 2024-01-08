@@ -2,7 +2,7 @@ include .env
 export
 
 proto:
-	protoc microservices/api_gateway/pkg/**/pb/*.proto --go_out=. --go-grpc_out=.
+	protoc microservices/the_monkeys_gateway/pkg/**/pb/*.proto --go_out=. --go-grpc_out=.
 	protoc microservices/auth_service/pkg/pb/*.proto --go_out=. --go-grpc_out=.
 	protoc microservices/article_and_post/pkg/pb/*.proto --go_out=. --go-grpc_out=.
 	protoc microservices/user_service/service/pb/*.proto --go_out=. --go-grpc_out=.

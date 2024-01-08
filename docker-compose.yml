@@ -1,0 +1,15 @@
+version: "3"
+services:
+  the_monkeys_db:
+    image: postgres
+    environment:
+      - POSTGRES_PASSWORD=Secret
+      - POSTGRES_USER=root
+      - POSTGRES_DB=the_monkeys_db_dev
+    ports:
+      - 1234:5432
+    networks:
+      - monkeys-network
+networks:
+  monkeys-network:
+    name: monkeys-network
