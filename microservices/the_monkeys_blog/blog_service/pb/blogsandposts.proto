@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package auth;
 
-option go_package = "./microservices/blogsandposts_service/blog_service/pb";
+option go_package = "./microservices/the_monkeys_blog/blog_service/pb";
 import "google/protobuf/timestamp.proto";
 import "google/protobuf/empty.proto";
 

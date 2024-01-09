@@ -5,7 +5,7 @@ import (
 
 	"github.com/sirupsen/logrus"
 	isv "github.com/the-monkeys/the_monkeys/apis/interservice/blogs/pb"
-	"github.com/the-monkeys/the_monkeys/microservices/the_monkeys_users/service/config"
+	"github.com/the-monkeys/the_monkeys/config"
 	"github.com/the-monkeys/the_monkeys/microservices/the_monkeys_users/service/database"
 	"github.com/the-monkeys/the_monkeys/microservices/the_monkeys_users/service/pb"
 	"github.com/the-monkeys/the_monkeys/microservices/the_monkeys_users/service/server"
@@ -13,22 +13,22 @@ import (
 )
 
 func main() {
-	cfg, err := config.LoadUserConfig()
+	cfg, err := config.GetConfig()
 	if err != nil {
 		logrus.Errorf("failed to load user config, error: %+v", err)
 	}
 	log := logrus.New()
 
-	db := database.NewUserDbHandler(cfg.DBUrl, log)
+	db := database.NewUserDbHandler(cfg, log)
 
-	lis, err := net.Listen("tcp", cfg.UserSrvPort)
+	lis, err := net.Listen("tcp", cfg.Microservices.TheMonkeysUser)
 	if err != nil {
-		log.Errorf("failed to listen at port %v, error: %+v", cfg.UserSrvPort, err)
+		log.Errorf("failed to listen at port %v, error: %+v", cfg.Microservices.TheMonkeysUser, err)
 	}
 
-	conn, err := grpc.Dial(cfg.BlogAndPostSvcURL, grpc.WithInsecure())
+	conn, err := grpc.Dial(cfg.Microservices.TheMonkeysBlog, grpc.WithInsecure())
 	if err != nil {
-		log.Errorf("failed to dial to blog service at %v, error: %+v", cfg.BlogAndPostSvcURL, err)
+		log.Errorf("failed to dial to blog service at %v, error: %+v", cfg.Microservices.TheMonkeysBlog, err)
 		return
 	}
 
@@ -38,7 +38,7 @@ func main() {
 
 	pb.RegisterUserServiceServer(grpcServer, userService)
 
-	log.Infof("the user service started at: %v", cfg.UserSrvPort)
+	log.Infof("the user service started at: %v", cfg.Microservices.TheMonkeysUser)
 	if err := grpcServer.Serve(lis); err != nil {
 		log.Fatalln("Failed to serve:", err)
 	}

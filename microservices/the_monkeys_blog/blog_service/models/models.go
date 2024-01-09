@@ -3,7 +3,7 @@ package models
 import (
 	"time"
 
-	"github.com/the-monkeys/the_monkeys/microservices/blogsandposts_service/blog_service/pb"
+	"github.com/the-monkeys/the_monkeys/microservices/the_monkeys_blog/blog_service/pb"
 )
 
 type Blogs struct {

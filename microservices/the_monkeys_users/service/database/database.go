@@ -3,11 +3,14 @@ package database
 import (
 	"database/sql"
 	"errors"
+	"fmt"
 	"time"
 
 	_ "github.com/lib/pq"
 	"github.com/sirupsen/logrus"
 	"github.com/the-monkeys/the_monkeys/common"
+	"github.com/the-monkeys/the_monkeys/config"
+
 	"github.com/the-monkeys/the_monkeys/microservices/the_monkeys_users/service/models"
 	"github.com/the-monkeys/the_monkeys/microservices/the_monkeys_users/service/pb"
 )
@@ -17,7 +20,14 @@ type UserDbHandler struct {
 	log  *logrus.Logger
 }
 
-func NewUserDbHandler(url string, log *logrus.Logger) *UserDbHandler {
+func NewUserDbHandler(cfg *config.Config, log *logrus.Logger) *UserDbHandler {
+	url := fmt.Sprintf("postgres://%s:%s@%s:%d/%s?sslmode=disable",
+		cfg.Postgresql.PrimaryDB.DBUsername,
+		cfg.Postgresql.PrimaryDB.DBPassword,
+		cfg.Postgresql.PrimaryDB.DBHost,
+		cfg.Postgresql.PrimaryDB.DBPort,
+		cfg.Postgresql.PrimaryDB.DBName,
+	)
 	dbPsql, err := sql.Open("postgres", url)
 	if err != nil {
 		logrus.Fatalf("cannot connect psql using sql driver, error:, %+v", err)

@@ -50,8 +50,9 @@ THE_MONKEYS_SERVICES=(
     "the_monkeys_gateway"
     "article_and_post"
     "the_monkeys_authz"
-    "blogsandposts_service"
+    "the_monkeys_blog"
     "the_monkeys_users"
+    "file_server"
 )
 
 echo "[Installing THE_MONKEYS services...]"

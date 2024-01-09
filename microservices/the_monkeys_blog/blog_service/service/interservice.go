@@ -6,7 +6,7 @@ import (
 
 	"github.com/sirupsen/logrus"
 	"github.com/the-monkeys/the_monkeys/apis/interservice/blogs/pb"
-	"github.com/the-monkeys/the_monkeys/microservices/blogsandposts_service/blog_service/psql"
+	"github.com/the-monkeys/the_monkeys/microservices/the_monkeys_blog/blog_service/psql"
 )
 
 type Interservice struct {

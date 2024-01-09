@@ -4,7 +4,7 @@ import (
 	"database/sql"
 
 	"github.com/sirupsen/logrus"
-	"github.com/the-monkeys/the_monkeys/microservices/blogsandposts_service/blog_service/models"
+	"github.com/the-monkeys/the_monkeys/microservices/the_monkeys_blog/blog_service/models"
 )
 
 type PostDBHandler struct {

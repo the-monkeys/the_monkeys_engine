@@ -6,8 +6,8 @@ import (
 	"strings"
 
 	"github.com/microcosm-cc/bluemonday"
-	"github.com/the-monkeys/the_monkeys/microservices/blogsandposts_service/blog_service/models"
-	"github.com/the-monkeys/the_monkeys/microservices/blogsandposts_service/blog_service/pb"
+	"github.com/the-monkeys/the_monkeys/microservices/the_monkeys_blog/blog_service/models"
+	"github.com/the-monkeys/the_monkeys/microservices/the_monkeys_blog/blog_service/pb"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
