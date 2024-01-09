@@ -6,7 +6,7 @@ import (
 
 	"github.com/golang-jwt/jwt"
 	"github.com/sirupsen/logrus"
-	"github.com/the-monkeys/the_monkeys/microservices/auth_service/pkg/models"
+	"github.com/the-monkeys/the_monkeys/microservices/the_monkeys_authz/pkg/models"
 )
 
 type JwtWrapper struct {

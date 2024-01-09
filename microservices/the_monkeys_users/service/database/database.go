@@ -8,8 +8,8 @@ import (
 	_ "github.com/lib/pq"
 	"github.com/sirupsen/logrus"
 	"github.com/the-monkeys/the_monkeys/common"
-	"github.com/the-monkeys/the_monkeys/microservices/user_service/service/models"
-	"github.com/the-monkeys/the_monkeys/microservices/user_service/service/pb"
+	"github.com/the-monkeys/the_monkeys/microservices/the_monkeys_users/service/models"
+	"github.com/the-monkeys/the_monkeys/microservices/the_monkeys_users/service/pb"
 )
 
 type UserDbHandler struct {

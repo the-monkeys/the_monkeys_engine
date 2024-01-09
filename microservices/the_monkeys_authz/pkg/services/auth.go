@@ -9,11 +9,12 @@ import (
 
 	"github.com/sirupsen/logrus"
 	"github.com/the-monkeys/the_monkeys/common"
-	"github.com/the-monkeys/the_monkeys/microservices/auth_service/pkg/config"
-	"github.com/the-monkeys/the_monkeys/microservices/auth_service/pkg/db"
-	"github.com/the-monkeys/the_monkeys/microservices/auth_service/pkg/models"
-	"github.com/the-monkeys/the_monkeys/microservices/auth_service/pkg/pb"
-	"github.com/the-monkeys/the_monkeys/microservices/auth_service/pkg/utils"
+	"github.com/the-monkeys/the_monkeys/config"
+
+	"github.com/the-monkeys/the_monkeys/microservices/the_monkeys_authz/pkg/db"
+	"github.com/the-monkeys/the_monkeys/microservices/the_monkeys_authz/pkg/models"
+	"github.com/the-monkeys/the_monkeys/microservices/the_monkeys_authz/pkg/pb"
+	"github.com/the-monkeys/the_monkeys/microservices/the_monkeys_authz/pkg/utils"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
@@ -21,11 +22,11 @@ import (
 type AuthServer struct {
 	dbCli  *db.AuthDBHandler
 	jwt    utils.JwtWrapper
-	config config.Config
+	config *config.Config
 	pb.UnimplementedAuthServiceServer
 }
 
-func NewAuthServer(dbCli *db.AuthDBHandler, jwt utils.JwtWrapper, config config.Config) *AuthServer {
+func NewAuthServer(dbCli *db.AuthDBHandler, jwt utils.JwtWrapper, config *config.Config) *AuthServer {
 	return &AuthServer{
 		dbCli:  dbCli,
 		jwt:    jwt,
@@ -254,9 +255,9 @@ func (s *AuthServer) ResetPassword(ctx context.Context, req *pb.ResetPasswordReq
 func (srv *AuthServer) SendMail(email, emailBody string) error {
 	logrus.Infof("Send mail routine triggered")
 
-	fromEmail := srv.config.SMTPMail        //ex: "John.Doe@gmail.com"
-	smtpPassword := srv.config.SMTPPassword // ex: "ieiemcjdkejspqz"
-	address := srv.config.SMTPAddress
+	fromEmail := srv.config.Email.SMTPMail        //ex: "John.Doe@gmail.com"
+	smtpPassword := srv.config.Email.SMTPPassword // ex: "ieiemcjdkejspqz"
+	address := srv.config.Email.SMTPAddress
 	to := []string{email}
 
 	subject := "Subject: The Monkeys support\n"
@@ -264,7 +265,7 @@ func (srv *AuthServer) SendMail(email, emailBody string) error {
 	mime := "MIME-version: 1.0;\nContent-Type: text/html; charset=\"UTF-8\";\n\n"
 	message := []byte(subject + mime + emailBody)
 
-	auth := smtp.PlainAuth("", fromEmail, smtpPassword, srv.config.SMTPHost)
+	auth := smtp.PlainAuth("", fromEmail, smtpPassword, srv.config.Email.SMTPHost)
 
 	if err := smtp.SendMail(address, auth, fromEmail, to, message); err != nil {
 		logrus.Errorf("error occurred while sending verification email, error: %+v", err)

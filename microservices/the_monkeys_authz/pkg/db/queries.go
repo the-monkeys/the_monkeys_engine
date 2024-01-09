@@ -6,8 +6,8 @@ import (
 
 	"github.com/sirupsen/logrus"
 	"github.com/the-monkeys/the_monkeys/common"
-	"github.com/the-monkeys/the_monkeys/microservices/auth_service/pkg/models"
-	"github.com/the-monkeys/the_monkeys/microservices/auth_service/pkg/pb"
+	"github.com/the-monkeys/the_monkeys/microservices/the_monkeys_authz/pkg/models"
+	"github.com/the-monkeys/the_monkeys/microservices/the_monkeys_authz/pkg/pb"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )

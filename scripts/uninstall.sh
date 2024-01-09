@@ -49,9 +49,9 @@ function uninstallService()
 THE_MONKEYS_SERVICES=(
     "the_monkeys_gateway"
     "article_and_post"
-    "auth_service"
+    "the_monkeys_authz"
     "blogsandposts_service"
-    "user_service"
+    "the_monkeys_users"
 )
 
 echo "[Installing THE_MONKEYS services...]"

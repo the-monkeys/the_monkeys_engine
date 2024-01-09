@@ -5,10 +5,10 @@ import (
 
 	"github.com/sirupsen/logrus"
 	isv "github.com/the-monkeys/the_monkeys/apis/interservice/blogs/pb"
-	"github.com/the-monkeys/the_monkeys/microservices/user_service/service/config"
-	"github.com/the-monkeys/the_monkeys/microservices/user_service/service/database"
-	"github.com/the-monkeys/the_monkeys/microservices/user_service/service/pb"
-	"github.com/the-monkeys/the_monkeys/microservices/user_service/service/server"
+	"github.com/the-monkeys/the_monkeys/microservices/the_monkeys_users/service/config"
+	"github.com/the-monkeys/the_monkeys/microservices/the_monkeys_users/service/database"
+	"github.com/the-monkeys/the_monkeys/microservices/the_monkeys_users/service/pb"
+	"github.com/the-monkeys/the_monkeys/microservices/the_monkeys_users/service/server"
 	"google.golang.org/grpc"
 )
 

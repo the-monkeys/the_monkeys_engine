@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package auth;
 
-option go_package = "./microservices/auth_service/pkg/pb";
+option go_package = "./microservices/the_monkeys_authz/pkg/pb";
 
 message RegisterRequest {
   string firstName = 1;
