@@ -14,7 +14,7 @@
 # Dependency directories (remove the comment below to include it)
 # vendor/
 
-./api_gateway/config/dev.env
+./the_monkeys_gateway/config/dev.env
 
 
 test/*.json

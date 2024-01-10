@@ -3,8 +3,8 @@
 source common.sh
 
 # change these variables to match your setup
-PROGRAM_NAME="api_gateway"
-PROGRAM_BINARY="/usr/local/bin/the_monkeys/api_gateway"
+PROGRAM_NAME="the_monkeys_gateway"
+PROGRAM_BINARY="/usr/local/bin/the_monkeys/the_monkeys_gateway"
 PROGRAM_DIR="/usr/local/bin/the_monkeys/"
 
 # create a new user and group for the service

@@ -4,7 +4,7 @@ source ${MONKEY_SCRIPTS}/common.sh
 
 set -x
 
-for dir in services/*/cmd
+for dir in microservices/*/cmd
 do 
     # Split dir to get the service name
     IFS='/'
