@@ -10,15 +10,15 @@ postgresql:
   primary_db:
     db_username: root
     db_password: Secret
-    db_host: 0.0.0.0
+    db_host: the_monkeys_db
     db_port: 5432
-    db_name: the_monkeys_db_dev
+    db_name: the_monkeys_user_dev
   replica_1:
     db_username: root
     db_password: Secret
     db_host: 0.0.0.0
     db_port: 5432
-    db_name: the_monkeys_db_dev
+    db_name: the_monkeys_user_dev
 jwt:
   secret_key: Secret
 opensearch:

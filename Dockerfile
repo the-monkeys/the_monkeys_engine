@@ -18,12 +18,21 @@ COPY . .
 
 RUN mkdir -p /build/config
 COPY ./config/config.yml /build/config/config.yml
-# Build the Go app
+# Build the gateway
 RUN cd microservices/the_monkeys_gateway && go build -o /build/the_monkeys_gateway
+
+WORKDIR /app
+# Build the authz
+RUN cd microservices/the_monkeys_authz && go build -o /build/the_monkeys_authz
+
 # Expose port 8081 to the outside world
 EXPOSE 8081
 
-# Command to run the executable
-CMD ["/build/the_monkeys_gateway"]
+COPY start_services.sh /start_services.sh
 
+# Make the startup script executable
+RUN chmod +x /start_services.sh
+
+# Command to run the startup script
+CMD ["/start_services.sh"]
 

@@ -1,16 +1,23 @@
 version: '3.1'
 services:
-  # the_monkeys_db:
-  #   image: bitnami/postgresql:latest
-  #   restart: always
-  #   environment:
-  #     POSTGRES_PASSWORD: Secret
-  #     POSTGRES_USER: root
-  #     POSTGRES_DB: the_monkeys_user_dev
-  #   ports:
-  #     - 1234:5432
-  #   networks:
-  #     - monkeys-network
+  the_monkeys_db:
+    image: bitnami/postgresql:latest
+    restart: always
+    environment:
+      POSTGRES_PASSWORD: Secret
+      POSTGRES_USER: root
+      POSTGRES_DB: the_monkeys_user_dev
+    ports:
+      - 1234:5432
+    networks:
+      - monkeys-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U root"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    volumes:
+      - schema/000001_intital_relation_setup.up.sql
   the_monkeys_gateway:
     build:
       context: .
@@ -19,6 +26,9 @@ services:
       - "8081:8081"
     networks:
       - monkeys-network
+    depends_on:
+      the_monkeys_db:
+        condition: service_healthy
 networks:
   monkeys-network:
     driver: bridge
