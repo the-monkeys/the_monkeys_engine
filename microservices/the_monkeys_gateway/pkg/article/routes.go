@@ -9,7 +9,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
 	"github.com/the-monkeys/the_monkeys/config"
-	"github.com/the-monkeys/the_monkeys/microservices/article_and_post/pkg/pb"
+	"github.com/the-monkeys/the_monkeys/microservices/the_monkeys_gateway/pkg/article/pb"
 	"github.com/the-monkeys/the_monkeys/microservices/the_monkeys_gateway/pkg/auth"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )

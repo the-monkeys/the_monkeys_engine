@@ -146,7 +146,6 @@ EOF
 
 THE_MONKEYS_SERVICES=(
     "the_monkeys_gateway"
-    "article_and_post"
     "the_monkeys_authz"
     "the_monkeys_blog"
     "the_monkeys_users"

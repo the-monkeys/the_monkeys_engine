@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/the-monkeys/the_monkeys/config"
-	"github.com/the-monkeys/the_monkeys/microservices/article_and_post/pkg/pb"
+	"github.com/the-monkeys/the_monkeys/microservices/the_monkeys_gateway/pkg/article/pb"
 
 	"google.golang.org/grpc"
 )
