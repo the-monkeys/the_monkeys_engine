@@ -16,8 +16,8 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
-    volumes:
-      - schema/000001_intital_relation_setup.up.sql
+    # volumes:
+    #   - schema/000001_intital_relation_setup.up.sql
   the_monkeys_gateway:
     build:
       context: .
