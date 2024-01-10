@@ -1,15 +1,24 @@
-version: "3"
+version: '3.1'
 services:
-  the_monkeys_db:
-    image: postgres
-    environment:
-      - POSTGRES_PASSWORD=Secret
-      - POSTGRES_USER=root
-      - POSTGRES_DB=the_monkeys_db_dev
+  # the_monkeys_db:
+  #   image: bitnami/postgresql:latest
+  #   restart: always
+  #   environment:
+  #     POSTGRES_PASSWORD: Secret
+  #     POSTGRES_USER: root
+  #     POSTGRES_DB: the_monkeys_user_dev
+  #   ports:
+  #     - 1234:5432
+  #   networks:
+  #     - monkeys-network
+  the_monkeys_gateway:
+    build:
+      context: .
+      dockerfile: Dockerfile
     ports:
-      - 1234:5432
+      - "8081:8081"
     networks:
       - monkeys-network
 networks:
   monkeys-network:
-    name: monkeys-network
+    driver: bridge

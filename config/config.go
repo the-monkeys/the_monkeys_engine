@@ -1,8 +1,7 @@
 package config
 
 import (
-	"fmt"
-
+	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 )
 
@@ -59,18 +58,19 @@ type Config struct {
 
 // TODO: remove the print statement and add logger instead
 func GetConfig() (*Config, error) {
-	viper.SetConfigName("config") // name of config file (without extension)
-	viper.SetConfigType("yml")    // REQUIRED if the config file does not have the extension in the name
-	viper.AddConfigPath("config") // path to look for the config file in
+	viper.SetConfigName("config")   // name of config file (without extension)
+	viper.SetConfigType("yml")      // REQUIRED if the config file does not have the extension in the name
+	viper.AddConfigPath("./config") // path to look for the config file in
 
 	if err := viper.ReadInConfig(); err != nil {
-		fmt.Printf("Error reading config file, %s", err)
+		logrus.Errorf("Path: %+v\n", viper.GetViper())
+		logrus.Errorf("Error reading config file, %v", err)
 		return nil, err
 	}
 
 	config := &Config{}
 	if err := viper.Unmarshal(config); err != nil {
-		fmt.Printf("Unable to decode into struct, %v", err)
+		logrus.Errorf("Unable to decode into struct, %v", err)
 		return nil, err
 	}
 

@@ -10,7 +10,8 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
-	"github.com/the-monkeys/the_monkeys/microservices/the_monkeys_gateway/config"
+
+	"github.com/the-monkeys/the_monkeys/config"
 	"github.com/the-monkeys/the_monkeys/microservices/the_monkeys_gateway/errors"
 	"github.com/the-monkeys/the_monkeys/microservices/the_monkeys_gateway/pkg/auth"
 	"github.com/the-monkeys/the_monkeys/microservices/the_monkeys_gateway/pkg/file_server/pb"
@@ -21,16 +22,16 @@ type FileServiceClient struct {
 	Client pb.UploadBlogFileClient
 }
 
-func NewFileServiceClient(cfg *config.Address) pb.UploadBlogFileClient {
-	cc, err := grpc.Dial(cfg.FileService, grpc.WithInsecure())
+func NewFileServiceClient(cfg *config.Config) pb.UploadBlogFileClient {
+	cc, err := grpc.Dial(cfg.Microservices.TheMonkeysFileStore, grpc.WithInsecure())
 	if err != nil {
 		logrus.Errorf("cannot dial to grpc file server: %v", err)
 	}
-	logrus.Infof("The Gateway is dialing to file gRPC server at: %v", cfg.FileService)
+	logrus.Infof("The Gateway is dialing to file gRPC server at: %v", cfg.Microservices.TheMonkeysFileStore)
 	return pb.NewUploadBlogFileClient(cc)
 }
 
-func RegisterUserRouter(router *gin.Engine, cfg *config.Address, authClient *auth.ServiceClient) *FileServiceClient {
+func RegisterUserRouter(router *gin.Engine, cfg *config.Config, authClient *auth.ServiceClient) *FileServiceClient {
 	mware := auth.InitAuthMiddleware(authClient)
 
 	usc := &FileServiceClient{
