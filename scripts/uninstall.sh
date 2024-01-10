@@ -51,7 +51,7 @@ THE_MONKEYS_SERVICES=(
     "the_monkeys_authz"
     "the_monkeys_blog"
     "the_monkeys_users"
-    "file_server"
+    "the_monkeys_file_storage"
 )
 
 echo "[Installing THE_MONKEYS services...]"

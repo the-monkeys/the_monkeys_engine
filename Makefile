@@ -6,7 +6,7 @@ proto:
 	protoc microservices/the_monkeys_authz/pkg/pb/*.proto --go_out=. --go-grpc_out=.
 	protoc microservices/the_monkeys_users/service/pb/*.proto --go_out=. --go-grpc_out=.
 	protoc microservices/the_monkeys_blog/blog_service/pb/*.proto --go_out=. --go-grpc_out=.
-	protoc microservices/file_server/service/pb/*.proto --go_out=. --go-grpc_out=.
+	protoc microservices/the_monkeys_file_storage/service/pb/*.proto --go_out=. --go-grpc_out=.
 
 
 proto-gen:
