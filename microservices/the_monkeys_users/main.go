@@ -6,9 +6,9 @@ import (
 	"github.com/sirupsen/logrus"
 	isv "github.com/the-monkeys/the_monkeys/apis/interservice/blogs/pb"
 	"github.com/the-monkeys/the_monkeys/config"
-	"github.com/the-monkeys/the_monkeys/microservices/the_monkeys_users/service/database"
-	"github.com/the-monkeys/the_monkeys/microservices/the_monkeys_users/service/pb"
-	"github.com/the-monkeys/the_monkeys/microservices/the_monkeys_users/service/server"
+	"github.com/the-monkeys/the_monkeys/microservices/the_monkeys_users/internal/database"
+	"github.com/the-monkeys/the_monkeys/microservices/the_monkeys_users/internal/pb"
+	"github.com/the-monkeys/the_monkeys/microservices/the_monkeys_users/internal/server"
 	"google.golang.org/grpc"
 )
 

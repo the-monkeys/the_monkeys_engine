@@ -10,9 +10,9 @@ import (
 
 	"github.com/sirupsen/logrus"
 	isv "github.com/the-monkeys/the_monkeys/apis/interservice/blogs/pb"
-	"github.com/the-monkeys/the_monkeys/microservices/the_monkeys_users/service/database"
-	"github.com/the-monkeys/the_monkeys/microservices/the_monkeys_users/service/pb"
-	"github.com/the-monkeys/the_monkeys/microservices/the_monkeys_users/service/utils"
+	"github.com/the-monkeys/the_monkeys/microservices/the_monkeys_users/internal/database"
+	"github.com/the-monkeys/the_monkeys/microservices/the_monkeys_users/internal/pb"
+	"github.com/the-monkeys/the_monkeys/microservices/the_monkeys_users/internal/utils"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
