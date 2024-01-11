@@ -5,10 +5,10 @@ import (
 
 	"github.com/sirupsen/logrus"
 	"github.com/the-monkeys/the_monkeys/config"
-	"github.com/the-monkeys/the_monkeys/microservices/the_monkeys_authz/pkg/db"
-	"github.com/the-monkeys/the_monkeys/microservices/the_monkeys_authz/pkg/pb"
-	"github.com/the-monkeys/the_monkeys/microservices/the_monkeys_authz/pkg/services"
-	"github.com/the-monkeys/the_monkeys/microservices/the_monkeys_authz/pkg/utils"
+	"github.com/the-monkeys/the_monkeys/microservices/the_monkeys_authz/internal/db"
+	"github.com/the-monkeys/the_monkeys/microservices/the_monkeys_authz/internal/pb"
+	"github.com/the-monkeys/the_monkeys/microservices/the_monkeys_authz/internal/services"
+	"github.com/the-monkeys/the_monkeys/microservices/the_monkeys_authz/internal/utils"
 	"google.golang.org/grpc"
 )
 
