@@ -11,8 +11,8 @@ import (
 	"github.com/the-monkeys/the_monkeys/common"
 	"github.com/the-monkeys/the_monkeys/config"
 
-	"github.com/the-monkeys/the_monkeys/microservices/the_monkeys_users/service/models"
-	"github.com/the-monkeys/the_monkeys/microservices/the_monkeys_users/service/pb"
+	"github.com/the-monkeys/the_monkeys/microservices/the_monkeys_users/internal/models"
+	"github.com/the-monkeys/the_monkeys/microservices/the_monkeys_users/internal/pb"
 )
 
 type UserDbHandler struct {
