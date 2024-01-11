@@ -10,8 +10,8 @@ import (
 	"strings"
 
 	"github.com/sirupsen/logrus"
-	"github.com/the-monkeys/the_monkeys/microservices/the_monkeys_file_storage/internal/pb"
-	"github.com/the-monkeys/the_monkeys/microservices/the_monkeys_file_storage/internal/utils"
+	"github.com/the-monkeys/the_monkeys/microservices/the_monkeys_file_storage/service/pb"
+	"github.com/the-monkeys/the_monkeys/microservices/the_monkeys_file_storage/service/utils"
 )
 
 type FileService struct {

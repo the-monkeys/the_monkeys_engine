@@ -7,7 +7,7 @@ import (
 	isv "github.com/the-monkeys/the_monkeys/apis/interservice/blogs/pb"
 	"github.com/the-monkeys/the_monkeys/config"
 	"github.com/the-monkeys/the_monkeys/microservices/the_monkeys_blog/blog_service/pb"
-	"github.com/the-monkeys/the_monkeys/microservices/the_monkeys_blog/blog_service/internal"
+	"github.com/the-monkeys/the_monkeys/microservices/the_monkeys_blog/blog_service/service"
 
 	"github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
