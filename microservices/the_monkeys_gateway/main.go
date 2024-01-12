@@ -12,8 +12,8 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/the-monkeys/the_monkeys/config"
 	"github.com/the-monkeys/the_monkeys/microservices/the_monkeys_gateway/middleware"
-	"github.com/the-monkeys/the_monkeys/microservices/the_monkeys_gateway/pkg/auth"
-	"github.com/the-monkeys/the_monkeys/microservices/the_monkeys_gateway/pkg/user_service"
+	"github.com/the-monkeys/the_monkeys/microservices/the_monkeys_gateway/internal/auth"
+	"github.com/the-monkeys/the_monkeys/microservices/the_monkeys_gateway/internal/user_service"
 )
 
 type Server struct {
