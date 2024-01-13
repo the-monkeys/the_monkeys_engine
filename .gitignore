@@ -20,7 +20,6 @@
 test/*.json
 
 
-env.sh
 certs/*
 certs_old/*
 test/blogs.json
@@ -31,3 +30,4 @@ tracker
 # TODO: remove these two files and lines
 cloud/*
 local/*
+pocs/*

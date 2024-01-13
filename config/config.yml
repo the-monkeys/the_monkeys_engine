@@ -32,3 +32,6 @@ email:
   smtp_mail: ""
   smtp_password: ""
   smtp_host: ""
+
+authentication:
+  email_verification_addr: 0.0.0.0:8081
