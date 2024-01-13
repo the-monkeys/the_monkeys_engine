@@ -47,6 +47,10 @@ type Email struct {
 	SMTPHost     string `mapstructure:"smtp_host"`
 }
 
+type Authentication struct {
+	EmailVerificationAddr string `mapstructure:"email_verification_addr"`
+}
+
 type Config struct {
 	TheMonkeysGateway TheMonkeysGateway `mapstructure:"the_monkeys_gateway"`
 	Microservices     Microservices     `mapstructure:"microservices"`
@@ -63,7 +67,6 @@ func GetConfig() (*Config, error) {
 	viper.AddConfigPath("./config") // path to look for the config file in
 
 	if err := viper.ReadInConfig(); err != nil {
-		logrus.Errorf("Path: %+v\n", viper.GetViper())
 		logrus.Errorf("Error reading config file, %v", err)
 		return nil, err
 	}

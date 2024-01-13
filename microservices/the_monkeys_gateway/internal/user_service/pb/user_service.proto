@@ -23,7 +23,6 @@ message GetMyProfileRes {
     string insagram = 10;
     string twitter = 11;
     bool emailVerified = 12;
-    
 }
 
 message SetMyProfileReq {
