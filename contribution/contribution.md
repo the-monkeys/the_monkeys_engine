@@ -5,35 +5,12 @@ We're glad you're thinking about contributing to The Monkeys. If you think somet
 * Create branches in your fork, and submit PRs from your forked branch.
 
 # Local Setup Requirement
-* Postgres
-* Opensearch
-* Golang 1.18
+* Docker
+* Golang v1.18.0+
 * Protoc compiler
 * [migrate](https://github.com/golang-migrate/migrate)
 
-NOTE: Have a config file in `/etc/the_monkey/dev.env` if you are using Linux/Mac. In case if you have a Windows machine you can keep the dev.env in your fav directory and set up the path `microservices/the_monkeys_gateway/config/config.go` file and other `config.go` files in different microservice.
-
-```
-API_GATEWAY_HTTPS=0.0.0.0:port1
-API_GATEWAY_HTTP=0.0.0.0:port2
-AUTH_SERVICE=127.0.0.1:port3
-STORY_SERVICE=127.0.0.1:port4
-USER_SERVICE=127.0.0.1:port5
-BLOG_SERVICE=127.0.0.1:port6
-
-# Postgres
-DB_URL=postgres://username:password@host:port/database?sslmode=disable
-
-# Auth JWT token
-JWT_SECRET_KEY=r43t18sc
-
-# Opensearch and Elasticsearch
-OPENSEARCH_ADDRESS=https://address:port
-OSUSERNAME=admin
-OSPASSWORD=admin
-
-```
-
+Once you have pull the code run `docker compose up --build` and that will run the development server in the local machine.
 
 
 

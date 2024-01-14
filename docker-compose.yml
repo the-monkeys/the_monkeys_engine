@@ -1,6 +1,7 @@
 version: '3.1'
 services:
   the_monkeys_db:
+    container_name: "monkeys-db"
     image: bitnami/postgresql:latest
     restart: always
     environment:
@@ -16,9 +17,11 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
-    # volumes:
-    #   - schema/000001_intital_relation_setup.up.sql
+    volumes:
+      - ./migrations:/migrations
+      - ./run_migrations.sh:/run_migrations.sh
   the_monkeys_gateway:
+    container_name: "monkeys-engine"
     build:
       context: .
       dockerfile: Dockerfile

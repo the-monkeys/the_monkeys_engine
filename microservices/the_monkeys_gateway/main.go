@@ -11,9 +11,9 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
 	"github.com/the-monkeys/the_monkeys/config"
-	"github.com/the-monkeys/the_monkeys/microservices/the_monkeys_gateway/middleware"
 	"github.com/the-monkeys/the_monkeys/microservices/the_monkeys_gateway/internal/auth"
 	"github.com/the-monkeys/the_monkeys/microservices/the_monkeys_gateway/internal/user_service"
+	"github.com/the-monkeys/the_monkeys/microservices/the_monkeys_gateway/middleware"
 )
 
 type Server struct {
@@ -105,7 +105,7 @@ func (s *Server) launchServer(ctx context.Context, config *config.Config, tlsCer
 
 	// Start the HTTP server in a background goroutine
 	go func() {
-		logrus.Printf("The monkeys gateway is listening at http://%s\n", config.TheMonkeysGateway.HTTP)
+		logrus.Printf("✅The monkeys gateway is listening at http://%s\n", config.TheMonkeysGateway.HTTP)
 		// Next call blocks until the server is shut down
 		err := httpSrv.ListenAndServe()
 		if err != http.ErrServerClosed {
