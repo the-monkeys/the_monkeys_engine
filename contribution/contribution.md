@@ -1,18 +1,30 @@
 # Contributing Guidelines
+
 We're glad you're thinking about contributing to The Monkeys. If you think something is missing or could be improved, please open issues and pull requests. If you'd like to help this project grow, we'd love to have you. 
 
-* If you find any issue or bug please create a Github issue or mail us at [mail.themonkeys.life@gmail.com](mail.themonkeys.life@gmail.com). 
-* Create branches in your fork, and submit PRs from your forked branch.
+## Reporting Issues
+
+If you find any issue or bug, please create a Github issue or mail us at mail.themonkeys.life@gmail.com. 
+
+## Submitting Pull Requests
+
+Create branches in your fork, and submit PRs from your forked branch.
 
 # Local Setup Requirement
+
+The following tools are required for local setup:
+
 * Docker
 * Golang v1.18.0+
 * Protoc compiler
 * [migrate](https://github.com/golang-migrate/migrate)
 
-Once you have pull the code run `docker compose up --build` and that will run the development server in the local machine.
+## Additional Setup
 
+If you want the `Makefile` to read config.yml, install `yq`:
 
+```bash
+snap install yq
 
 # Install linting tool
 ```

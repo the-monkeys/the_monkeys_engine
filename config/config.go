@@ -58,6 +58,7 @@ type Config struct {
 	JWT               JWT               `mapstructure:"jwt"`
 	Opensearch        Opensearch        `mapstructure:"opensearch"`
 	Email             Email             `mapstructure:"email"`
+	Authentication    Authentication    `mapstructure:"authentication"`
 }
 
 // TODO: remove the print statement and add logger instead

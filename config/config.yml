@@ -34,4 +34,5 @@ email:
   smtp_host: ""
 
 authentication:
+  # provide the domain name or the gateway addr
   email_verification_addr: 0.0.0.0:8081

@@ -80,14 +80,14 @@ CREATE TABLE USER_ACCOUNT_LOG (
 );
 
 CREATE TABLE EXTERNAL_AUTH_PROVIDERS (
-    external_provider_id INTEGER PRIMARY KEY,
+    external_provider_id SERIAL PRIMARY KEY,
     provider_name VARCHAR(100)
 );
 
 
 CREATE TABLE USER_EXTERNAL_LOGIN (
     user_id INTEGER,
-    external_provider_id INTEGER REFERENCES EXTERNAL_AUTH_PROVIDERS(external_provider_id),
+    external_provider_id SERIAL REFERENCES EXTERNAL_AUTH_PROVIDERS(external_provider_id),
     external_provider_token VARCHAR(100),
     FOREIGN KEY (user_id) REFERENCES USER_ACCOUNT(user_id)
 );

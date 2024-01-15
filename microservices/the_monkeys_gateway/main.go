@@ -45,7 +45,7 @@ func main() {
 	server.router.Use(middleware.CORSMiddleware())
 
 	// Register REST routes for all the microservice
-	authClient := auth.RegisterRouter(server.router, cfg)
+	authClient := auth.RegisterAuthRouter(server.router, cfg)
 	authClient.Log.SetReportCaller(true)
 	authClient.Log.SetFormatter(&logrus.TextFormatter{
 		DisableColors: false,

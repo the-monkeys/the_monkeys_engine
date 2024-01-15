@@ -4,14 +4,18 @@ import (
 	"strconv"
 
 	"github.com/sirupsen/logrus"
+	"github.com/the-monkeys/the_monkeys/config"
 )
 
 var Address string
 
 func init() {
-	// TODO: Remove the address hardcoded and provide production URL from env
-	Address = "themonkeys.tech"
-	logrus.Infof("email verification address: %v", Address)
+	cfg, err := config.GetConfig()
+	if err != nil {
+		logrus.Errorf("cannot load the config: %v", err)
+	}
+	Address = cfg.Authentication.EmailVerificationAddr
+	logrus.Infof("✅ email verification address: %v", Address)
 }
 
 func ResetPasswordTemplate(firstName, LastName, secret string, id int64) string {
