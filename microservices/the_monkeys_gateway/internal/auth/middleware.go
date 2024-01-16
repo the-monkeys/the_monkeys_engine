@@ -1,10 +1,12 @@
 package auth
 
 import (
+	"context"
 	"net/http"
 	"strings"
 
 	"github.com/gin-gonic/gin"
+	"github.com/the-monkeys/the_monkeys/apis/serviceconn/gateway_authz/pb"
 )
 
 type AuthMiddlewareConfig struct {
@@ -30,16 +32,16 @@ func (c *AuthMiddlewareConfig) AuthRequired(ctx *gin.Context) {
 		return
 	}
 
-	// res, err := c.svc.Client.Validate(context.Background(), &pb.ValidateRequest{
-	// 	Token: token[1],
-	// })
+	res, err := c.svc.Client.Validate(context.Background(), &pb.ValidateRequest{
+		Token: token[1],
+	})
 
-	// if err != nil || res.Status != http.StatusOK {
-	// 	ctx.AbortWithStatus(http.StatusUnauthorized)
-	// 	return
-	// }
+	if err != nil || res.StatusCode != http.StatusOK {
+		ctx.AbortWithStatus(http.StatusUnauthorized)
+		return
+	}
 
-	// ctx.Set("userId", res.UserId)
+	ctx.Set("userId", res.UserId)
 
 	ctx.Next()
 }

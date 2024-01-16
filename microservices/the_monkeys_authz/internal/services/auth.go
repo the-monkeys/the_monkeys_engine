@@ -340,7 +340,7 @@ func (s *AuthServer) VerifyEmail(ctx context.Context, req *pb.VerifyEmailReq) (*
 
 func (s *AuthServer) RequestForEmailVerification(ctx context.Context, req *pb.EmailVerificationReq) (*pb.EmailVerificationRes, error) {
 	if req.Email == "" {
-		return nil, common.BadRequest
+		return nil, common.ErrBadRequest
 	}
 	logrus.Infof("user %v has requested for email verification", req.Email)
 	var user models.TheMonkeysUser

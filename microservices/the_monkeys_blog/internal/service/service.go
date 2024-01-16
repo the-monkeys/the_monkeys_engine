@@ -79,7 +79,7 @@ func (blog *BlogService) CreateABlog(ctx context.Context, req *pb.CreateBlogRequ
 
 	if resp.StatusCode == http.StatusBadRequest {
 		blog.logger.Errorf("cannot save the blog bad request, error: %+v", err)
-		return nil, common.BadRequest
+		return nil, common.ErrBadRequest
 	}
 
 	blog.logger.Infof("user %v created a blog successfully: %v", req.GetAuthorId(), req.GetId())
@@ -344,7 +344,7 @@ func (blog *BlogService) DraftAndPublish(ctx context.Context, req *pb.BlogReques
 
 		if resp.StatusCode == http.StatusBadRequest {
 			blog.logger.Errorf("cannot save the blog bad request, error: %+v", err)
-			return nil, common.BadRequest
+			return nil, common.ErrBadRequest
 		}
 
 		blog.logger.Infof("user %v created a blog successfully: %v", req.GetId(), req.GetId())

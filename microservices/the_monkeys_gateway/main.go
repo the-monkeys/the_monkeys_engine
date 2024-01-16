@@ -105,7 +105,7 @@ func (s *Server) launchServer(ctx context.Context, config *config.Config, tlsCer
 
 	// Start the HTTP server in a background goroutine
 	go func() {
-		logrus.Printf("✅The monkeys gateway is listening at http://%s\n", config.TheMonkeysGateway.HTTP)
+		logrus.Printf("✅ the monkeys gateway is listening at http://%s\n", config.TheMonkeysGateway.HTTP)
 		// Next call blocks until the server is shut down
 		err := httpSrv.ListenAndServe()
 		if err != http.ErrServerClosed {

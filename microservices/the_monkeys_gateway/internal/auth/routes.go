@@ -26,7 +26,7 @@ func InitServiceClient(cfg *config.Config) pb.AuthServiceClient {
 		return nil
 	}
 
-	logrus.Infof("✅The monkeys gateway is dialing to the auth rpc server at: %v", cfg.Microservices.TheMonkeysAuthz)
+	logrus.Infof("✅ the monkeys gateway is dialing to the auth rpc server at: %v", cfg.Microservices.TheMonkeysAuthz)
 	return pb.NewAuthServiceClient(cc)
 }
 

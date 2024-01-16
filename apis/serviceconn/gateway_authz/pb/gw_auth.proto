@@ -38,7 +38,22 @@ message Error {
   string message = 3;
 }
 
+message ValidateRequest { 
+  string token = 1;
+  string email = 2;
+  int64 userId = 3;
+  string userName = 4;
+}
+
+message ValidateResponse {
+  int64 statusCode = 1;
+  string email = 2;
+  int64 userId = 3;
+  string userName = 4;
+  Error error = 5;
+}
 
 service AuthService {
     rpc RegisterUser(RegisterUserRequest) returns (RegisterUserResponse) {}
+    rpc Validate(ValidateRequest) returns (ValidateResponse) {}
 }
