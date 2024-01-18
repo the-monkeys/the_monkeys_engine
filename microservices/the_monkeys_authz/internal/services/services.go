@@ -71,3 +71,6 @@ func (as *AuthzSvc) Validate(ctx context.Context, req *pb.ValidateRequest) (*pb.
 		Email:      claims.Email,
 	}, nil
 }
+func (as *AuthzSvc) Login(context.Context, * pb.LoginUserRequest) (*pb.LoginUserResponse, error){
+
+}
