@@ -7,6 +7,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
+	"github.com/the-monkeys/the_monkeys/common"
 	"github.com/the-monkeys/the_monkeys/config"
 
 	"github.com/the-monkeys/the_monkeys/apis/serviceconn/gateway_authz/pb"
@@ -39,7 +40,7 @@ func RegisterAuthRouter(router *gin.Engine, cfg *config.Config) *ServiceClient {
 	routes := router.Group("/api/v1/auth")
 
 	routes.POST("/register", asc.Register)
-	// routes.POST("/login", asc.Login)
+	routes.POST("/login", asc.Login)
 
 	// // Forgot password
 	// routes.POST("/forgot-pass", asc.ForgotPassword)
@@ -103,45 +104,45 @@ func (asc *ServiceClient) Register(ctx *gin.Context) {
 	ctx.JSON(int(res.StatusCode), &res)
 }
 
-// func (asc *ServiceClient) Login(ctx *gin.Context) {
-// 	body := LoginRequestBody{}
+func (asc *ServiceClient) Login(ctx *gin.Context) {
+	body := LoginRequestBody{}
 
-// 	logrus.Infof("traffic is coming from ip: %v", ctx.ClientIP())
+	logrus.Infof("traffic is coming from ip: %v", ctx.ClientIP())
 
-// 	if err := ctx.BindJSON(&body); err != nil {
-// 		asc.Log.Errorf("json body is not correct, error: %v", err)
-// 		_ = ctx.AbortWithError(http.StatusBadRequest, err)
-// 		return
-// 	}
+	if err := ctx.BindJSON(&body); err != nil {
+		asc.Log.Errorf("json body is not correct, error: %v", err)
+		_ = ctx.AbortWithError(http.StatusBadRequest, err)
+		return
+	}
 
-// 	// do the trimming
-// 	body.Email = strings.TrimSpace(body.Email)
+	// do the trimming
+	body.Email = strings.TrimSpace(body.Email)
 
-// 	res, err := asc.Client.Login(context.Background(), &pb.LoginRequest{
-// 		Email:    body.Email,
-// 		Password: body.Password,
-// 	})
+	res, err := asc.Client.Login(context.Background(), &pb.LoginUserRequest{
+		Email:    body.Email,
+		Password: body.Password,
+	})
 
-// 	if err != nil {
-// 		asc.Log.Errorf("internal server error, user containing email: %s cannot login", body.Email)
-// 		_ = ctx.AbortWithError(http.StatusInternalServerError, err)
-// 		return
-// 	}
+	if err != nil {
+		asc.Log.Errorf("internal server error, user containing email: %s cannot login", body.Email)
+		_ = ctx.AbortWithError(http.StatusInternalServerError, err)
+		return
+	}
 
-// 	if res.Status == http.StatusNotFound {
-// 		asc.Log.Errorf("user containing email: %s, doesn't exists", body.Email)
-// 		_ = ctx.AbortWithError(http.StatusNotFound, common.NotFound)
-// 		return
-// 	}
+	if res.StatusCode == http.StatusNotFound {
+		asc.Log.Errorf("user containing email: %s, doesn't exists", body.Email)
+		_ = ctx.AbortWithError(http.StatusNotFound, common.ErrNotFound)
+		return
+	}
 
-// 	if res.Status == http.StatusBadRequest {
-// 		asc.Log.Errorf("incorrect password given for the user containing email: %s", body.Email)
-// 		_ = ctx.AbortWithError(http.StatusNotFound, common.BadRequest)
-// 		return
-// 	}
+	if res.StatusCode == http.StatusBadRequest {
+		asc.Log.Errorf("incorrect password given for the user containing email: %s", body.Email)
+		_ = ctx.AbortWithError(http.StatusNotFound, common.ErrBadRequest)
+		return
+	}
 
-// 	ctx.JSON(http.StatusOK, &res)
-// }
+	ctx.JSON(http.StatusOK, &res)
+}
 
 // func (asc *ServiceClient) ForgotPassword(ctx *gin.Context) {
 // 	body := ForgetPass{}

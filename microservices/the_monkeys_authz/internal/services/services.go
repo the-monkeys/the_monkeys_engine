@@ -71,3 +71,8 @@ func (as *AuthzSvc) Validate(ctx context.Context, req *pb.ValidateRequest) (*pb.
 		Email:      claims.Email,
 	}, nil
 }
+
+func (as *AuthzSvc) Login(ctx context.Context, req *pb.LoginUserRequest) (*pb.LoginUserResponse, error) {
+	logrus.Infof("user has requested to login with email: %s", req.Email)
+	return &pb.LoginUserResponse{}, nil
+}
