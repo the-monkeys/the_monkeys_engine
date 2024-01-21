@@ -97,7 +97,7 @@ func (asc *ServiceClient) Register(ctx *gin.Context) {
 	}
 
 	if res.StatusCode == http.StatusConflict {
-		ctx.JSON(http.StatusConflict, nil)
+		ctx.JSON(http.StatusConflict, res)
 		return
 	}
 
