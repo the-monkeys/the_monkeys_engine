@@ -19,12 +19,12 @@ ALTER TABLE USER_ACCOUNT
 ADD CONSTRAINT user_id_unique UNIQUE (user_id);
 
 CREATE TABLE IF NOT EXISTS EMAIL_VALIDATION_STATUS (
-    email_validation_status_id SERIAL NOT NULL PRIMARY KEY,
-    status_desc VARCHAR(100)
+    id SERIAL NOT NULL PRIMARY KEY,
+    status VARCHAR(100)
 );
 
 CREATE TABLE IF NOT EXISTS USER_AUTH_INFO (
-    user_auth_info_id BIGSERIAL NOT NULL,
+    id BIGSERIAL NOT NULL,
     user_id BIGINT NOT NULL,
     username VARCHAR(32) NOT NULL,
     email_id VARCHAR(100) NOT NULL,
@@ -35,18 +35,18 @@ CREATE TABLE IF NOT EXISTS USER_AUTH_INFO (
     password_updated_at TIMESTAMP,
     email_validation_token VARCHAR(100),
     token_generation_time TIMESTAMP,
-    email_validation_status_id INTEGER NOT NULL,
+    email_validation_status INTEGER NOT NULL,
     email_validation_time TIMESTAMP,
     pwd_recovery_token VARCHAR(100),
     token_recovery_time TIMESTAMP,
-    PRIMARY KEY (user_auth_info_id),
+    PRIMARY KEY (id),
     FOREIGN KEY (user_id) REFERENCES USER_ACCOUNT(user_id) ON DELETE CASCADE ON UPDATE NO ACTION,
-    FOREIGN KEY (email_validation_status_id) REFERENCES EMAIL_VALIDATION_STATUS(email_validation_status_id) ON DELETE NO ACTION ON UPDATE NO ACTION
+    FOREIGN KEY (email_validation_status) REFERENCES EMAIL_VALIDATION_STATUS(id) ON DELETE NO ACTION ON UPDATE NO ACTION
 );
 
 
-CREATE TABLE IF NOT EXISTS USER_ROLE (
-    role_id SERIAL NOT NULL PRIMARY KEY,
+CREATE TABLE IF NOT EXISTS user_role (
+    id SERIAL NOT NULL PRIMARY KEY,
     role_desc VARCHAR(50) NOT NULL
 );
 
@@ -59,7 +59,7 @@ CREATE TABLE IF NOT EXISTS PERMISSIONS_GRANTED (
     role_id BIGINT NOT NULL,
     permission_id INTEGER NOT NULL,
     PRIMARY KEY (role_id, permission_id),
-    FOREIGN KEY (role_id) REFERENCES USER_ROLE(role_id) ON DELETE CASCADE ON UPDATE NO ACTION,
+    FOREIGN KEY (role_id) REFERENCES USER_ROLE(id) ON DELETE CASCADE ON UPDATE NO ACTION,
     FOREIGN KEY (permission_id) REFERENCES PERMISSIONS(permission_id) ON DELETE CASCADE ON UPDATE NO ACTION
 );
 
@@ -126,17 +126,48 @@ CREATE TABLE IF NOT EXISTS USER_INTEREST (
     FOREIGN KEY (interest_id) REFERENCES INTEREST(interest_id) ON DELETE CASCADE ON UPDATE NO ACTION
 );
 
+CREATE TABLE IF NOT EXISTS clients (
+    id SERIAL NOT NULL,
+    c_name VARCHAR(32),
+    PRIMARY KEY (id)
+);
+
+CREATE TABLE IF NOT EXISTS logged_in_devices (
+    id          SERIAL NOT NULL,
+    device_name VARCHAR(32),
+    ip_address  VARCHAR(64),
+    operating_sys VARCHAR(32),
+    login_time  TIMESTAMP,
+    user_id     BIGINT NOT NULL,
+    client_id   INTEGER NOT NULL,
+    PRIMARY KEY (id),
+    FOREIGN KEY (user_id) REFERENCES user_account(user_id) ON DELETE CASCADE ON UPDATE NO ACTION,
+    FOREIGN KEY (client_id) REFERENCES clients(id) ON DELETE CASCADE ON UPDATE NO ACTION
+);
 
 
 -- Insert predefined roles
-INSERT INTO user_role (role_desc) VALUES ('admin');
-INSERT INTO user_role (role_desc) VALUES ('general');
-INSERT INTO user_role (role_desc) VALUES ('author');
-INSERT INTO user_role (role_desc) VALUES ('subscriber');
+INSERT INTO user_role (role_desc) VALUES ('Admin'), ('Editor'), ('Author'), ('Subscriber');
 
-INSERT INTO EMAIL_VALIDATION_STATUS (status_desc) VALUES ('validation_link_sent');
-INSERT INTO EMAIL_VALIDATION_STATUS (status_desc) VALUES ('verified');
-INSERT INTO EMAIL_VALIDATION_STATUS (status_desc) VALUES ('unverified');
+-- Insert predefined permissions
+INSERT INTO PERMISSIONS (permission_desc) VALUES ('Read'), ('Write'), ('Edit'), ('Delete');
+
+-- Insert predefined clients
+INSERT INTO clients (c_name) VALUES ('chrome'), ('firefox'), ('safari'), ('edge'), ('opera'), ('android_os'), ('ios'), ('brave'), ('others');
+
+INSERT INTO EMAIL_VALIDATION_STATUS (status) VALUES ('unverified');
+INSERT INTO EMAIL_VALIDATION_STATUS (status) VALUES ('validation_link_sent');
+INSERT INTO EMAIL_VALIDATION_STATUS (status) VALUES ('verified');
+
 
 -- Insert Predefined auth-providers
-INSERT INTO EXTERNAL_AUTH_PROVIDERS (provider_name) VALUES ('google-oauth2');
+INSERT INTO EXTERNAL_AUTH_PROVIDERS (provider_name) VALUES ('google-oauth2'), ('instagram-oauth2');
+
+
+
+-- Inserting data into PERMISSIONS_GRANTED for all roles
+INSERT INTO PERMISSIONS_GRANTED (role_id, permission_id)
+SELECT r.id, p.permission_id
+FROM user_role r, PERMISSIONS p
+WHERE r.role_desc IN ('Admin', 'Editor', 'Author', 'Subscriber')
+AND p.permission_desc IN ('Read', 'Write', 'Edit', 'Delete');

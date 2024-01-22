@@ -118,18 +118,22 @@ func (adh *authDBHandler) insertIntoUserAccount(tx *sql.Tx, user *models.TheMonk
 }
 
 func (adh *authDBHandler) insertIntoUserAuthInfo(tx *sql.Tx, user *models.TheMonkeysUser, profileId int64) (int64, error) {
-	stmt, err := tx.Prepare(`INSERT INTO USER_AUTH_INFO (
-		user_id, username, email_id, password_hash, 
-		email_validation_token, email_validation_status_id) VALUES ($1, $2, $3, $4, $5, $6) RETURNING user_id;`)
+	stmt, err := tx.Prepare(fmt.Sprintf(`
+	INSERT INTO USER_AUTH_INFO (
+	user_id, username, email_id, password_hash, 
+	email_validation_token, email_validation_status) 
+	VALUES ($1, $2, $3, $4, $5, (SELECT id FROM email_validation_status where status='%s')) 
+	RETURNING id;
+	`, "unverified"))
 	if err != nil {
-		logrus.Errorf("cannot prepare statement to add user into the USER_ACCOUNT: %v", err)
+		logrus.Errorf("cannot prepare statement to add user into the USER_AUTH_INFO: %v", err)
 		return 0, err
 	}
 	defer stmt.Close()
 
 	var authId int64
 	err = stmt.QueryRow(profileId, user.Username, user.Email, user.Password,
-		user.EmailVerificationToken, 1).Scan(&authId)
+		user.EmailVerificationToken).Scan(&authId)
 	if err != nil {
 		logrus.Errorf("cannot execute query to add user to the USER_AUTH_INFO: %v", err)
 		return 0, err
