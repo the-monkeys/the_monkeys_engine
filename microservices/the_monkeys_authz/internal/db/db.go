@@ -50,12 +50,13 @@ func NewAuthDBHandler(cfg *config.Config) (AuthDBHandler, error) {
 func (adh *authDBHandler) CheckIfEmailExist(email string) (*models.TheMonkeysUser, error) {
 	var tmu models.TheMonkeysUser
 	if err := adh.db.QueryRow(`
-		SELECT ua.user_id, ua.username
+		SELECT ua.user_id, ua.username, uai.email_id, uai.password_hash, evs.status
 		FROM USER_ACCOUNT ua
 		LEFT JOIN USER_AUTH_INFO uai ON ua.user_id = uai.user_id
+		LEFT JOIN email_validation_status evs ON uai.email_validation_status = evs.id
 		WHERE uai.email_id = $1;
 		`, email).
-		Scan(&tmu.Id, &tmu.Username); err != nil {
+		Scan(&tmu.Id, &tmu.Username, &tmu.Email, &tmu.Password, &tmu.EmailVerified); err != nil {
 		logrus.Errorf("can't find a user existing with email %s, error: %+v", email, err)
 		return nil, err
 	}
