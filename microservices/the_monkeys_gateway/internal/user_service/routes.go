@@ -23,7 +23,7 @@ func NewUserServiceClient(cfg *config.Config) pb.UserServiceClient {
 	if err != nil {
 		logrus.Errorf("cannot dial to grpc user server: %v", err)
 	}
-	logrus.Infof("✅The monkeys gateway is dialing to user rpc server at: %v", cfg.Microservices.TheMonkeysUser)
+	logrus.Infof("✅ the monkeys gateway is dialing to user rpc server at: %v", cfg.Microservices.TheMonkeysUser)
 	return pb.NewUserServiceClient(cc)
 }
 

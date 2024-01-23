@@ -6,7 +6,7 @@ import (
 	"strings"
 
 	"github.com/gin-gonic/gin"
-	"github.com/the-monkeys/the_monkeys/microservices/the_monkeys_gateway/internal/auth/pb"
+	"github.com/the-monkeys/the_monkeys/apis/serviceconn/gateway_authz/pb"
 )
 
 type AuthMiddlewareConfig struct {
@@ -36,7 +36,7 @@ func (c *AuthMiddlewareConfig) AuthRequired(ctx *gin.Context) {
 		Token: token[1],
 	})
 
-	if err != nil || res.Status != http.StatusOK {
+	if err != nil || res.StatusCode != http.StatusOK {
 		ctx.AbortWithStatus(http.StatusUnauthorized)
 		return
 	}

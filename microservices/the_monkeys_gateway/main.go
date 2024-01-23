@@ -45,7 +45,7 @@ func main() {
 	server.router.Use(middleware.CORSMiddleware())
 
 	// Register REST routes for all the microservice
-	authClient := auth.RegisterRouter(server.router, cfg)
+	authClient := auth.RegisterAuthRouter(server.router, cfg)
 	authClient.Log.SetReportCaller(true)
 	authClient.Log.SetFormatter(&logrus.TextFormatter{
 		DisableColors: false,
@@ -105,7 +105,7 @@ func (s *Server) launchServer(ctx context.Context, config *config.Config, tlsCer
 
 	// Start the HTTP server in a background goroutine
 	go func() {
-		logrus.Printf("✅The monkeys gateway is listening at http://%s\n", config.TheMonkeysGateway.HTTP)
+		logrus.Printf("✅ the monkeys gateway is listening at http://%s\n", config.TheMonkeysGateway.HTTP)
 		// Next call blocks until the server is shut down
 		err := httpSrv.ListenAndServe()
 		if err != http.ErrServerClosed {

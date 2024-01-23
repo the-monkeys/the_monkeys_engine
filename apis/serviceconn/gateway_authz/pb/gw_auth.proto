@@ -1,0 +1,80 @@
+syntax = "proto3";
+
+package auth_svc;
+
+option go_package = "./apis/serviceconn/gateway_authz/pb";
+
+message RegisterUserRequest {
+  string firstName = 1;
+  string lastName = 2;
+  string email = 3;
+  string password = 4;
+  LoginMethod loginMethod = 5;
+
+  enum LoginMethod {
+    The_MONKEYS = 0;
+    GOOGLE_ACC = 1;
+    ANDROID = 2;
+    IPHONE = 3;
+  } 
+}
+
+message RegisterUserResponse {
+    int64 statusCode = 1;
+    string token = 2;
+    bool emailVerified = 3;
+    int64 userId = 4;
+    string userName = 5;
+    string first_name = 6;
+    string last_name = 7;
+    string email = 8;
+    bool email_verification_status = 9;
+    Error error = 10;
+}
+
+message Error {
+  int32 status = 1;
+  string error = 2;
+  string message = 3;
+}
+
+message ValidateRequest { 
+  string token = 1;
+  string email = 2;
+  int64 userId = 3;
+  string userName = 4;
+}
+
+message ValidateResponse {
+  int64 statusCode = 1;
+  string email = 2;
+  int64 userId = 3;
+  string userName = 4;
+  Error error = 5;
+}
+
+message LoginUserRequest {
+  string email = 1;
+  string password = 2;
+}
+message LoginUserResponse {
+  int64 statusCode = 1;
+    string token = 2;
+    bool emailVerified = 3;
+    int64 userId = 4;
+    string userName = 5;
+    string first_name = 6;
+    string last_name = 7;
+    string email = 8;
+    bool email_verification_status = 9;
+    Error error = 10;
+}
+
+
+
+service AuthService {
+    rpc RegisterUser(RegisterUserRequest) returns (RegisterUserResponse) {}
+    rpc Validate(ValidateRequest) returns (ValidateResponse) {}
+    rpc Login(LoginUserRequest) returns (LoginUserResponse) {}
+
+}
