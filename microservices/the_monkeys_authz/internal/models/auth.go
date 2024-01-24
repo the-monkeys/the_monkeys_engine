@@ -40,7 +40,7 @@ type TheMonkeysUser struct {
 	LastName                  string    `json:"last_name"`
 	Email                     string    `json:"email"`
 	Password                  string    `json:"password"`
-	EmailVerified             bool      `json:"email_verified"`
+	EmailVerified             string    `json:"email_verified"`
 	IsActive                  bool      `json:"is_active,omitempty"`
 	EmailVerificationToken    string    `json:"email_verification_token"`
 	EmailVerificationTimeout  time.Time `json:"email_verification_timeout"`

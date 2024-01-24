@@ -149,5 +149,52 @@ func (as *AuthzSvc) Validate(ctx context.Context, req *pb.ValidateRequest) (*pb.
 
 func (as *AuthzSvc) Login(ctx context.Context, req *pb.LoginUserRequest) (*pb.LoginUserResponse, error) {
 	logrus.Infof("user has requested to login with email: %s", req.Email)
-	return &pb.LoginUserResponse{}, nil
+	// CHeck if the user is existing the db or not
+	user, err := as.dbConn.CheckIfEmailExist(req.Email)
+	if err != nil {
+		return &pb.LoginUserResponse{
+			StatusCode: http.StatusNotFound,
+			Error: &pb.Error{
+				Status:  http.StatusNotFound,
+				Message: "The email is not registered",
+				Error:   "An account is not registered with this email",
+			},
+		}, err
+	}
+
+	// Check if the password match with the password hash
+	if !utils.CheckPasswordHash(req.Password, user.Password) {
+		return &pb.LoginUserResponse{
+			StatusCode: http.StatusNotFound,
+			Error: &pb.Error{
+				Status:  http.StatusNotFound,
+				Message: "Incorrect email or password has been given, try again",
+				Error:   "email/password incorrect",
+			},
+		}, err
+	}
+
+	token, err := as.jwt.GenerateToken(user)
+	if err != nil {
+		logrus.Errorf("cannot create a token for %s, error: %+v", req.Email, err)
+		return &pb.LoginUserResponse{
+			StatusCode: http.StatusBadRequest,
+			Error: &pb.Error{
+				Status:  http.StatusInternalServerError,
+				Message: "You are successfully logged in",
+				Error:   "Try to login",
+			},
+		}, nil
+	}
+
+	return &pb.LoginUserResponse{
+		StatusCode:    http.StatusOK,
+		Token:         token,
+		EmailVerified: false,
+		UserName:      user.Username,
+		Email:         user.Email,
+		UserId:        user.Id,
+		FirstName:     user.FirstName,
+		LastName:      user.LastName,
+	}, nil
 }
