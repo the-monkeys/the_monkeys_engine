@@ -145,10 +145,6 @@ CREATE TABLE IF NOT EXISTS logged_in_devices (
     FOREIGN KEY (client_id) REFERENCES clients(id) ON DELETE CASCADE ON UPDATE NO ACTION
 );
 
--- CREATE TABLE IF NOT EXISTS test {
---     id          SERIAL NOT NULL,
---     device_name VARCHAR(32)
--- }
 
 -- Insert predefined roles
 INSERT INTO user_role (role_desc) VALUES ('Admin'), ('Editor'), ('Author'), ('Subscriber');
