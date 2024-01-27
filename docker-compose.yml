@@ -12,14 +12,21 @@ services:
       - 1234:5432
     networks:
       - monkeys-network
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U root"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
     volumes:
-      - ./migrations:/migrations
+      - ./schema:/migrations
+
+  db-migrations:
+    image: bitnami/postgresql:latest
+    restart: on-failure
+    depends_on:
+      - the_monkeys_db
+    volumes:
+      - ./schema:/migrations
       - ./run_migrations.sh:/run_migrations.sh
+    command: ["/bin/bash", "-c", "sleep 10; /run_migrations.sh"]
+    networks:
+      - monkeys-network
+
   the_monkeys_gateway:
     container_name: "monkeys-engine"
     build:
@@ -30,8 +37,9 @@ services:
     networks:
       - monkeys-network
     depends_on:
-      the_monkeys_db:
-        condition: service_healthy
+      - the_monkeys_db
+      - db-migrations
+
 networks:
   monkeys-network:
     driver: bridge

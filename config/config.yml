@@ -12,7 +12,7 @@ postgresql:
     db_password: Secret
     # localhost for connecting to the local postgres server
     # the_monkeys_db for connecting to the container postgres server
-    db_host: localhost
+    db_host: the_monkeys_db
     db_port: 5432
     db_name: the_monkeys_user_dev
   replica_1:
