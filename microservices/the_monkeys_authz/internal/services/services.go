@@ -12,6 +12,8 @@ import (
 	"github.com/the-monkeys/the_monkeys/config"
 	"github.com/the-monkeys/the_monkeys/microservices/the_monkeys_authz/internal/db"
 	"github.com/the-monkeys/the_monkeys/microservices/the_monkeys_authz/internal/models"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 
 	"github.com/the-monkeys/the_monkeys/microservices/the_monkeys_authz/internal/utils"
 )
@@ -52,15 +54,15 @@ func (as *AuthzSvc) RegisterUser(ctx context.Context, req *pb.RegisterUserReques
 	encHash := utils.HashPassword(hash)
 
 	// Create a userId and username
-	user.ProfileId = utils.RandomString(12)
-	user.Username = utils.RandomString(7)
+	user.ProfileId = utils.RandomString(16)
+	user.Username = utils.RandomString(12)
 	user.FirstName = req.FirstName
 	user.LastName = req.GetLastName()
 	user.Email = req.GetEmail()
 	user.Password = utils.HashPassword(req.Password)
 	// user.CreateTime = time.Now().Format(common.DATE_TIME_FORMAT)
 	// user.UpdateTime = time.Now().Format(common.DATE_TIME_FORMAT)
-	user.IsActive = true
+	user.UserStatus = "active"
 	user.EmailVerificationToken = encHash
 	user.EmailVerificationTimeout = time.Now().Add(time.Hour * 24)
 	if req.LoginMethod.String() == pb.RegisterUserRequest_LoginMethod_name[0] {
@@ -233,5 +235,67 @@ func (as *AuthzSvc) ForgotPassword(ctx context.Context, req *pb.ForgotPasswordRe
 	emailBody := utils.ResetPasswordTemplate(user.FirstName, user.LastName, string(randomHash), user.Username)
 	go as.SendMail(req.Email, emailBody)
 
-	return &pb.ForgotPasswordRes{}, nil
+	return &pb.ForgotPasswordRes{
+		Error: &pb.Error{
+			Status:  http.StatusOK,
+			Message: "Verification link has been sent to this email!",
+		},
+	}, nil
+}
+
+func (as *AuthzSvc) ResetPassword(ctx context.Context, req *pb.ResetPasswordReq) (*pb.ResetPasswordRes, error) {
+	logrus.Infof("user %s has requested to reset their password", req.Username)
+
+	user, err := as.dbConn.CheckIfUsernameExist(req.Username)
+	if err != nil {
+		return &pb.ResetPasswordRes{
+			Error: &pb.Error{
+				Status:  http.StatusNotFound,
+				Message: "The email is not registered",
+				Error:   "An account is not registered with this email",
+			},
+		}, err
+	}
+
+	timeTill, err := time.Parse("2006-01-02 15:04:05.999999 -0700 +0000", user.PasswordVerificationTimeout.String())
+	if err != nil {
+		logrus.Error(err)
+		return nil, nil
+	}
+
+	if timeTill.Before(time.Now()) {
+		logrus.Errorf("the token has already expired, error: %+v", err)
+		return nil, status.Errorf(codes.Unauthenticated, "token expired already")
+	}
+
+	// Verify reset token
+	if ok := utils.CheckPasswordHash(req.Token, user.PasswordVerificationToken); !ok {
+		logrus.Errorf("the token didn't match, error: %+v", err)
+		return nil, status.Errorf(codes.Unauthenticated, "token didn't match")
+	}
+
+	logrus.Infof("Assigning a token to the user: %s having email: %s to reset their password", user.Username, user.Email)
+	// Generate and return token
+	token, err := as.jwt.GenerateToken(user)
+	if err != nil {
+		logrus.Errorf("cannot create a token for %s, error: %+v", req.Email, err)
+		return &pb.ResetPasswordRes{
+			Error: &pb.Error{
+				Status:  http.StatusInternalServerError,
+				Message: "You are successfully registered",
+				Error:   "Try to login",
+			},
+		}, nil
+	}
+
+	return &pb.ResetPasswordRes{
+		StatusCode:    http.StatusCreated,
+		Token:         token,
+		EmailVerified: false,
+		UserName:      user.Username,
+		Email:         user.Email,
+		UserId:        user.Id,
+		FirstName:     user.FirstName,
+		LastName:      user.LastName,
+	}, nil
 }

@@ -45,7 +45,7 @@ func RegisterAuthRouter(router *gin.Engine, cfg *config.Config) *ServiceClient {
 
 	// // Forgot password
 	routes.POST("/forgot-pass", asc.ForgotPassword)
-	// routes.POST("/reset-password", asc.ResetPassword)
+	routes.POST("/reset-password", asc.ResetPassword)
 
 	// routes.POST("/verify-email", asc.VerifyEmail)
 
@@ -168,42 +168,42 @@ func (asc *ServiceClient) ForgotPassword(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, &res)
 }
 
-// // TODO: Rename it to Password Reset Email Verification
-// func (asc *ServiceClient) ResetPassword(ctx *gin.Context) {
-// 	userAny := ctx.Query("user")
-// 	secretAny := ctx.Query("evpw")
+// TODO: Rename it to Password Reset Email Verification
+func (asc *ServiceClient) ResetPassword(ctx *gin.Context) {
+	userAny := ctx.Query("user")
+	secretAny := ctx.Query("evpw")
 
-// 	userId, err := strconv.ParseInt(userAny, 10, 64)
-// 	if err != nil {
-// 		ctx.AbortWithError(http.StatusBadRequest, err)
-// 		return
-// 	}
+	// userId, err := strconv.ParseInt(userAny, 10, 64)
+	// if err != nil {
+	// 	ctx.AbortWithError(http.StatusBadRequest, err)
+	// 	return
+	// }
 
-// 	res, err := asc.Client.ResetPassword(context.Background(), &pb.ResetPasswordReq{
-// 		Id:    userId,
-// 		Token: secretAny,
-// 	})
+	res, err := asc.Client.ResetPassword(context.Background(), &pb.ResetPasswordReq{
+		Username: userAny,
+		Token:    secretAny,
+	})
 
-// 	if err != nil {
-// 		asc.Log.Errorf("rpc auth server returned error: %v", err)
-// 		_ = ctx.AbortWithError(http.StatusForbidden, err)
-// 		return
-// 	}
+	if err != nil {
+		asc.Log.Errorf("rpc auth server returned error: %v", err)
+		_ = ctx.AbortWithError(http.StatusForbidden, err)
+		return
+	}
 
-// 	if res.Status == http.StatusNotFound || res.Error == "user doesn't exists" {
-// 		asc.Log.Infof("user containing email: %s, doesn't exists", userAny)
-// 		_ = ctx.AbortWithError(http.StatusNotFound, common.NotFound)
-// 		return
-// 	}
+	if res.StatusCode == http.StatusNotFound {
+		asc.Log.Infof("user containing email: %s, doesn't exists", userAny)
+		_ = ctx.AbortWithError(http.StatusNotFound, common.ErrNotFound)
+		return
+	}
 
-// 	if res.Status == http.StatusBadRequest || res.Error == "incorrect password" {
-// 		asc.Log.Infof("incorrect password given for the user containing email: %s", userAny)
-// 		_ = ctx.AbortWithError(http.StatusNotFound, common.BadRequest)
-// 		return
-// 	}
+	if res.StatusCode == http.StatusBadRequest {
+		asc.Log.Infof("incorrect password given for the user containing email: %s", userAny)
+		_ = ctx.AbortWithError(http.StatusNotFound, common.ErrBadRequest)
+		return
+	}
 
-// 	ctx.JSON(http.StatusOK, &res)
-// }
+	ctx.JSON(http.StatusOK, &res)
+}
 
 // func (asc *ServiceClient) UpdatePassword(ctx *gin.Context) {
 

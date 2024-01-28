@@ -21,6 +21,7 @@ type AuthDBHandler interface {
 	UpdatePasswordRecoveryToken(hash string, req *models.TheMonkeysUser) error
 	// UpdatePassword(password, email string) error
 	CheckIfEmailExist(email string) (*models.TheMonkeysUser, error)
+	CheckIfUsernameExist(username string) (*models.TheMonkeysUser, error)
 }
 type authDBHandler struct {
 	db *sql.DB
@@ -54,13 +55,17 @@ func NewAuthDBHandler(cfg *config.Config) (AuthDBHandler, error) {
 func (adh *authDBHandler) CheckIfEmailExist(email string) (*models.TheMonkeysUser, error) {
 	var tmu models.TheMonkeysUser
 	if err := adh.db.QueryRow(`
-		SELECT ua.user_id, ua.username, uai.email_id, uai.password_hash, evs.ev_status
-		FROM USER_ACCOUNT ua
-		LEFT JOIN USER_AUTH_INFO uai ON ua.user_id = uai.user_id
-		LEFT JOIN email_validation_status evs ON uai.email_validation_status = evs.id
-		WHERE uai.email_id = $1;
+			SELECT ua.user_id, ua.profile_id, ua.username, ua.first_name, ua.last_name, 
+			uai.email_id, uai.password_hash, evs.ev_status, us.usr_status, uai.email_validation_token,
+			uai.email_verification_timeout
+			FROM USER_ACCOUNT ua
+			LEFT JOIN USER_AUTH_INFO uai ON ua.user_id = uai.user_id
+			LEFT JOIN email_validation_status evs ON uai.email_validation_status = evs.id
+			LEFT JOIN user_status us ON ua.user_status = us.id
+			WHERE uai.email_id = $1;
 		`, email).
-		Scan(&tmu.Id, &tmu.Username, &tmu.Email, &tmu.Password, &tmu.EmailVerified); err != nil {
+		Scan(&tmu.Id, &tmu.ProfileId, &tmu.Username, &tmu.FirstName, &tmu.LastName, &tmu.Email, &tmu.Password,
+			&tmu.EmailVerificationStatus, &tmu.UserStatus, &tmu.EmailVerificationToken, &tmu.EmailVerificationTimeout); err != nil {
 		logrus.Errorf("can't find a user existing with email %s, error: %+v", email, err)
 		return nil, err
 	}
@@ -170,4 +175,27 @@ func (adh *authDBHandler) UpdatePasswordRecoveryToken(hash string, req *models.T
 
 	tx.Commit()
 	return nil
+}
+
+func (adh *authDBHandler) CheckIfUsernameExist(username string) (*models.TheMonkeysUser, error) {
+	var tmu models.TheMonkeysUser
+	if err := adh.db.QueryRow(`
+			SELECT ua.user_id, ua.profile_id, ua.username, ua.first_name, ua.last_name, 
+			uai.email_id, uai.password_hash, uai.pwd_recovery_token, uai.pwd_recovery_timeout, evs.ev_status, us.usr_status, uai.email_validation_token,
+			uai.email_verification_timeout
+			FROM USER_ACCOUNT ua
+			LEFT JOIN USER_AUTH_INFO uai ON ua.user_id = uai.user_id
+			LEFT JOIN email_validation_status evs ON uai.email_validation_status = evs.id
+			LEFT JOIN user_status us ON ua.user_status = us.id
+			WHERE ua.username = $1;
+		`, username).
+		Scan(&tmu.Id, &tmu.ProfileId, &tmu.Username, &tmu.FirstName, &tmu.LastName, &tmu.Email,
+			&tmu.Password, &tmu.PasswordVerificationToken, &tmu.PasswordVerificationTimeout,
+			&tmu.EmailVerificationStatus, &tmu.UserStatus, &tmu.EmailVerificationToken,
+			&tmu.EmailVerificationTimeout); err != nil {
+		logrus.Errorf("can't find a user existing with username %s, error: %+v", username, err)
+		return nil, err
+	}
+
+	return &tmu, nil
 }

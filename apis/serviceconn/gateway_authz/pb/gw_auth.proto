@@ -79,10 +79,30 @@ message ForgotPasswordRes {
   Error error = 1;
 }
 
+message ResetPasswordReq {
+  int64 id = 1;
+  string token = 2;
+  string email = 3;
+  string username = 4;
+}
+
+message ResetPasswordRes {
+  int64 statusCode = 1;
+  string token = 2;
+  bool emailVerified = 3;
+  int64 userId = 4;
+  string userName = 5;
+  string first_name = 6;
+  string last_name = 7;
+  string email = 8;
+  bool email_verification_status = 9;
+  Error error = 10;
+}
 
 service AuthService {
   rpc RegisterUser(RegisterUserRequest) returns (RegisterUserResponse) {}
   rpc Validate(ValidateRequest) returns (ValidateResponse) {}
   rpc Login(LoginUserRequest) returns (LoginUserResponse) {}
   rpc ForgotPassword(ForgotPasswordReq) returns (ForgotPasswordRes) {}
+  rpc ResetPassword(ResetPasswordReq) returns (ResetPasswordRes) {}
 }
