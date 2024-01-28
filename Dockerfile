@@ -1,5 +1,5 @@
 # Start from the latest Golang base image
-FROM golang:latest
+FROM golang:1.20
 
 # Add Maintainer Info
 LABEL maintainer="Dave Augustus <dave@themonkeys.live>"
