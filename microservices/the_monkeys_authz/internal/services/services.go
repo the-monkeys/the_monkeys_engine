@@ -2,6 +2,7 @@ package services
 
 import (
 	"context"
+	"math/rand"
 	"net/http"
 	"time"
 
@@ -150,7 +151,7 @@ func (as *AuthzSvc) Validate(ctx context.Context, req *pb.ValidateRequest) (*pb.
 
 func (as *AuthzSvc) Login(ctx context.Context, req *pb.LoginUserRequest) (*pb.LoginUserResponse, error) {
 	logrus.Infof("user has requested to login with email: %s", req.Email)
-	// CHeck if the user is existing the db or not
+	// Check if the user is existing the db or not
 	user, err := as.dbConn.CheckIfEmailExist(req.Email)
 	if err != nil {
 		return &pb.LoginUserResponse{
@@ -198,4 +199,39 @@ func (as *AuthzSvc) Login(ctx context.Context, req *pb.LoginUserRequest) (*pb.Lo
 		FirstName:     user.FirstName,
 		LastName:      user.LastName,
 	}, nil
+}
+
+func (as *AuthzSvc) ForgotPassword(ctx context.Context, req *pb.ForgotPasswordReq) (*pb.ForgotPasswordRes, error) {
+	logrus.Infof("user %s has forgotten their password", req.Email)
+
+	// Check if the user is existing the db or not
+	user, err := as.dbConn.CheckIfEmailExist(req.Email)
+	if err != nil {
+		return &pb.ForgotPasswordRes{
+			Error: &pb.Error{
+				Status:  http.StatusNotFound,
+				Message: "The email is not registered",
+				Error:   "An account is not registered with this email",
+			},
+		}, err
+	}
+
+	var alphaNumRunes = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890")
+	randomHash := make([]rune, 64)
+	for i := 0; i < 64; i++ {
+		// Intn() returns, as an int, a non-negative pseudo-random number in [0,n).
+		randomHash[i] = alphaNumRunes[rand.Intn(len(alphaNumRunes)-1)]
+	}
+
+	emailVerifyHash := utils.HashPassword(string(randomHash))
+
+	if err = as.dbConn.UpdatePasswordRecoveryToken(emailVerifyHash, user); err != nil {
+		logrus.Errorf("error occurred while updating email verification token for %s, error: %v", req.Email, err)
+		return nil, err
+	}
+
+	emailBody := utils.ResetPasswordTemplate(user.FirstName, user.LastName, string(randomHash), user.Username)
+	go as.SendMail(req.Email, emailBody)
+
+	return &pb.ForgotPasswordRes{}, nil
 }

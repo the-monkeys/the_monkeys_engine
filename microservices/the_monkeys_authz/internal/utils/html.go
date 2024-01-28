@@ -1,8 +1,6 @@
 package utils
 
 import (
-	"strconv"
-
 	"github.com/sirupsen/logrus"
 	"github.com/the-monkeys/the_monkeys/config"
 )
@@ -18,8 +16,7 @@ func init() {
 	logrus.Infof("✅ email verification address: %v", Address)
 }
 
-func ResetPasswordTemplate(firstName, LastName, secret string, id int64) string {
-	userId := strconv.FormatInt(id, 10)
+func ResetPasswordTemplate(firstName, LastName, secret string, userId string) string {
 	return `<!DOCTYPE html PUBLIC>
 	<html xmlns="http://www.w3.org/1999/xhtml">
 	  <head>

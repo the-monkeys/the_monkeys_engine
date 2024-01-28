@@ -3,18 +3,22 @@ package db
 import (
 	"database/sql"
 	"fmt"
+	"time"
 
 	_ "github.com/lib/pq"
 	"github.com/sirupsen/logrus"
+	"github.com/the-monkeys/the_monkeys/common"
 	"github.com/the-monkeys/the_monkeys/config"
 	"github.com/the-monkeys/the_monkeys/microservices/the_monkeys_authz/internal/models"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 type AuthDBHandler interface {
 	RegisterUser(user *models.TheMonkeysUser) (int64, error)
 	// UpdateEmailVerToken(user models.TheMonkeysUser) error
 	// GetNamesEmailFromEmail(req *pb.ForgotPasswordReq) (*models.TheMonkeysUser, error)
-	// UpdatePasswordRecoveryToken(hash string, req *models.TheMonkeysUser) error
+	UpdatePasswordRecoveryToken(hash string, req *models.TheMonkeysUser) error
 	// UpdatePassword(password, email string) error
 	CheckIfEmailExist(email string) (*models.TheMonkeysUser, error)
 }
@@ -141,4 +145,29 @@ func (adh *authDBHandler) insertIntoUserAuthInfo(tx *sql.Tx, user *models.TheMon
 	}
 
 	return authId, nil
+}
+
+func (adh *authDBHandler) UpdatePasswordRecoveryToken(hash string, req *models.TheMonkeysUser) error {
+	// TODO: start a database transaction from here till all the process are complete
+	tx, err := adh.db.Begin()
+	if err != nil {
+		return err
+	}
+
+	stmt, err := tx.Prepare(`UPDATE user_auth_info SET pwd_recovery_token=$1,
+	pwd_recovery_timeout=$2, pwd_recovery_time=$3 WHERE email_id=$4;`)
+	if err != nil {
+		logrus.Errorf("cannot prepare the reset link for %s, error: %v", req.Email, err)
+		return status.Errorf(codes.Internal, "internal server error, error: %v", err)
+	}
+
+	defer stmt.Close()
+	result := stmt.QueryRow(hash, time.Now().Add(time.Minute*5), time.Now().Format(common.DATE_TIME_FORMAT), req.Email)
+	if result.Err() != nil {
+		logrus.Errorf("cannot sent the reset link for %s, error: %v", req.Email, err)
+		return status.Errorf(codes.Internal, "internal server error, error: %v", err)
+	}
+
+	tx.Commit()
+	return nil
 }

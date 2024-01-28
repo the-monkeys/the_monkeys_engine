@@ -9,6 +9,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/the-monkeys/the_monkeys/common"
 	"github.com/the-monkeys/the_monkeys/config"
+	"github.com/the-monkeys/the_monkeys/microservices/the_monkeys_gateway/errors"
 
 	"github.com/the-monkeys/the_monkeys/apis/serviceconn/gateway_authz/pb"
 	"google.golang.org/grpc"
@@ -43,7 +44,7 @@ func RegisterAuthRouter(router *gin.Engine, cfg *config.Config) *ServiceClient {
 	routes.POST("/login", asc.Login)
 
 	// // Forgot password
-	// routes.POST("/forgot-pass", asc.ForgotPassword)
+	routes.POST("/forgot-pass", asc.ForgotPassword)
 	// routes.POST("/reset-password", asc.ResetPassword)
 
 	// routes.POST("/verify-email", asc.VerifyEmail)
@@ -144,28 +145,28 @@ func (asc *ServiceClient) Login(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, &res)
 }
 
-// func (asc *ServiceClient) ForgotPassword(ctx *gin.Context) {
-// 	body := ForgetPass{}
+func (asc *ServiceClient) ForgotPassword(ctx *gin.Context) {
+	body := ForgetPass{}
 
-// 	body.Email = strings.TrimSpace(body.Email)
+	body.Email = strings.TrimSpace(body.Email)
 
-// 	if err := ctx.BindJSON(&body); err != nil {
-// 		asc.Log.Errorf("json body is not correct, error: %v", err)
-// 		_ = ctx.AbortWithError(http.StatusBadRequest, err)
-// 		return
-// 	}
+	if err := ctx.BindJSON(&body); err != nil {
+		asc.Log.Errorf("json body is not correct, error: %v", err)
+		_ = ctx.AbortWithError(http.StatusBadRequest, err)
+		return
+	}
 
-// 	res, err := asc.Client.ForgotPassword(context.Background(), &pb.ForgotPasswordReq{
-// 		Email: body.Email,
-// 	})
+	res, err := asc.Client.ForgotPassword(context.Background(), &pb.ForgotPasswordReq{
+		Email: body.Email,
+	})
 
-// 	if err != nil {
-// 		errors.RestError(ctx, err, "user")
-// 		return
-// 	}
+	if err != nil {
+		errors.RestError(ctx, err, "user")
+		return
+	}
 
-// 	ctx.JSON(http.StatusOK, &res)
-// }
+	ctx.JSON(http.StatusOK, &res)
+}
 
 // // TODO: Rename it to Password Reset Email Verification
 // func (asc *ServiceClient) ResetPassword(ctx *gin.Context) {
