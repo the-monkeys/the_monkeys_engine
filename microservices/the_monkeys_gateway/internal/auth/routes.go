@@ -78,7 +78,7 @@ func (asc *ServiceClient) Register(ctx *gin.Context) {
 	var loginMethod pb.RegisterUserRequest_LoginMethod
 	if body.LoginMethod == "google_acc" {
 		loginMethod = pb.RegisterUserRequest_GOOGLE_ACC
-	} else if body.LoginMethod == "the_monkeys" {
+	} else if body.LoginMethod == "the-monkeys" {
 		loginMethod = pb.RegisterUserRequest_The_MONKEYS
 	}
 

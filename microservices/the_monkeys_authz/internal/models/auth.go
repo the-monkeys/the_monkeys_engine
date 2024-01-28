@@ -46,6 +46,5 @@ type TheMonkeysUser struct {
 	EmailVerificationTimeout  time.Time `json:"email_verification_timeout"`
 	MobileVerificationToken   string    `json:"mobile_verification_token"`
 	MobileVerificationTimeout time.Time `json:"mobile_verification_timeout"`
-	Deactivated               bool      `json:"deactivated"`
 	LoginMethod               string    `json:"login_method"`
 }

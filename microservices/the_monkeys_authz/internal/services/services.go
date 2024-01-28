@@ -62,8 +62,9 @@ func (as *AuthzSvc) RegisterUser(ctx context.Context, req *pb.RegisterUserReques
 	user.IsActive = true
 	user.EmailVerificationToken = encHash
 	user.EmailVerificationTimeout = time.Now().Add(time.Hour * 24)
-	user.Deactivated = false
-	user.LoginMethod = req.LoginMethod.String()
+	if req.LoginMethod.String() == pb.RegisterUserRequest_LoginMethod_name[0] {
+		user.LoginMethod = "the-monkeys"
+	}
 
 	logrus.Infof("registering the user with email %v", req.Email)
 	userId, err := as.dbConn.RegisterUser(user)
