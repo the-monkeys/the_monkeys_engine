@@ -70,9 +70,27 @@ message LoginUserResponse {
   bool email_verification_status = 9;
   Error error = 10;
 }
+message loggedRequest {
+  int64  id = 1;          
+  string device_name = 2; 
+  string ip_address = 3;  
+  string operating_sys = 4; 
+  Timestamp login_time = 5;  
+  int64 user_id = 6;     
+  int64 client_id = 7; 
 
 message ForgotPasswordReq {
   string email = 1;
+}
+
+message loggedResponse {
+  int64  id = 1;          
+  string device_name = 2; 
+  string ip_address = 3;  
+  string operating_sys = 4; 
+  Timestamp login_time = 5;  
+  int64 user_id = 6; 
+
 }
 
 message ForgotPasswordRes {
