@@ -70,7 +70,7 @@ message LoginUserResponse {
   bool email_verification_status = 9;
   Error error = 10;
 }
-message loggedRequest {
+message LoggedRequest {
   int64  id = 1;          
   string device_name = 2; 
   string ip_address = 3;  
@@ -83,7 +83,7 @@ message ForgotPasswordReq {
   string email = 1;
 }
 
-message loggedResponse {
+message LoggedResponse {
   int64  id = 1;          
   string device_name = 2; 
   string ip_address = 3;  

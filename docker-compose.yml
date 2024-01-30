@@ -58,12 +58,12 @@ services:
         soft: -1
         hard: -1
     volumes:
-      - opensearch-data1:/usr/share/opensearch/data
+     - /usr/share/opensearch/data
     ports:
       - 9200:9200
       - 9600:9600 # required for Performance Analyzer
     networks:
-      - opensearch-net
+      - monkeys-network
 networks:
   monkeys-network:
     driver: bridge
