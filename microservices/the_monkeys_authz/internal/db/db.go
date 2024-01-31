@@ -15,13 +15,20 @@ import (
 )
 
 type AuthDBHandler interface {
-	RegisterUser(user *models.TheMonkeysUser) (int64, error)
-	// UpdateEmailVerToken(user models.TheMonkeysUser) error
-	// GetNamesEmailFromEmail(req *pb.ForgotPasswordReq) (*models.TheMonkeysUser, error)
-	UpdatePasswordRecoveryToken(hash string, req *models.TheMonkeysUser) error
-	// UpdatePassword(password, email string) error
+	// Get Operations
 	CheckIfEmailExist(email string) (*models.TheMonkeysUser, error)
 	CheckIfUsernameExist(username string) (*models.TheMonkeysUser, error)
+
+	// Create Operations
+	RegisterUser(user *models.TheMonkeysUser) (int64, error)
+
+	// Update Operations
+	UpdatePasswordRecoveryToken(hash string, req *models.TheMonkeysUser) error
+	UpdatePassword(password string, user *models.TheMonkeysUser) error
+
+	// UpdateEmailVerToken(user models.TheMonkeysUser) error
+	// GetNamesEmailFromEmail(req *pb.ForgotPasswordReq) (*models.TheMonkeysUser, error)
+
 }
 type authDBHandler struct {
 	db *sql.DB
@@ -181,8 +188,8 @@ func (adh *authDBHandler) CheckIfUsernameExist(username string) (*models.TheMonk
 	var tmu models.TheMonkeysUser
 	if err := adh.db.QueryRow(`
 			SELECT ua.user_id, ua.profile_id, ua.username, ua.first_name, ua.last_name, 
-			uai.email_id, uai.password_hash, uai.pwd_recovery_token, uai.pwd_recovery_timeout, evs.ev_status, us.usr_status, uai.email_validation_token,
-			uai.email_verification_timeout
+			uai.email_id, uai.password_hash, uai.pwd_recovery_token, uai.pwd_recovery_timeout,
+			evs.ev_status, us.usr_status, uai.email_validation_token, uai.email_verification_timeout
 			FROM USER_ACCOUNT ua
 			LEFT JOIN USER_AUTH_INFO uai ON ua.user_id = uai.user_id
 			LEFT JOIN email_validation_status evs ON uai.email_validation_status = evs.id
@@ -199,3 +206,57 @@ func (adh *authDBHandler) CheckIfUsernameExist(username string) (*models.TheMonk
 
 	return &tmu, nil
 }
+
+func (adh *authDBHandler) UpdatePassword(password string, user *models.TheMonkeysUser) error {
+	tx, err := adh.db.Begin()
+	if err != nil {
+		return err
+	}
+
+	stmt, err := tx.Prepare(`UPDATE user_auth_info SET
+	password_hash=$1 WHERE email_id=$2;`)
+	if err != nil {
+		logrus.Errorf("cannot prepare statement to update password for %s error: %+v", user.Email, err)
+		return err
+	}
+	defer stmt.Close()
+
+	res, err := stmt.Exec(password, user.Email)
+	if err != nil {
+		logrus.Errorf("cannot update the password for %s, error: %v", user.Email, err)
+		return err
+	}
+
+	row, err := res.RowsAffected()
+	if err != nil {
+		logrus.Errorf("error while checking rows affected for %s, error: %v", user.Email, err)
+		return err
+	}
+	if row != 1 {
+		logrus.Errorf("more or less than 1 row is affected for %s, error: %v", user.Email, err)
+		return err
+	}
+
+	tx.Commit()
+	return nil
+}
+
+// func (adh *authDBHandler) InsertIntoUserLog(tx *sql.Tx, user *models.TheMonkeysUser, message string) error {
+// 	stmt, err := tx.Prepare(`INSERT INTO user_account_log (user_id, event_type, service_type, ip_address, description`)
+// 	if err != nil {
+// 		logrus.Errorf("cannot prepare statement to add user into the USER_AUTH_INFO: %v", err)
+// 		return err
+// 	}
+// 	defer stmt.Close()
+
+// 	var authId int64
+// 	err = stmt.QueryRow(profileId, user.Username, user.Email, user.Password,
+// 		user.EmailVerificationToken, user.EmailVerificationTimeout).Scan(&authId)
+// 	if err != nil {
+// 		logrus.Errorf("cannot execute query to add user to the USER_AUTH_INFO: %v", err)
+// 		return err
+
+// 	}
+
+// 	return nil
+// }

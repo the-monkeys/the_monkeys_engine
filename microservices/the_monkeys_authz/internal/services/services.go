@@ -127,9 +127,8 @@ func (as *AuthzSvc) Validate(ctx context.Context, req *pb.ValidateRequest) (*pb.
 			},
 		}, nil
 	}
-
+	// fmt.Printf("claims: %+v\n", claims)
 	// Check if the email exists
-	as.dbConn.CheckIfEmailExist(claims.Email)
 	user, err := as.dbConn.CheckIfEmailExist(claims.Email)
 	if err != nil {
 		logrus.Errorf("cannot validate token as the email %s doesn't exist, error: %+v", claims.Email, err)
@@ -297,5 +296,18 @@ func (as *AuthzSvc) ResetPassword(ctx context.Context, req *pb.ResetPasswordReq)
 		UserId:        user.Id,
 		FirstName:     user.FirstName,
 		LastName:      user.LastName,
+	}, nil
+}
+
+func (as *AuthzSvc) UpdatePassword(ctx context.Context, req *pb.UpdatePasswordReq) (*pb.UpdatePasswordRes, error) {
+	logrus.Infof("updating password for: %+v", req.Email)
+
+	encHash := utils.HashPassword(req.Password)
+	if err := as.dbConn.UpdatePassword(encHash, &models.TheMonkeysUser{}); err != nil {
+		return nil, err
+	}
+	logrus.Infof("updated password for: %+v", req.Email)
+	return &pb.UpdatePasswordRes{
+		StatusCode: http.StatusOK,
 	}, nil
 }

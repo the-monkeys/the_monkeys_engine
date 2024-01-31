@@ -2,6 +2,7 @@ package auth
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"strings"
 
@@ -52,9 +53,9 @@ func RegisterAuthRouter(router *gin.Engine, cfg *config.Config) *ServiceClient {
 	// // Is the user authenticated
 	// routes.GET("/is-authenticated", asc.IsUserAuthenticated)
 
-	// mware := InitAuthMiddleware(asc)
-	// routes.Use(mware.AuthRequired)
-	// routes.POST("/update-password", asc.UpdatePassword)
+	mware := InitAuthMiddleware(asc)
+	routes.Use(mware.AuthRequired)
+	routes.POST("/update-password", asc.UpdatePassword)
 	// routes.POST("/req-email-verification", asc.ReqEmailVerification)
 
 	return asc
@@ -173,12 +174,6 @@ func (asc *ServiceClient) ResetPassword(ctx *gin.Context) {
 	userAny := ctx.Query("user")
 	secretAny := ctx.Query("evpw")
 
-	// userId, err := strconv.ParseInt(userAny, 10, 64)
-	// if err != nil {
-	// 	ctx.AbortWithError(http.StatusBadRequest, err)
-	// 	return
-	// }
-
 	res, err := asc.Client.ResetPassword(context.Background(), &pb.ResetPasswordReq{
 		Username: userAny,
 		Token:    secretAny,
@@ -205,49 +200,54 @@ func (asc *ServiceClient) ResetPassword(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, &res)
 }
 
-// func (asc *ServiceClient) UpdatePassword(ctx *gin.Context) {
+func (asc *ServiceClient) UpdatePassword(ctx *gin.Context) {
 
-// 	authorization := ctx.Request.Header.Get("authorization")
+	authorization := ctx.Request.Header.Get("authorization")
+	// TODO: Take more fields from header like: email, username,
+	// profile id etc and pass it in ValidateRequest{} to check if the token matches with all of those
+	if authorization == "" {
+		ctx.AbortWithStatus(http.StatusUnauthorized)
+		return
+	}
 
-// 	if authorization == "" {
-// 		ctx.AbortWithStatus(http.StatusUnauthorized)
-// 		return
-// 	}
+	token := strings.Split(authorization, "Bearer ")
 
-// 	token := strings.Split(authorization, "Bearer ")
+	if len(token) < 2 {
+		ctx.AbortWithStatus(http.StatusUnauthorized)
+		return
+	}
 
-// 	if len(token) < 2 {
-// 		ctx.AbortWithStatus(http.StatusUnauthorized)
-// 		return
-// 	}
+	res, err := asc.Client.Validate(context.Background(), &pb.ValidateRequest{
+		Token: token[1],
+	})
 
-// 	res, err := asc.Client.Validate(context.Background(), &pb.ValidateRequest{
-// 		Token: token[1],
-// 	})
-// 	if err != nil || res.Status != http.StatusOK {
-// 		ctx.AbortWithStatus(http.StatusUnauthorized)
-// 		return
-// 	}
+	fmt.Printf("res: %+v\n", res)
 
-// 	pass := UpdatePassword{}
-// 	if err := ctx.BindJSON(&pass); err != nil {
-// 		asc.Log.Errorf("json body is not correct, error: %v", err)
-// 		_ = ctx.AbortWithError(http.StatusBadRequest, err)
-// 		return
-// 	}
-// 	// logrus.Infof("Password: %v", pass.Password)
-// 	// logrus.Infof("res: %+v", res)
-// 	passResp, err := asc.Client.UpdatePassword(context.Background(), &pb.UpdatePasswordReq{
-// 		Password: pass.Password,
-// 		Email:    res.User,
-// 	})
-// 	if err != nil {
-// 		errors.RestError(ctx, err, "user")
-// 		return
-// 	}
+	if err != nil || res.StatusCode != http.StatusOK {
+		ctx.AbortWithStatus(http.StatusUnauthorized)
+		return
+	}
 
-// 	ctx.JSON(http.StatusOK, passResp)
-// }
+	pass := UpdatePassword{}
+	if err := ctx.BindJSON(&pass); err != nil {
+		asc.Log.Errorf("json body is not correct, error: %v", err)
+		_ = ctx.AbortWithError(http.StatusBadRequest, err)
+		return
+	}
+	// logrus.Infof("Password: %v", pass.Password)
+	// logrus.Infof("res: %+v", res)
+	passResp, err := asc.Client.UpdatePassword(context.Background(), &pb.UpdatePasswordReq{
+		Password: pass.Password,
+		Username: res.UserName,
+		Email:    res.Email,
+	})
+	if err != nil {
+		errors.RestError(ctx, err, "user")
+		return
+	}
+
+	ctx.JSON(http.StatusOK, passResp)
+}
 
 // // To verify email
 // func (asc *ServiceClient) VerifyEmail(ctx *gin.Context) {
