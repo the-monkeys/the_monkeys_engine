@@ -214,29 +214,22 @@ func (adh *authDBHandler) UpdatePassword(password string, user *models.TheMonkey
 	}
 
 	stmt, err := tx.Prepare(`UPDATE user_auth_info SET
-	password_hash=$1 WHERE email_id=$2;`)
+	password_hash=$1 WHERE email_id=$2 AND username = $3 RETURNING user_id;`)
 	if err != nil {
 		logrus.Errorf("cannot prepare statement to update password for %s error: %+v", user.Email, err)
 		return err
 	}
 	defer stmt.Close()
 
-	res, err := stmt.Exec(password, user.Email)
+	var userId int64
+	err = stmt.QueryRow(password, user.Email, user.Username).Scan(&userId)
 	if err != nil {
 		logrus.Errorf("cannot update the password for %s, error: %v", user.Email, err)
 		return err
 	}
 
-	row, err := res.RowsAffected()
-	if err != nil {
-		logrus.Errorf("error while checking rows affected for %s, error: %v", user.Email, err)
-		return err
-	}
-	if row != 1 {
-		logrus.Errorf("more or less than 1 row is affected for %s, error: %v", user.Email, err)
-		return err
-	}
-
+	fmt.Printf("userId: %v\n", userId)
+	// TODO: Add a record into the log table using the userId
 	tx.Commit()
 	return nil
 }

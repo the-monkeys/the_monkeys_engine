@@ -300,10 +300,13 @@ func (as *AuthzSvc) ResetPassword(ctx context.Context, req *pb.ResetPasswordReq)
 }
 
 func (as *AuthzSvc) UpdatePassword(ctx context.Context, req *pb.UpdatePasswordReq) (*pb.UpdatePasswordRes, error) {
-	logrus.Infof("updating password for: %+v", req.Email)
+	logrus.Infof("updating password for: %+v", req)
 
 	encHash := utils.HashPassword(req.Password)
-	if err := as.dbConn.UpdatePassword(encHash, &models.TheMonkeysUser{}); err != nil {
+	if err := as.dbConn.UpdatePassword(encHash, &models.TheMonkeysUser{
+		Email:    req.Email,
+		Username: req.Username,
+	}); err != nil {
 		return nil, err
 	}
 	logrus.Infof("updated password for: %+v", req.Email)
