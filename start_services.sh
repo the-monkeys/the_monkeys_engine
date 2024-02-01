@@ -7,4 +7,6 @@
 # This will cause the script to block until this service exits
 /build/the_monkeys_authz &
 
+/build/the_monkeys_users &
+
 wait

@@ -24,6 +24,7 @@ RUN cd microservices/the_monkeys_gateway && go build -o /build/the_monkeys_gatew
 WORKDIR /app
 # Build the authz
 RUN cd microservices/the_monkeys_authz && go build -o /build/the_monkeys_authz
+RUN cd microservices/the_monkeys_users && go build -o /build/the_monkeys_users
 
 # Expose port 8081 to the outside world
 EXPOSE 8081

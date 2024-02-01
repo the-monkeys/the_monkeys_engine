@@ -99,10 +99,22 @@ message ResetPasswordRes {
   Error error = 10;
 }
 
+message UpdatePasswordReq {
+  string password = 1;
+  string username = 2;
+  string email = 3;
+}
+
+message UpdatePasswordRes {
+  int64 statusCode = 1;
+  Error error = 2;
+}
+
 service AuthService {
   rpc RegisterUser(RegisterUserRequest) returns (RegisterUserResponse) {}
   rpc Validate(ValidateRequest) returns (ValidateResponse) {}
   rpc Login(LoginUserRequest) returns (LoginUserResponse) {}
   rpc ForgotPassword(ForgotPasswordReq) returns (ForgotPasswordRes) {}
   rpc ResetPassword(ResetPasswordReq) returns (ResetPasswordRes) {}
+  rpc UpdatePassword(UpdatePasswordReq) returns (UpdatePasswordRes) {}
 }
