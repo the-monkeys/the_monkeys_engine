@@ -38,7 +38,7 @@ func main() {
 
 	pb.RegisterUserServiceServer(grpcServer, userService)
 
-	log.Infof("the user service started at: %v", cfg.Microservices.TheMonkeysUser)
+	log.Infof("✅ the user service started at: %v", cfg.Microservices.TheMonkeysUser)
 	if err := grpcServer.Serve(lis); err != nil {
 		log.Fatalln("Failed to serve:", err)
 	}

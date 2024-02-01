@@ -2,8 +2,6 @@ syntax = "proto3";
 
 package auth_svc;
 
-import "google/protobuf/timestamp.proto";
-
 option go_package = "./apis/serviceconn/gateway_authz/pb";
 
 message RegisterUserRequest {
@@ -72,29 +70,9 @@ message LoginUserResponse {
   bool email_verification_status = 9;
   Error error = 10;
 }
-message LoggedRequest {
-  int64  id = 1;          
-  string device_name = 2; 
-  string ip_address = 3;  
-  string operating_sys = 4; 
-  google.protobuf.Timestamp  login_time = 5;  
-  int64 user_id = 6;     
-  int64 client_id = 7;
-  
-}
 
 message ForgotPasswordReq {
   string email = 1;
-}
-
-message LoggedResponse {
-  int64  id = 1;          
-  string device_name = 2; 
-  string ip_address = 3;  
-  string operating_sys = 4; 
-  google.protobuf.Timestamp login_time = 5;  
-  int64 user_id = 6; 
-
 }
 
 message ForgotPasswordRes {
