@@ -2,6 +2,7 @@ package services
 
 import (
 	"context"
+	"log"
 	"math/rand"
 	"net/http"
 	"time"
@@ -77,7 +78,13 @@ func (as *AuthzSvc) RegisterUser(ctx context.Context, req *pb.RegisterUserReques
 
 	// Send email verification mail as a routine else the register api gets slower
 	emailBody := utils.EmailVerificationHTML(user.Email, hash)
-	go as.SendMail(user.Email, emailBody)
+	go func() {
+		err := as.SendMail(req.Email, emailBody)
+		if err != nil {
+			// Handle error
+			log.Printf("Failed to send mail post registration: %v", err)
+		}
+	}()
 
 	logrus.Infof("user %s is successfully registered.", user.Email)
 
@@ -232,7 +239,13 @@ func (as *AuthzSvc) ForgotPassword(ctx context.Context, req *pb.ForgotPasswordRe
 	}
 
 	emailBody := utils.ResetPasswordTemplate(user.FirstName, user.LastName, string(randomHash), user.Username)
-	go as.SendMail(req.Email, emailBody)
+	go func() {
+		err := as.SendMail(req.Email, emailBody)
+		if err != nil {
+			// Handle error
+			log.Printf("Failed to send mail for password recovery: %v", err)
+		}
+	}()
 
 	return &pb.ForgotPasswordRes{
 		Error: &pb.Error{

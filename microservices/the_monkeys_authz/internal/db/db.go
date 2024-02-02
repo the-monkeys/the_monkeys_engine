@@ -180,7 +180,11 @@ func (adh *authDBHandler) UpdatePasswordRecoveryToken(hash string, req *models.T
 		return status.Errorf(codes.Internal, "internal server error, error: %v", err)
 	}
 
-	tx.Commit()
+	err = tx.Commit()
+	if err != nil {
+		logrus.Errorf("cannot commit the password recovery token for %s, error: %v", req.Email, err)
+		return err
+	}
 	return nil
 }
 
@@ -230,7 +234,12 @@ func (adh *authDBHandler) UpdatePassword(password string, user *models.TheMonkey
 
 	fmt.Printf("userId: %v\n", userId)
 	// TODO: Add a record into the log table using the userId
-	tx.Commit()
+
+	err = tx.Commit()
+	if err != nil {
+		logrus.Errorf("cannot commit the password update for %s, error: %v", user.Email, err)
+		return err
+	}
 	return nil
 }
 

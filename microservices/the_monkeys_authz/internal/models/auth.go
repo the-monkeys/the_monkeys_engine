@@ -40,8 +40,8 @@ type TheMonkeysUser struct {
 	LastName                    string    `json:"last_name"`
 	Email                       string    `json:"email"`
 	Password                    string    `json:"password"`
-	PasswordVerificationToken   string    `json:"email_verification_token"`
-	PasswordVerificationTimeout time.Time `json:"email_verification_timeout"`
+	PasswordVerificationToken   string    `json:"password_verification_token"`
+	PasswordVerificationTimeout time.Time `json:"password_verification_timeout"`
 	EmailVerificationStatus     string    `json:"email_verified"`
 	UserStatus                  string    `json:"is_active,omitempty"`
 	EmailVerificationToken      string    `json:"email_verification_token"`

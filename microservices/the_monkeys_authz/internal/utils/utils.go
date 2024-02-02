@@ -3,7 +3,7 @@ package utils
 import (
 	"crypto/rand"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"strconv"
 
@@ -17,7 +17,7 @@ func PublicIP() string {
 	}
 	defer resp.Body.Close()
 
-	ip, err := ioutil.ReadAll(resp.Body)
+	ip, err := io.ReadAll(resp.Body)
 	if err != nil {
 		panic(err)
 	}
