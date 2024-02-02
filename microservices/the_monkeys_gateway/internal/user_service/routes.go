@@ -10,6 +10,7 @@ import (
 	"github.com/the-monkeys/the_monkeys/microservices/the_monkeys_gateway/errors"
 	"github.com/the-monkeys/the_monkeys/microservices/the_monkeys_gateway/internal/auth"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 )
 
 type UserServiceClient struct {
@@ -17,7 +18,7 @@ type UserServiceClient struct {
 }
 
 func NewUserServiceClient(cfg *config.Config) pb.UserServiceClient {
-	cc, err := grpc.Dial(cfg.Microservices.TheMonkeysUser, grpc.WithInsecure())
+	cc, err := grpc.Dial(cfg.Microservices.TheMonkeysUser, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		logrus.Errorf("cannot dial to grpc user server: %v", err)
 	}

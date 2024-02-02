@@ -8,6 +8,7 @@ import (
 	"github.com/the-monkeys/the_monkeys/config"
 	"github.com/the-monkeys/the_monkeys/microservices/the_monkeys_users/internal/server"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 )
 
 func main() {
@@ -45,7 +46,7 @@ func main() {
 
 func BlogServiceConn(addr string) (*grpc.ClientConn, error) {
 	logrus.Infof("gRPC dialing to the blog server: %v", addr)
-	conn, err := grpc.Dial(addr, grpc.WithInsecure())
+	conn, err := grpc.Dial(addr, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		return nil, err
 	}
