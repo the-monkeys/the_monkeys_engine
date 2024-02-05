@@ -11,6 +11,7 @@ import (
 	"github.com/the-monkeys/the_monkeys/apis/serviceconn/gateway_authz/pb"
 	"github.com/the-monkeys/the_monkeys/common"
 	"github.com/the-monkeys/the_monkeys/config"
+	"github.com/the-monkeys/the_monkeys/microservices/service_types"
 	"github.com/the-monkeys/the_monkeys/microservices/the_monkeys_authz/internal/db"
 	"github.com/the-monkeys/the_monkeys/microservices/the_monkeys_authz/internal/models"
 	"google.golang.org/grpc/codes"
@@ -91,13 +92,13 @@ func (as *AuthzSvc) RegisterUser(ctx context.Context, req *pb.RegisterUserReques
 	// Generate and return token
 	token, err := as.jwt.GenerateToken(user)
 	if err != nil {
-		logrus.Errorf("cannot create a token for %s, error: %+v", req.Email, err)
+		logrus.Errorf(service_types.CannotCreateToken(req.Email, err))
 		return &pb.RegisterUserResponse{
 			StatusCode: http.StatusBadRequest,
 			Error: &pb.Error{
 				Status:  http.StatusInternalServerError,
 				Message: "You are successfully registered",
-				Error:   "Try to login",
+				Error:   service_types.LoginMsg,
 			},
 		}, nil
 	}
@@ -166,8 +167,8 @@ func (as *AuthzSvc) Login(ctx context.Context, req *pb.LoginUserRequest) (*pb.Lo
 			StatusCode: http.StatusNotFound,
 			Error: &pb.Error{
 				Status:  http.StatusNotFound,
-				Message: "The email is not registered",
-				Error:   "An account is not registered with this email",
+				Message: service_types.EmailNotRegistered,
+				Error:   service_types.ErrEmailNotRegistered,
 			},
 		}, err
 	}
@@ -186,13 +187,13 @@ func (as *AuthzSvc) Login(ctx context.Context, req *pb.LoginUserRequest) (*pb.Lo
 
 	token, err := as.jwt.GenerateToken(user)
 	if err != nil {
-		logrus.Errorf("cannot create a token for %s, error: %+v", req.Email, err)
+		logrus.Errorf(service_types.CannotCreateToken(req.Email, err))
 		return &pb.LoginUserResponse{
 			StatusCode: http.StatusBadRequest,
 			Error: &pb.Error{
 				Status:  http.StatusInternalServerError,
-				Message: "You are successfully logged in",
-				Error:   "Try to login",
+				Message: "Something went wrong",
+				Error:   "Error creating login token",
 			},
 		}, nil
 	}
@@ -218,8 +219,8 @@ func (as *AuthzSvc) ForgotPassword(ctx context.Context, req *pb.ForgotPasswordRe
 		return &pb.ForgotPasswordRes{
 			Error: &pb.Error{
 				Status:  http.StatusNotFound,
-				Message: "The email is not registered",
-				Error:   "An account is not registered with this email",
+				Message: service_types.EmailNotRegistered,
+				Error:   service_types.ErrEmailNotRegistered,
 			},
 		}, err
 	}
@@ -263,7 +264,7 @@ func (as *AuthzSvc) ResetPassword(ctx context.Context, req *pb.ResetPasswordReq)
 		return &pb.ResetPasswordRes{
 			Error: &pb.Error{
 				Status:  http.StatusNotFound,
-				Message: "The email is not registered",
+				Message: service_types.EmailNotRegistered,
 				Error:   "An account is not registered with this email",
 			},
 		}, err
@@ -290,12 +291,12 @@ func (as *AuthzSvc) ResetPassword(ctx context.Context, req *pb.ResetPasswordReq)
 	// Generate and return token
 	token, err := as.jwt.GenerateToken(user)
 	if err != nil {
-		logrus.Errorf("cannot create a token for %s, error: %+v", req.Email, err)
+		logrus.Errorf(service_types.CannotCreateToken(req.Email, err))
 		return &pb.ResetPasswordRes{
 			Error: &pb.Error{
 				Status:  http.StatusInternalServerError,
 				Message: "You are successfully registered",
-				Error:   "Try to login",
+				Error:   service_types.LoginMsg,
 			},
 		}, nil
 	}

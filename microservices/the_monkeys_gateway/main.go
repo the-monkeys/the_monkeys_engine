@@ -8,6 +8,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/gin-contrib/secure"
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
 	"github.com/the-monkeys/the_monkeys/config"
@@ -40,6 +41,13 @@ func main() {
 	server.router.Use(gin.Recovery())
 	server.router.Use(gin.Logger())
 	server.router.MaxMultipartMemory = 8 << 20
+
+	server.router.Use(secure.New(secure.Config{
+		FrameDeny:             true,
+		ContentTypeNosniff:    true,
+		BrowserXssFilter:      true,
+		ContentSecurityPolicy: "default-src 'self'",
+	}))
 
 	// enable CORS
 	server.router.Use(middleware.CORSMiddleware())

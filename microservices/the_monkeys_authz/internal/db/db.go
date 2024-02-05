@@ -2,6 +2,7 @@ package db
 
 import (
 	"database/sql"
+	"errors"
 	"fmt"
 	"time"
 
@@ -9,6 +10,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/the-monkeys/the_monkeys/common"
 	"github.com/the-monkeys/the_monkeys/config"
+	"github.com/the-monkeys/the_monkeys/microservices/service_types"
 	"github.com/the-monkeys/the_monkeys/microservices/the_monkeys_authz/internal/models"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -86,19 +88,23 @@ func (adh *authDBHandler) RegisterUser(user *models.TheMonkeysUser) (int64, erro
 		return 0, err
 	}
 
-	profileId, err := adh.insertIntoUserAccount(tx, user)
+	userId, err := adh.insertIntoUserAccount(tx, user)
 	if err != nil {
 		return 0, err
 	}
 
-	authId, err := adh.insertIntoUserAuthInfo(tx, user, profileId)
+	authId, err := adh.insertIntoUserAuthInfo(tx, user, userId)
 	if err != nil {
 		return 0, err
 	}
 
 	// USER_ACCOUNT_STATUS
 
-	// USER_ACCOUNT_LOG
+	err = adh.InsertIntoUserLog(tx, &models.TheMonkeysUser{Id: userId}, service_types.EventRegister,
+		service_types.ServiceAuth, "", fmt.Sprintf("User containing %v email has called registered API", user.Email))
+	if err != nil {
+		return 0, err
+	}
 
 	// EXTERNAL_AUTH_PROVIDERS
 
@@ -107,11 +113,11 @@ func (adh *authDBHandler) RegisterUser(user *models.TheMonkeysUser) (int64, erro
 		return 0, err
 	}
 
-	if profileId != authId {
+	if userId != authId {
 		logrus.Warnf("we are detecting some data inconsistency for user %s", user.Email)
 	}
 
-	return profileId, nil
+	return userId, nil
 }
 
 func (adh *authDBHandler) insertIntoUserAccount(tx *sql.Tx, user *models.TheMonkeysUser) (int64, error) {
@@ -243,22 +249,30 @@ func (adh *authDBHandler) UpdatePassword(password string, user *models.TheMonkey
 	return nil
 }
 
-// func (adh *authDBHandler) InsertIntoUserLog(tx *sql.Tx, user *models.TheMonkeysUser, message string) error {
-// 	stmt, err := tx.Prepare(`INSERT INTO user_account_log (user_id, event_type, service_type, ip_address, description`)
-// 	if err != nil {
-// 		logrus.Errorf("cannot prepare statement to add user into the USER_AUTH_INFO: %v", err)
-// 		return err
-// 	}
-// 	defer stmt.Close()
+func (adh *authDBHandler) InsertIntoUserLog(tx *sql.Tx, user *models.TheMonkeysUser, eventType, serviceType, ipAddress, description string) error {
+	stmt, err := tx.Prepare(`INSERT INTO USER_ACCOUNT_LOG (user_id, event_type, service_type, ip_address, description) VALUES ($1, $2, $3, $4, $5);`)
+	if err != nil {
+		logrus.Errorf("cannot prepare statement to add user into the USER_ACCOUNT_LOG: %v", err)
+		return err
+	}
+	defer stmt.Close()
 
-// 	var authId int64
-// 	err = stmt.QueryRow(profileId, user.Username, user.Email, user.Password,
-// 		user.EmailVerificationToken, user.EmailVerificationTimeout).Scan(&authId)
-// 	if err != nil {
-// 		logrus.Errorf("cannot execute query to add user to the USER_AUTH_INFO: %v", err)
-// 		return err
+	row, err := stmt.Exec(user.Id, eventType, serviceType, ipAddress, description)
+	if err != nil {
+		logrus.Errorf("cannot execute query to add user to the USER_ACCOUNT_LOG: %v", err)
+		return err
+	}
 
-// 	}
+	affectedRow, err := row.RowsAffected()
+	if err != nil {
+		logrus.Errorf("error finding affected rows for USER_ACCOUNT_LOG: %v", err)
+		return err
+	}
 
-// 	return nil
-// }
+	if affectedRow == 0 {
+		logrus.Errorf("cannot create a record in the log table for USER_ACCOUNT_LOG: %v", err)
+		return errors.New("cannot create a record in the log table")
+	}
+
+	return nil
+}
