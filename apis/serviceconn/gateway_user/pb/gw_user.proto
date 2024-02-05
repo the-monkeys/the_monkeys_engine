@@ -1,0 +1,26 @@
+syntax = "proto3";
+
+package auth_svc;
+
+import "google/protobuf/timestamp.proto";
+
+option go_package = "./apis/serviceconn/gateway_user/pb";
+
+
+message UserActivityReq {
+    string user_id = 1;
+    string user_name = 2;
+    string email = 3;
+}
+
+message UserActivityRes {
+    string event_type = 1;
+    string service_type = 2;
+    google.protobuf.Timestamp timestamp = 3;
+    string ip_address = 4;
+    string description = 5;
+}
+
+service UserService {
+    rpc GetUserActivities(UserActivityReq) returns (UserActivityRes) {}
+}
