@@ -61,6 +61,20 @@ services:
   #     - 9600:9600 # required for Performance Analyzer
   #   networks:
   #     - monkeys-network
+
+  the-monkeys-rabbitmq:
+   image: rabbitmq:latest
+   container_name: monkeys-Rabbit
+   restart: always
+  ports:
+      - "5672:5672"  # RabbitMQ default port
+      - "15672:15672"  # RabbitMQ Management UI port
+  volumes:
+    - /var/lib/rabbitmq
+  networks:
+     - monkeys-network
+
+
 networks:
   monkeys-network:
     driver: bridge
