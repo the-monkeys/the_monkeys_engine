@@ -185,7 +185,7 @@ func (adh *authDBHandler) UpdatePasswordRecoveryToken(hash string, req *models.T
 		logrus.Errorf("cannot sent the reset link for %s, error: %v", req.Email, err)
 		return status.Errorf(codes.Internal, "internal server error, error: %v", err)
 	}
-
+     
 	err = tx.Commit()
 	if err != nil {
 		logrus.Errorf("cannot commit the password recovery token for %s, error: %v", req.Email, err)
