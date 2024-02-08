@@ -340,7 +340,7 @@ func (asc *ServiceClient) IsUserAuthenticated(ctx *gin.Context) {
 		return
 	}
 
-	if res.userid!= user {
+	if res.UserName!= user {
 		ctx.AbortWithStatus(http.StatusUnauthorized)
 		return
 	}

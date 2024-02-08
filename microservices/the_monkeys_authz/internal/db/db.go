@@ -145,9 +145,9 @@ func (adh *authDBHandler) insertIntoUserAuthInfo(tx *sql.Tx, user *models.TheMon
 	INSERT INTO USER_AUTH_INFO (
 	user_id, username, email_id, password_hash, 
 	email_validation_token, email_validation_status, email_verification_timeout, auth_provider_id) 
-	VALUES ($1, $2, $3, $4, $5, (SELECT id FROM email_validation_status where ev_status='%s'), $6, (SELECT id FROM auth_provider where provider_name='%s')) 
+	VALUES ($1, $2, $3, $4, $5, (SELECT id FROM email_validation_status where ev_status='unverified' LIMIT 1), $6, (SELECT id FROM auth_provider where provider_name='%s' LIMIT 1)) 
 	RETURNING id;
-	`, "unverified", user.LoginMethod))
+	`, user.LoginMethod))
 	if err != nil {
 		logrus.Errorf("cannot prepare statement to add user into the USER_AUTH_INFO: %v", err)
 		return 0, err
