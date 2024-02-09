@@ -2,7 +2,7 @@ the_monkeys_gateway:
   HTTPS: 0.0.0.0:8080
   HTTP: 0.0.0.0:8081
 microservices:
-  the_monkeys_authz: 0.0.0.0:50051
+  the_monkeys_authz: the_monkeys_authz:50051 # To run on the local replace with 0.0.0.0:50051
   the_monkeys_blog: 0.0.0.0:50052
   the_monkeys_user: 0.0.0.0:50053
   the_monkeys_file_storage: 0.0.0.0:50054

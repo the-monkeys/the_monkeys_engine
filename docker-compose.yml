@@ -41,17 +41,44 @@ services:
     restart: on-failure
 
   the_monkeys_gateway:
-    container_name: "monkeys-engine"
-    build:
-      context: .
-      dockerfile: Dockerfile
-    ports:
-      - "8081:8081"
+    image: golang:latest
     networks:
       - monkeys-network
     depends_on:
       - the_monkeys_db
       - db-migrations
+    volumes:
+      - .:/go/src/app
+    ports:
+      - "8081:8081"
+    working_dir: /go/src/app
+    command: go run microservices/the_monkeys_gateway/main.go
+
+  the_monkeys_authz:
+    image: golang:latest
+    networks:
+      - monkeys-network
+    depends_on:
+      - the_monkeys_db
+      - db-migrations
+    volumes:
+      - .:/go/src/app
+    ports:
+      - "50051:50051"
+    working_dir: /go/src/app
+    command: go run microservices/the_monkeys_authz/main.go
+  # the_monkeys_gateway:
+  #   container_name: "monkeys-engine"
+  #   build:
+  #     context: .
+  #     dockerfile: Dockerfile
+  #   ports:
+  #     - "8081:8081"
+  #   networks:
+  #     - monkeys-network
+  #   depends_on:
+  #     - the_monkeys_db
+  #     - db-migrations
 
   # opensearch-node1:
   #   image: opensearchproject/opensearch:1.2.1
