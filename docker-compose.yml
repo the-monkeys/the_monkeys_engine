@@ -13,32 +13,75 @@ services:
     networks:
       - monkeys-network
     volumes:
-      - ./schema:/migrations
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U root"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
   db-migrations:
-    image: bitnami/postgresql:latest
-    restart: on-failure
-    depends_on:
-      - the_monkeys_db
+    image: migrate/migrate:v4.15.2
     volumes:
       - ./schema:/migrations
-      - ./run_migrations.sh:/run_migrations.sh
-    command: ["/bin/bash", "-c", "sleep 10; /run_migrations.sh"]
     networks:
       - monkeys-network
+    entrypoint:
+      [
+        "migrate",
+        "-path",
+        "/migrations",
+        "-database",
+        "postgres://root:Secret@the_monkeys_db:5432/the_monkeys_user_dev?sslmode=disable",
+      ]
+    command: ["up"]
+    depends_on:
+      the_monkeys_db:
+        condition: service_healthy
+    restart: on-failure
 
   the_monkeys_gateway:
-    container_name: "monkeys-engine"
-    build:
-      context: .
-      dockerfile: Dockerfile
-    ports:
-      - "8081:8081"
+    container_name: "api-gateway"
+    image: golang:latest
     networks:
       - monkeys-network
     depends_on:
       - the_monkeys_db
       - db-migrations
+    volumes:
+      - .:/go/src/app
+    ports:
+      - "8081:8081"
+    working_dir: /go/src/app
+    command: go run microservices/the_monkeys_gateway/main.go
+
+  the_monkeys_authz:
+    container_name: "auth-service"
+    image: golang:latest
+    networks:
+      - monkeys-network
+    depends_on:
+      - the_monkeys_db
+      - db-migrations
+    volumes:
+      - .:/go/src/app
+    ports:
+      - "50051:50051"
+    working_dir: /go/src/app
+    command: go run microservices/the_monkeys_authz/main.go
+  # the_monkeys_gateway:
+  #   container_name: "monkeys-engine"
+  #   build:
+  #     context: .
+  #     dockerfile: Dockerfile
+  #   ports:
+  #     - "8081:8081"
+  #   networks:
+  #     - monkeys-network
+  #   depends_on:
+  #     - the_monkeys_db
+  #     - db-migrations
+
   # opensearch-node1:
   #   image: opensearchproject/opensearch:1.2.1
   #   container_name: monkeys-os
@@ -62,18 +105,24 @@ services:
   #   networks:
   #     - monkeys-network
 
-  the-monkeys-rabbitmq:
-    image: rabbitmq:latest
-    container_name: monkeys-rabbitmq
-    restart: always
-    ports:
-      - "5672:5672"  # RabbitMQ default port
-      - "15672:15672"  # RabbitMQ Management UI port
-    networks:
-      - monkeys-network    
-    volumes:
-      - /var/lib/rabbitmq
+  # the-monkeys-rabbitmq:
+  #   image: rabbitmq:latest
+  #   container_name: monkeys-rabbitmq
+  #   restart: always
+  #   ports:
+  #     - "5672:5672"  # RabbitMQ default port
+  #     - "15672:15672"  # RabbitMQ Management UI port
+  #   networks:
+  #     - monkeys-network    
+  #   volumes:
+  #     - /var/lib/rabbitmq
+
 
 networks:
   monkeys-network:
     driver: bridge
+
+volumes:
+  postgres_data:
+
+

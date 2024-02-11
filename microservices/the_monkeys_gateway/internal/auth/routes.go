@@ -51,7 +51,7 @@ func RegisterAuthRouter(router *gin.Engine, cfg *config.Config) *ServiceClient {
 	// routes.POST("/verify-email", asc.VerifyEmail)
 
 	// // Is the user authenticated
-	// routes.GET("/is-authenticated", asc.IsUserAuthenticated)
+	routes.GET("/is-authenticated", asc.IsUserAuthenticated)
 
 	mware := InitAuthMiddleware(asc)
 	routes.Use(mware.AuthRequired)
@@ -313,37 +313,37 @@ func (asc *ServiceClient) UpdatePassword(ctx *gin.Context) {
 // 	ctx.JSON(http.StatusOK, &res)
 // }
 
-// func (asc *ServiceClient) IsUserAuthenticated(ctx *gin.Context) {
-// 	authorization := ctx.Request.Header.Get("authorization")
+func (asc *ServiceClient) IsUserAuthenticated(ctx *gin.Context) {
+	authorization := ctx.Request.Header.Get("authorization")
 
-// 	if authorization == "" {
-// 		ctx.AbortWithStatus(http.StatusUnauthorized)
-// 		return
-// 	}
+	if authorization == "" {
+		ctx.AbortWithStatus(http.StatusUnauthorized)
+		return
+	}
 
-// 	token := strings.Split(authorization, "Bearer ")
+	token := strings.Split(authorization, "Bearer ")
 
-// 	if len(token) < 2 {
-// 		ctx.AbortWithStatus(http.StatusUnauthorized)
-// 		return
-// 	}
-// 	user := ctx.Request.Header.Get("user")
-// 	if user == "" {
-// 		ctx.AbortWithStatus(http.StatusUnauthorized)
-// 		return
-// 	}
-// 	res, err := asc.Client.Validate(context.Background(), &pb.ValidateRequest{
-// 		Token: token[1],
-// 	})
-// 	if err != nil || res.Status != http.StatusOK {
-// 		ctx.AbortWithStatus(http.StatusUnauthorized)
-// 		return
-// 	}
+	if len(token) < 2 {
+		ctx.AbortWithStatus(http.StatusUnauthorized)
+		return
+	}
+	user := ctx.Request.Header.Get("user")
+	if user == "" {
+		ctx.AbortWithStatus(http.StatusUnauthorized)
+		return
+	}
+	res, err := asc.Client.Validate(context.Background(), &pb.ValidateRequest{
+		Token: token[1],
+	})
+	if err != nil || res.StatusCode != http.StatusOK {
+		ctx.AbortWithStatus(http.StatusUnauthorized)
+		return
+	}
 
-// 	if res.User != user {
-// 		ctx.AbortWithStatus(http.StatusUnauthorized)
-// 		return
-// 	}
+	if res.UserName != user {
+		ctx.AbortWithStatus(http.StatusUnauthorized)
+		return
+	}
 
-// 	ctx.JSON(http.StatusOK, "authorized")
-// }
+	ctx.JSON(http.StatusOK, "authorized")
+}

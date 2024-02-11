@@ -35,12 +35,12 @@ ADD CONSTRAINT user_id_unique UNIQUE (user_id);
 
 CREATE TABLE IF NOT EXISTS EMAIL_VALIDATION_STATUS (
     id SERIAL NOT NULL PRIMARY KEY,
-    ev_status VARCHAR(100)
+    ev_status VARCHAR(100) UNIQUE
 );
 
 CREATE TABLE IF NOT EXISTS auth_provider (
     id SERIAL NOT NULL PRIMARY KEY,
-    provider_name VARCHAR(100) NOT NULL
+    provider_name VARCHAR(100) NOT NULL UNIQUE
 );
 
 
