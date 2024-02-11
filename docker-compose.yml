@@ -41,6 +41,7 @@ services:
     restart: on-failure
 
   the_monkeys_gateway:
+    container_name: "api-gateway"
     image: golang:latest
     networks:
       - monkeys-network
@@ -55,6 +56,7 @@ services:
     command: go run microservices/the_monkeys_gateway/main.go
 
   the_monkeys_authz:
+    container_name: "auth-service"
     image: golang:latest
     networks:
       - monkeys-network

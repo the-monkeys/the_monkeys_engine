@@ -21,6 +21,7 @@ type jwtClaims struct {
 	Email string
 }
 
+// TODO: Add Username, profile_name and client_id
 func (w *JwtWrapper) GenerateToken(user *models.TheMonkeysUser) (signedToken string, err error) {
 	claims := &jwtClaims{
 		Id:    user.Id,
