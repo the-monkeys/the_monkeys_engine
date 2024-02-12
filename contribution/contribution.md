@@ -12,6 +12,8 @@ Create branches in your fork, and submit PRs from your forked branch.
 
 # Local Setup Requirement
 
+## Linux and MacBook
+
 The following tools are required for local setup:
 
 * Docker
@@ -25,14 +27,25 @@ If you want the `Makefile` to read config.yml, install `yq`:
 
 ```bash
 snap install yq
-
-# Install linting tool
+```
+* Install linting tool
 ```
 curl -sfL https://install.goreleaser.com/github.com/golangci/golangci-lint.sh | sh -s -- -b $(go env GOPATH)/bin vX.Y.Z
 ```
 
 ### Run go lint command
 $ `golangci-lint run`
+
+## Windows
+* WSL 2
+* Docker
+* Golang v1.21.0+
+* Protoc compiler
+* [migrate](https://github.com/golang-migrate/migrate)
+* `make` command
+* `yq` for reading from yaml
+* Install and Linter
+
 
 
 

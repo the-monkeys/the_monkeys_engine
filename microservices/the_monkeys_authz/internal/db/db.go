@@ -10,7 +10,6 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/the-monkeys/the_monkeys/common"
 	"github.com/the-monkeys/the_monkeys/config"
-	"github.com/the-monkeys/the_monkeys/microservices/service_types"
 	"github.com/the-monkeys/the_monkeys/microservices/the_monkeys_authz/internal/models"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -27,7 +26,7 @@ type AuthDBHandler interface {
 	// Update Operations
 	UpdatePasswordRecoveryToken(hash string, req *models.TheMonkeysUser) error
 	UpdatePassword(password string, user *models.TheMonkeysUser) error
-	UpdateEmailVerToken(req *models.TheMonkeysUser) error
+	UpdateEmailVerificationToken(req *models.TheMonkeysUser) error
 	// GetNamesEmailFromEmail(req *pb.ForgotPasswordReq) (*models.TheMonkeysUser, error)
 
 }
@@ -98,12 +97,6 @@ func (adh *authDBHandler) RegisterUser(user *models.TheMonkeysUser) (int64, erro
 	}
 
 	// USER_ACCOUNT_STATUS
-
-	err = adh.InsertIntoUserLog(tx, &models.TheMonkeysUser{Id: userId}, service_types.EventRegister,
-		service_types.ServiceAuth, "", fmt.Sprintf("User containing %v email has called registered API", user.Email))
-	if err != nil {
-		return 0, err
-	}
 
 	// EXTERNAL_AUTH_PROVIDERS
 
@@ -276,7 +269,7 @@ func (adh *authDBHandler) InsertIntoUserLog(tx *sql.Tx, user *models.TheMonkeysU
 	return nil
 }
 
-func (adh *authDBHandler) UpdateEmailVerToken(req *models.TheMonkeysUser) error {
+func (adh *authDBHandler) UpdateEmailVerificationToken(req *models.TheMonkeysUser) error {
 	// TODO: start a database transaction from here till all the process are complete
 	tx, err := adh.db.Begin()
 	if err != nil {
@@ -296,15 +289,6 @@ func (adh *authDBHandler) UpdateEmailVerToken(req *models.TheMonkeysUser) error 
 		logrus.Errorf("cannot sent the reset link for %s, error: %v", req.Email, err)
 		return status.Errorf(codes.Internal, "internal server error, error: %v", err)
 	}
-
-	// bx, err := json.MarshalIndent(req, "", "\t")
-	// os.WriteFile("abc.json", bx, 0777)
-
-	// err = adh.InsertIntoUserLog(tx, req, service_types.EventRegister,
-	// 	service_types.ServiceAuth, "", fmt.Sprintf("User containing %v email has called registered API", req.Email))
-	// if err != nil {
-	// 	return err
-	// }
 
 	err = tx.Commit()
 	if err != nil {

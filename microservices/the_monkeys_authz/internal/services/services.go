@@ -356,7 +356,7 @@ func (as *AuthzSvc) RequestForEmailVerification(ctx context.Context, req *pb.Ema
 	user.EmailVerificationToken = encHash
 	user.EmailVerificationTimeout = time.Now().Add(time.Hour * 24)
 
-	if err := as.dbConn.UpdateEmailVerToken(user); err != nil {
+	if err := as.dbConn.UpdateEmailVerificationToken(user); err != nil {
 		return nil, err
 	}
 
