@@ -2,6 +2,7 @@ package services
 
 import (
 	"context"
+	"errors"
 	"log"
 	"math/rand"
 	"net/http"
@@ -38,8 +39,32 @@ func NewAuthzSvc(dbCli db.AuthDBHandler, jwt utils.JwtWrapper, config *config.Co
 func (as *AuthzSvc) RegisterUser(ctx context.Context, req *pb.RegisterUserRequest) (*pb.RegisterUserResponse, error) {
 	logrus.Infof("got the request data for : %+v", req.Email)
 	user := &models.TheMonkeysUser{}
+	   if req.Email == ""{
+        return nil, errors.New("email is required")
+
+	   }
+	   if req.FirstName == ""{
+        return nil, errors.New("firstName is required")
+
+	   }
+	   if req.LastName == ""{
+        return nil, errors.New("lastname is required")
+
+	   }
+	   if req.Password == ""{
+        return nil, errors.New(" password is required")
+
+	   }
+	   _, err := as.dbConn.RegisterUser(user)
+	if err != nil {
+		return nil, err
+	}
+	
+	
+
+
 	// Check if the user exists with the same email id return conflict
-	_, err := as.dbConn.CheckIfEmailExist(req.Email)
+	_, err = as.dbConn.CheckIfEmailExist(req.Email)
 	if err == nil {
 		logrus.Errorf("cannot register the user, as the email %s is existing already", req.Email)
 		return &pb.RegisterUserResponse{
