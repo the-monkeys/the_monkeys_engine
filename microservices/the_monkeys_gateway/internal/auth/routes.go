@@ -249,37 +249,6 @@ func (asc *ServiceClient) UpdatePassword(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, passResp)
 }
 
-// // To verify email
-// func (asc *ServiceClient) VerifyEmail(ctx *gin.Context) {
-// 	userAny := ctx.Query("user")
-// 	secretAny := ctx.Query("evpw")
-
-// 	res, err := asc.Client.VerifyEmail(context.Background(), &pb.VerifyEmailReq{
-// 		Email: userAny,
-// 		Token: secretAny,
-// 	})
-
-// 	if err != nil {
-// 		asc.Log.Errorf("rpc auth server returned error: %v", err)
-// 		_ = ctx.AbortWithError(http.StatusForbidden, err)
-// 		return
-// 	}
-
-// 	if res.Status == http.StatusNotFound || res.Error == "user doesn't exists" {
-// 		asc.Log.Infof("user containing email: %s, doesn't exists", userAny)
-// 		_ = ctx.AbortWithError(http.StatusNotFound, common.NotFound)
-// 		return
-// 	}
-
-// 	if res.Status == http.StatusBadRequest || res.Error == "incorrect password" {
-// 		asc.Log.Infof("incorrect password given for the user containing email: %s", userAny)
-// 		_ = ctx.AbortWithError(http.StatusNotFound, common.BadRequest)
-// 		return
-// 	}
-
-// 	ctx.JSON(http.StatusOK, &res)
-// }
-
 func (asc *ServiceClient) ReqEmailVerification(ctx *gin.Context) {
 	var vrEmail VerifyEmail
 
@@ -298,15 +267,47 @@ func (asc *ServiceClient) ReqEmailVerification(ctx *gin.Context) {
 		return
 	}
 
-	if res.Status == http.StatusNotFound || res.Error == "user doesn't exists" {
+	if res.StatusCode == http.StatusNotFound || res.Error != nil {
 		asc.Log.Infof("user containing email: %s, doesn't exists", vrEmail.Email)
-		_ = ctx.AbortWithError(http.StatusNotFound, common.NotFound)
+		_ = ctx.AbortWithError(http.StatusNotFound, common.ErrNotFound)
 		return
 	}
 
-	if res.Status == http.StatusBadRequest || res.Error == "incorrect password" {
+	if res.StatusCode == http.StatusBadRequest || res.Error != nil {
 		asc.Log.Infof("incorrect password given for the user containing email: %s", vrEmail.Email)
-		_ = ctx.AbortWithError(http.StatusNotFound, common.BadRequest)
+		_ = ctx.AbortWithError(http.StatusNotFound, common.ErrBadRequest)
+		return
+	}
+
+	ctx.JSON(http.StatusOK, &res)
+}
+
+// To verify email
+func (asc *ServiceClient) VerifyEmail(ctx *gin.Context) {
+	userAny := ctx.Query("user")
+	secretAny := ctx.Query("evpw")
+
+	res, err := asc.Client.VerifyEmail(context.Background(), &pb.VerifyEmailReq{
+		Email: userAny,
+		Token: secretAny,
+	})
+
+	if err != nil {
+		asc.Log.Errorf("rpc auth server returned error: %v", err)
+		_ = ctx.AbortWithError(http.StatusForbidden, err)
+		return
+	}
+
+	// TODO: COrrect the errors
+	if res.StatusCode == http.StatusNotFound || res.Error != nil {
+		asc.Log.Infof("user containing username: %s, doesn't exists", userAny)
+		_ = ctx.AbortWithError(http.StatusNotFound, common.ErrNotFound)
+		return
+	}
+
+	if res.StatusCode == http.StatusBadRequest || res.Error != nil {
+		// asc.Log.Infof("incorrect password given for the user containing email: %s", vrEmail.Email)
+		_ = ctx.AbortWithError(http.StatusNotFound, common.ErrBadRequest)
 		return
 	}
 

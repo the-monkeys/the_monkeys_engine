@@ -27,8 +27,7 @@ type AuthDBHandler interface {
 	// Update Operations
 	UpdatePasswordRecoveryToken(hash string, req *models.TheMonkeysUser) error
 	UpdatePassword(password string, user *models.TheMonkeysUser) error
-
-	// UpdateEmailVerToken(user models.TheMonkeysUser) error
+	UpdateEmailVerToken(req *models.TheMonkeysUser) error
 	// GetNamesEmailFromEmail(req *pb.ForgotPasswordReq) (*models.TheMonkeysUser, error)
 
 }
@@ -185,7 +184,7 @@ func (adh *authDBHandler) UpdatePasswordRecoveryToken(hash string, req *models.T
 		logrus.Errorf("cannot sent the reset link for %s, error: %v", req.Email, err)
 		return status.Errorf(codes.Internal, "internal server error, error: %v", err)
 	}
-     
+
 	err = tx.Commit()
 	if err != nil {
 		logrus.Errorf("cannot commit the password recovery token for %s, error: %v", req.Email, err)
@@ -252,7 +251,7 @@ func (adh *authDBHandler) UpdatePassword(password string, user *models.TheMonkey
 func (adh *authDBHandler) InsertIntoUserLog(tx *sql.Tx, user *models.TheMonkeysUser, eventType, serviceType, ipAddress, description string) error {
 	stmt, err := tx.Prepare(`INSERT INTO USER_ACCOUNT_LOG (user_id, event_type, service_type, ip_address, description) VALUES ($1, $2, $3, $4, $5);`)
 	if err != nil {
-		logrus.Errorf("cannot prepare statement to add user into the USER_ACCOUNT_LOG: %v", err)
+		logrus.Errorf("cannot prepare statement to add user activity into the USER_ACCOUNT_LOG: %v", err)
 		return err
 	}
 	defer stmt.Close()
@@ -274,5 +273,43 @@ func (adh *authDBHandler) InsertIntoUserLog(tx *sql.Tx, user *models.TheMonkeysU
 		return errors.New("cannot create a record in the log table")
 	}
 
+	return nil
+}
+
+func (adh *authDBHandler) UpdateEmailVerToken(req *models.TheMonkeysUser) error {
+	// TODO: start a database transaction from here till all the process are complete
+	tx, err := adh.db.Begin()
+	if err != nil {
+		return err
+	}
+
+	stmt, err := tx.Prepare(`UPDATE user_auth_info SET pwd_recovery_token=$1,
+	email_verification_timeout=$2 WHERE email_id=$3;`)
+	if err != nil {
+		logrus.Errorf("cannot prepare the reset link for %s, error: %v", req.Email, err)
+		return status.Errorf(codes.Internal, "internal server error, error: %v", err)
+	}
+
+	defer stmt.Close()
+	result := stmt.QueryRow(req.EmailVerificationToken, req.EmailVerificationTimeout, req.Email)
+	if result.Err() != nil {
+		logrus.Errorf("cannot sent the reset link for %s, error: %v", req.Email, err)
+		return status.Errorf(codes.Internal, "internal server error, error: %v", err)
+	}
+
+	// bx, err := json.MarshalIndent(req, "", "\t")
+	// os.WriteFile("abc.json", bx, 0777)
+
+	// err = adh.InsertIntoUserLog(tx, req, service_types.EventRegister,
+	// 	service_types.ServiceAuth, "", fmt.Sprintf("User containing %v email has called registered API", req.Email))
+	// if err != nil {
+	// 	return err
+	// }
+
+	err = tx.Commit()
+	if err != nil {
+		logrus.Errorf("cannot commit the password recovery token for %s, error: %v", req.Email, err)
+		return err
+	}
 	return nil
 }
