@@ -119,12 +119,12 @@ message EmailVerificationRes {
   Error error = 2;
 }
 
-message UpdatePasswordReq {
-  string password = 1;
-  string email = 2;
+message VerifyEmailReq {
+  string email = 1;
+  string token = 3;
 }
 
-message UpdatePasswordRes {
+message VerifyEmailRes {
   int64 statusCode = 1;
   Error error = 2;
 }
@@ -138,5 +138,5 @@ service AuthService {
   rpc ResetPassword(ResetPasswordReq) returns (ResetPasswordRes) {}
   rpc UpdatePassword(UpdatePasswordReq) returns (UpdatePasswordRes) {}
   rpc RequestForEmailVerification(EmailVerificationReq) returns (EmailVerificationRes) {}
-  rpc UpdatePassword(UpdatePasswordReq) returns (UpdatePasswordRes) {}
+  rpc VerifyEmail(VerifyEmailReq) returns (VerifyEmailRes) {}
 }
