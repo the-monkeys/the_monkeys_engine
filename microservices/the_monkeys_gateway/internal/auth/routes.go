@@ -44,11 +44,11 @@ func RegisterAuthRouter(router *gin.Engine, cfg *config.Config) *ServiceClient {
 	routes.POST("/register", asc.Register)
 	routes.POST("/login", asc.Login)
 
-	// // Forgot password
+	// Forgot password
 	routes.POST("/forgot-pass", asc.ForgotPassword)
 	routes.POST("/reset-password", asc.ResetPassword)
 
-	// // Is the user authenticated
+	// Is the user authenticated
 	routes.GET("/is-authenticated", asc.IsUserAuthenticated)
 
 	mware := InitAuthMiddleware(asc)
@@ -56,7 +56,7 @@ func RegisterAuthRouter(router *gin.Engine, cfg *config.Config) *ServiceClient {
 
 	routes.POST("/update-password", asc.UpdatePassword)
 	routes.POST("/req-email-verification", asc.ReqEmailVerification)
-	// routes.POST("/verify-email", asc.VerifyEmail)
+	routes.POST("/verify-email", asc.VerifyEmail)
 
 	return asc
 }
@@ -287,9 +287,10 @@ func (asc *ServiceClient) VerifyEmail(ctx *gin.Context) {
 	userAny := ctx.Query("user")
 	secretAny := ctx.Query("evpw")
 
+	// Verify Headers
 	res, err := asc.Client.VerifyEmail(context.Background(), &pb.VerifyEmailReq{
-		Email: userAny,
-		Token: secretAny,
+		Username: userAny,
+		Token:    secretAny,
 	})
 
 	if err != nil {

@@ -27,8 +27,7 @@ type AuthDBHandler interface {
 	UpdatePasswordRecoveryToken(hash string, req *models.TheMonkeysUser) error
 	UpdatePassword(password string, user *models.TheMonkeysUser) error
 	UpdateEmailVerificationToken(req *models.TheMonkeysUser) error
-	// GetNamesEmailFromEmail(req *pb.ForgotPasswordReq) (*models.TheMonkeysUser, error)
-
+	UpdateEmailVerificationStatus(req *models.TheMonkeysUser) error
 }
 type authDBHandler struct {
 	db *sql.DB
@@ -270,13 +269,12 @@ func (adh *authDBHandler) InsertIntoUserLog(tx *sql.Tx, user *models.TheMonkeysU
 }
 
 func (adh *authDBHandler) UpdateEmailVerificationToken(req *models.TheMonkeysUser) error {
-	// TODO: start a database transaction from here till all the process are complete
 	tx, err := adh.db.Begin()
 	if err != nil {
 		return err
 	}
 
-	stmt, err := tx.Prepare(`UPDATE user_auth_info SET pwd_recovery_token=$1,
+	stmt, err := tx.Prepare(`UPDATE user_auth_info SET email_validation_token=$1,
 	email_verification_timeout=$2 WHERE email_id=$3;`)
 	if err != nil {
 		logrus.Errorf("cannot prepare the reset link for %s, error: %v", req.Email, err)
@@ -285,6 +283,34 @@ func (adh *authDBHandler) UpdateEmailVerificationToken(req *models.TheMonkeysUse
 
 	defer stmt.Close()
 	result := stmt.QueryRow(req.EmailVerificationToken, req.EmailVerificationTimeout, req.Email)
+	if result.Err() != nil {
+		logrus.Errorf("cannot sent the reset link for %s, error: %v", req.Email, err)
+		return status.Errorf(codes.Internal, "internal server error, error: %v", err)
+	}
+
+	err = tx.Commit()
+	if err != nil {
+		logrus.Errorf("cannot commit the password recovery token for %s, error: %v", req.Email, err)
+		return err
+	}
+	return nil
+}
+
+func (adh *authDBHandler) UpdateEmailVerificationStatus(req *models.TheMonkeysUser) error {
+	tx, err := adh.db.Begin()
+	if err != nil {
+		return err
+	}
+
+	stmt, err := tx.Prepare(`UPDATE user_auth_info SET email_validation_status=(SELECT id FROM email_validation_status WHERE ev_status=$1),
+	email_validation_time=$2 WHERE email_id=$3;`)
+	if err != nil {
+		logrus.Errorf("cannot prepare the reset link for %s, error: %v", req.Email, err)
+		return status.Errorf(codes.Internal, "internal server error, error: %v", err)
+	}
+
+	defer stmt.Close()
+	result := stmt.QueryRow("verified", time.Now(), req.Email)
 	if result.Err() != nil {
 		logrus.Errorf("cannot sent the reset link for %s, error: %v", req.Email, err)
 		return status.Errorf(codes.Internal, "internal server error, error: %v", err)

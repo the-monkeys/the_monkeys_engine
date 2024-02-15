@@ -121,6 +121,7 @@ message EmailVerificationRes {
 
 message VerifyEmailReq {
   string email = 1;
+  string username = 2;
   string token = 3;
 }
 
