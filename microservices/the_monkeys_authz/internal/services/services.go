@@ -98,7 +98,7 @@ func (as *AuthzSvc) RegisterUser(ctx context.Context, req *pb.RegisterUserReques
 			// Handle error
 			log.Printf("Failed to send mail post registration: %v", err)
 		}
-		logrus.Info("The user must have gotten a mail for email verification!")
+		logrus.Info("Email Sent!")
 	}()
 
 	logrus.Infof("user %s is successfully registered.", user.Email)
@@ -384,7 +384,7 @@ func (as *AuthzSvc) RequestForEmailVerification(ctx context.Context, req *pb.Ema
 			// Handle error
 			log.Printf("Failed to send mail for password recovery: %v", err)
 		}
-		logrus.Info("The user must have gotten a mail for email verification!")
+		logrus.Info("Email Sent!")
 	}()
 
 	return &pb.EmailVerificationRes{
