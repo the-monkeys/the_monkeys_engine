@@ -110,6 +110,27 @@ message UpdatePasswordRes {
   Error error = 2;
 }
 
+message EmailVerificationReq {
+  string email = 1;
+}
+
+message EmailVerificationRes {
+  int64 statusCode = 1;
+  Error error = 2;
+}
+
+message VerifyEmailReq {
+  string email = 1;
+  string username = 2;
+  string token = 3;
+}
+
+message VerifyEmailRes {
+  int64 statusCode = 1;
+  Error error = 2;
+}
+
+
 service AuthService {
   rpc RegisterUser(RegisterUserRequest) returns (RegisterUserResponse) {}
   rpc Validate(ValidateRequest) returns (ValidateResponse) {}
@@ -117,4 +138,6 @@ service AuthService {
   rpc ForgotPassword(ForgotPasswordReq) returns (ForgotPasswordRes) {}
   rpc ResetPassword(ResetPasswordReq) returns (ResetPasswordRes) {}
   rpc UpdatePassword(UpdatePasswordReq) returns (UpdatePasswordRes) {}
+  rpc RequestForEmailVerification(EmailVerificationReq) returns (EmailVerificationRes) {}
+  rpc VerifyEmail(VerifyEmailReq) returns (VerifyEmailRes) {}
 }

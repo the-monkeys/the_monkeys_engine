@@ -33,7 +33,6 @@ import "time"
 // ----------------------------------------------------NEW Monkeys----------------------------------------
 type TheMonkeysUser struct {
 	Id                          int64     `json:"id"`
-	UserId                      string    `json:"user_id"`
 	ProfileId                   string    `json:"profile_id"`
 	Username                    string    `json:"username"`
 	FirstName                   string    `json:"first_name"`

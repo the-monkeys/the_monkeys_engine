@@ -44,19 +44,19 @@ func RegisterAuthRouter(router *gin.Engine, cfg *config.Config) *ServiceClient {
 	routes.POST("/register", asc.Register)
 	routes.POST("/login", asc.Login)
 
-	// // Forgot password
+	// Forgot password
 	routes.POST("/forgot-pass", asc.ForgotPassword)
 	routes.POST("/reset-password", asc.ResetPassword)
 
-	// routes.POST("/verify-email", asc.VerifyEmail)
-
-	// // Is the user authenticated
+	// Is the user authenticated
 	routes.GET("/is-authenticated", asc.IsUserAuthenticated)
 
 	mware := InitAuthMiddleware(asc)
 	routes.Use(mware.AuthRequired)
+
 	routes.POST("/update-password", asc.UpdatePassword)
-	// routes.POST("/req-email-verification", asc.ReqEmailVerification)
+	routes.POST("/req-email-verification", asc.ReqEmailVerification)
+	routes.POST("/verify-email", asc.VerifyEmail)
 
 	return asc
 }
@@ -249,69 +249,71 @@ func (asc *ServiceClient) UpdatePassword(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, passResp)
 }
 
-// // To verify email
-// func (asc *ServiceClient) VerifyEmail(ctx *gin.Context) {
-// 	userAny := ctx.Query("user")
-// 	secretAny := ctx.Query("evpw")
+func (asc *ServiceClient) ReqEmailVerification(ctx *gin.Context) {
+	var vrEmail VerifyEmail
 
-// 	res, err := asc.Client.VerifyEmail(context.Background(), &pb.VerifyEmailReq{
-// 		Email: userAny,
-// 		Token: secretAny,
-// 	})
+	if err := ctx.BindJSON(&vrEmail); err != nil {
+		asc.Log.Errorf("json body is not correct, error: %v", err)
+		_ = ctx.AbortWithError(http.StatusBadRequest, err)
+		return
+	}
+	res, err := asc.Client.RequestForEmailVerification(context.Background(), &pb.EmailVerificationReq{
+		Email: vrEmail.Email,
+	})
 
-// 	if err != nil {
-// 		asc.Log.Errorf("rpc auth server returned error: %v", err)
-// 		_ = ctx.AbortWithError(http.StatusForbidden, err)
-// 		return
-// 	}
+	if err != nil {
+		asc.Log.Errorf("rpc auth server returned error: %v", err)
+		_ = ctx.AbortWithError(http.StatusForbidden, err)
+		return
+	}
 
-// 	if res.Status == http.StatusNotFound || res.Error == "user doesn't exists" {
-// 		asc.Log.Infof("user containing email: %s, doesn't exists", userAny)
-// 		_ = ctx.AbortWithError(http.StatusNotFound, common.NotFound)
-// 		return
-// 	}
+	if res.StatusCode == http.StatusNotFound || res.Error != nil {
+		asc.Log.Infof("user containing email: %s, doesn't exists", vrEmail.Email)
+		_ = ctx.AbortWithError(http.StatusNotFound, common.ErrNotFound)
+		return
+	}
 
-// 	if res.Status == http.StatusBadRequest || res.Error == "incorrect password" {
-// 		asc.Log.Infof("incorrect password given for the user containing email: %s", userAny)
-// 		_ = ctx.AbortWithError(http.StatusNotFound, common.BadRequest)
-// 		return
-// 	}
+	if res.StatusCode == http.StatusBadRequest || res.Error != nil {
+		asc.Log.Infof("incorrect password given for the user containing email: %s", vrEmail.Email)
+		_ = ctx.AbortWithError(http.StatusNotFound, common.ErrBadRequest)
+		return
+	}
 
-// 	ctx.JSON(http.StatusOK, &res)
-// }
+	ctx.JSON(http.StatusOK, &res)
+}
 
-// func (asc *ServiceClient) ReqEmailVerification(ctx *gin.Context) {
-// 	var vrEmail VerifyEmail
+// To verify email
+func (asc *ServiceClient) VerifyEmail(ctx *gin.Context) {
+	userAny := ctx.Query("user")
+	secretAny := ctx.Query("evpw")
 
-// 	if err := ctx.BindJSON(&vrEmail); err != nil {
-// 		asc.Log.Errorf("json body is not correct, error: %v", err)
-// 		_ = ctx.AbortWithError(http.StatusBadRequest, err)
-// 		return
-// 	}
-// 	res, err := asc.Client.RequestForEmailVerification(context.Background(), &pb.EmailVerificationReq{
-// 		Email: vrEmail.Email,
-// 	})
+	// Verify Headers
+	res, err := asc.Client.VerifyEmail(context.Background(), &pb.VerifyEmailReq{
+		Username: userAny,
+		Token:    secretAny,
+	})
 
-// 	if err != nil {
-// 		asc.Log.Errorf("rpc auth server returned error: %v", err)
-// 		_ = ctx.AbortWithError(http.StatusForbidden, err)
-// 		return
-// 	}
+	if err != nil {
+		asc.Log.Errorf("rpc auth server returned error: %v", err)
+		_ = ctx.AbortWithError(http.StatusForbidden, err)
+		return
+	}
 
-// 	if res.Status == http.StatusNotFound || res.Error == "user doesn't exists" {
-// 		asc.Log.Infof("user containing email: %s, doesn't exists", vrEmail.Email)
-// 		_ = ctx.AbortWithError(http.StatusNotFound, common.NotFound)
-// 		return
-// 	}
+	// TODO: COrrect the errors
+	if res.StatusCode == http.StatusNotFound || res.Error != nil {
+		asc.Log.Infof("user containing username: %s, doesn't exists", userAny)
+		_ = ctx.AbortWithError(http.StatusNotFound, common.ErrNotFound)
+		return
+	}
 
-// 	if res.Status == http.StatusBadRequest || res.Error == "incorrect password" {
-// 		asc.Log.Infof("incorrect password given for the user containing email: %s", vrEmail.Email)
-// 		_ = ctx.AbortWithError(http.StatusNotFound, common.BadRequest)
-// 		return
-// 	}
+	if res.StatusCode == http.StatusBadRequest || res.Error != nil {
+		// asc.Log.Infof("incorrect password given for the user containing email: %s", vrEmail.Email)
+		_ = ctx.AbortWithError(http.StatusNotFound, common.ErrBadRequest)
+		return
+	}
 
-// 	ctx.JSON(http.StatusOK, &res)
-// }
+	ctx.JSON(http.StatusOK, &res)
+}
 
 func (asc *ServiceClient) IsUserAuthenticated(ctx *gin.Context) {
 	authorization := ctx.Request.Header.Get("authorization")

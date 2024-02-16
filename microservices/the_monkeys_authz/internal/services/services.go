@@ -2,6 +2,8 @@ package services
 
 import (
 	"context"
+	"errors"
+
 	"log"
 	"math/rand"
 	"net/http"
@@ -38,6 +40,17 @@ func NewAuthzSvc(dbCli db.AuthDBHandler, jwt utils.JwtWrapper, config *config.Co
 func (as *AuthzSvc) RegisterUser(ctx context.Context, req *pb.RegisterUserRequest) (*pb.RegisterUserResponse, error) {
 	logrus.Infof("got the request data for : %+v", req.Email)
 	user := &models.TheMonkeysUser{}
+	if req.Email == "" || req.FirstName == "" || req.LastName == "" || req.Password == "" {
+		return &pb.RegisterUserResponse{
+			StatusCode: http.StatusBadRequest,
+			Error: &pb.Error{
+				Status:  http.StatusBadRequest,
+				Message: "Email FirstName LastName Password are not  entered",
+				Error:   "Incomplete,information required ",
+			},
+		}, errors.New("Incomplete, information required")
+	}
+
 	// Check if the user exists with the same email id return conflict
 	_, err := as.dbConn.CheckIfEmailExist(req.Email)
 	if err == nil {
@@ -80,11 +93,12 @@ func (as *AuthzSvc) RegisterUser(ctx context.Context, req *pb.RegisterUserReques
 	// Send email verification mail as a routine else the register api gets slower
 	emailBody := utils.EmailVerificationHTML(user.Email, hash)
 	go func() {
-		err := as.SendMail(req.Email, emailBody)
+		err := as.SendMail(user.Username, emailBody)
 		if err != nil {
 			// Handle error
 			log.Printf("Failed to send mail post registration: %v", err)
 		}
+		logrus.Info("The user must have gotten a mail for email verification!")
 	}()
 
 	logrus.Infof("user %s is successfully registered.", user.Email)
@@ -326,5 +340,93 @@ func (as *AuthzSvc) UpdatePassword(ctx context.Context, req *pb.UpdatePasswordRe
 	logrus.Infof("updated password for: %+v", req.Email)
 	return &pb.UpdatePasswordRes{
 		StatusCode: http.StatusOK,
+	}, nil
+}
+
+func (as *AuthzSvc) RequestForEmailVerification(ctx context.Context, req *pb.EmailVerificationReq) (*pb.EmailVerificationRes, error) {
+	if req.Email == "" {
+		return nil, common.ErrBadRequest
+	}
+	logrus.Infof("user %v has requested for email verification", req.Email)
+
+	user, err := as.dbConn.CheckIfEmailExist(req.Email)
+	// fmt.Printf("user: %+v\n", user)
+	if err != nil {
+		logrus.Infof("user %v is gettig error", req.Email)
+
+		return &pb.EmailVerificationRes{
+			Error: &pb.Error{
+				Status:  http.StatusNotFound,
+				Message: service_types.EmailNotRegistered,
+				Error:   service_types.ErrEmailNotRegistered,
+			},
+		}, err
+	}
+
+	logrus.Infof("generating verification email token for: %s", req.GetEmail())
+	hash := string(utils.GenHash())
+	encHash := utils.HashPassword(hash)
+
+	user.EmailVerificationToken = encHash
+	user.EmailVerificationTimeout = time.Now().Add(time.Minute * 5)
+
+	if err := as.dbConn.UpdateEmailVerificationToken(user); err != nil {
+		return nil, err
+	}
+
+	emailBody := utils.EmailVerificationHTML(user.Username, hash)
+	logrus.Infof("Sending verification email to: %s", req.GetEmail())
+
+	// TODO: Handle error of the go routine
+	go func() {
+		err := as.SendMail(user.Email, emailBody)
+		if err != nil {
+			// Handle error
+			log.Printf("Failed to send mail for password recovery: %v", err)
+		}
+		logrus.Info("The user must have gotten a mail for email verification!")
+	}()
+
+	return &pb.EmailVerificationRes{
+		StatusCode: http.StatusOK,
+	}, nil
+}
+
+func (as *AuthzSvc) VerifyEmail(ctx context.Context, req *pb.VerifyEmailReq) (*pb.VerifyEmailRes, error) {
+	// var timeOut string
+	logrus.Infof("verifying email: %s", req.GetUsername())
+
+	user, err := as.dbConn.CheckIfUsernameExist(req.Username)
+	if err != nil {
+		return &pb.VerifyEmailRes{
+			Error: &pb.Error{
+				Status:  http.StatusNotFound,
+				Message: service_types.EmailNotRegistered,
+				Error:   service_types.ErrEmailNotRegistered,
+			},
+		}, err
+	}
+	timeTill, err := time.Parse(time.RFC3339, user.EmailVerificationTimeout.String())
+
+	if timeTill.Before(time.Now()) {
+		logrus.Errorf("the token has already expired, error: %+v", err)
+		return nil, status.Errorf(codes.Unauthenticated, "token expired already")
+	}
+
+	// Verify reset token
+	if ok := utils.CheckPasswordHash(req.Token, user.EmailVerificationToken); !ok {
+		logrus.Errorf("the token didn't match, error: %+v", err)
+		return nil, status.Errorf(codes.Unauthenticated, "token didn't match")
+	}
+
+	err = as.dbConn.UpdateEmailVerificationStatus(user)
+	if err != nil {
+		logrus.Errorf("cannot update the verification details for %s, error: %v", req.Email, err)
+		return nil, err
+	}
+
+	logrus.Infof("verified email: %s", user.Email)
+	return &pb.VerifyEmailRes{
+		StatusCode: 200,
 	}, nil
 }
