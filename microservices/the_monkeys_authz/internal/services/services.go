@@ -2,7 +2,9 @@ package services
 
 import (
 	"context"
+	"database/sql"
 	"errors"
+	"fmt"
 
 	"log"
 	"math/rand"
@@ -91,9 +93,9 @@ func (as *AuthzSvc) RegisterUser(ctx context.Context, req *pb.RegisterUserReques
 	}
 
 	// Send email verification mail as a routine else the register api gets slower
-	emailBody := utils.EmailVerificationHTML(user.Email, hash)
+	emailBody := utils.EmailVerificationHTML(user.Username, hash)
 	go func() {
-		err := as.SendMail(user.Username, emailBody)
+		err := as.SendMail(user.Email, emailBody)
 		if err != nil {
 			// Handle error
 			log.Printf("Failed to send mail post registration: %v", err)
@@ -393,23 +395,29 @@ func (as *AuthzSvc) RequestForEmailVerification(ctx context.Context, req *pb.Ema
 }
 
 func (as *AuthzSvc) VerifyEmail(ctx context.Context, req *pb.VerifyEmailReq) (*pb.VerifyEmailRes, error) {
-	// var timeOut string
-	logrus.Infof("verifying email: %s", req.GetUsername())
-
+	// Check if the username exists in the database
 	user, err := as.dbConn.CheckIfUsernameExist(req.Username)
 	if err != nil {
-		return &pb.VerifyEmailRes{
-			Error: &pb.Error{
-				Status:  http.StatusNotFound,
-				Message: service_types.EmailNotRegistered,
-				Error:   service_types.ErrEmailNotRegistered,
-			},
-		}, err
+		if err == sql.ErrNoRows {
+			return &pb.VerifyEmailRes{
+				Error: &pb.Error{
+					Status:  http.StatusNotFound,
+					Message: service_types.EmailNotRegistered,
+					Error:   service_types.ErrEmailNotRegistered,
+				},
+			}, nil
+		}
+		return nil, fmt.Errorf("failed to check username: %w", err)
 	}
-	timeTill, err := time.Parse(time.RFC3339, user.EmailVerificationTimeout.String())
 
+	// Parse the email verification timeout from the user
+	timeTill, err := time.Parse(time.RFC3339, user.EmailVerificationTimeout.Format(time.RFC3339))
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse email verification timeout: %w", err)
+	}
+
+	// Check if the email verification timeout has expired
 	if timeTill.Before(time.Now()) {
-		logrus.Errorf("the token has already expired, error: %+v", err)
 		return nil, status.Errorf(codes.Unauthenticated, "token expired already")
 	}
 
@@ -426,6 +434,8 @@ func (as *AuthzSvc) VerifyEmail(ctx context.Context, req *pb.VerifyEmailReq) (*p
 	}
 
 	logrus.Infof("verified email: %s", user.Email)
+
+	// Return a success response with the status code 200
 	return &pb.VerifyEmailRes{
 		StatusCode: 200,
 	}, nil
