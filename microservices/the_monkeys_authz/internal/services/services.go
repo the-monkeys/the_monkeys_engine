@@ -81,7 +81,10 @@ func (as *AuthzSvc) RegisterUser(ctx context.Context, req *pb.RegisterUserReques
 	// user.UpdateTime = time.Now().Format(common.DATE_TIME_FORMAT)
 	user.UserStatus = "active"
 	user.EmailVerificationToken = encHash
-	user.EmailVerificationTimeout = time.Now().Add(time.Hour * 24)
+	user.EmailVerificationTimeout = sql.NullTime{
+		Time:  time.Now().Add(time.Hour * 24),
+		Valid: true,
+	}
 	if req.LoginMethod.String() == pb.RegisterUserRequest_LoginMethod_name[0] {
 		user.LoginMethod = "the-monkeys"
 	}
@@ -179,6 +182,7 @@ func (as *AuthzSvc) Login(ctx context.Context, req *pb.LoginUserRequest) (*pb.Lo
 	// Check if the user is existing the db or not
 	user, err := as.dbConn.CheckIfEmailExist(req.Email)
 	if err != nil {
+		// TODO: Check not found and internal error
 		return &pb.LoginUserResponse{
 			StatusCode: http.StatusNotFound,
 			Error: &pb.Error{
@@ -186,7 +190,7 @@ func (as *AuthzSvc) Login(ctx context.Context, req *pb.LoginUserRequest) (*pb.Lo
 				Message: service_types.EmailNotRegistered,
 				Error:   service_types.ErrEmailNotRegistered,
 			},
-		}, err
+		}, nil
 	}
 
 	// Check if the password match with the password hash
@@ -286,7 +290,7 @@ func (as *AuthzSvc) ResetPassword(ctx context.Context, req *pb.ResetPasswordReq)
 		}, err
 	}
 
-	timeTill, err := time.Parse("2006-01-02 15:04:05.999999 -0700 +0000", user.PasswordVerificationTimeout.String())
+	timeTill, err := time.Parse("2006-01-02 15:04:05.999999 -0700 +0000", user.PasswordVerificationTimeout.Time.String())
 	if err != nil {
 		logrus.Error(err)
 		return nil, nil
@@ -298,7 +302,7 @@ func (as *AuthzSvc) ResetPassword(ctx context.Context, req *pb.ResetPasswordReq)
 	}
 
 	// Verify reset token
-	if ok := utils.CheckPasswordHash(req.Token, user.PasswordVerificationToken); !ok {
+	if ok := utils.CheckPasswordHash(req.Token, user.PasswordVerificationToken.String); !ok {
 		logrus.Errorf("the token didn't match, error: %+v", err)
 		return nil, status.Errorf(codes.Unauthenticated, "token didn't match")
 	}
@@ -370,7 +374,10 @@ func (as *AuthzSvc) RequestForEmailVerification(ctx context.Context, req *pb.Ema
 	encHash := utils.HashPassword(hash)
 
 	user.EmailVerificationToken = encHash
-	user.EmailVerificationTimeout = time.Now().Add(time.Minute * 5)
+	user.EmailVerificationTimeout = sql.NullTime{
+		Time:  time.Now().Add(time.Minute * 5),
+		Valid: true, // Valid is true if Time is not NULL
+	}
 
 	if err := as.dbConn.UpdateEmailVerificationToken(user); err != nil {
 		return nil, err
@@ -411,7 +418,7 @@ func (as *AuthzSvc) VerifyEmail(ctx context.Context, req *pb.VerifyEmailReq) (*p
 	}
 
 	// Parse the email verification timeout from the user
-	timeTill, err := time.Parse(time.RFC3339, user.EmailVerificationTimeout.Format(time.RFC3339))
+	timeTill, err := time.Parse(time.RFC3339, user.EmailVerificationTimeout.Time.Format(time.RFC3339))
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse email verification timeout: %w", err)
 	}

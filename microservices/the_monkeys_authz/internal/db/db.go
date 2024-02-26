@@ -163,15 +163,15 @@ func (adh *authDBHandler) UpdatePasswordRecoveryToken(hash string, req *models.T
 		return err
 	}
 
-	stmt, err := tx.Prepare(`UPDATE user_auth_info SET pwd_recovery_token=$1,
-	pwd_recovery_timeout=$2, pwd_recovery_time=$3 WHERE email_id=$4;`)
+	stmt, err := tx.Prepare(`UPDATE user_auth_info SET password_recovery_token=$1,
+	password_recovery_timeout=$2, password_recovery_time=$3, password_updated_at=$4 WHERE email_id=$5;`)
 	if err != nil {
 		logrus.Errorf("cannot prepare the reset link for %s, error: %v", req.Email, err)
 		return status.Errorf(codes.Internal, "internal server error, error: %v", err)
 	}
 
 	defer stmt.Close()
-	result := stmt.QueryRow(hash, time.Now().Add(time.Minute*5), time.Now().Format(common.DATE_TIME_FORMAT), req.Email)
+	result := stmt.QueryRow(hash, time.Now().Add(time.Minute*5), time.Now().Format(common.DATE_TIME_FORMAT), time.Now(), req.Email)
 	if result.Err() != nil {
 		logrus.Errorf("cannot sent the reset link for %s, error: %v", req.Email, err)
 		return status.Errorf(codes.Internal, "internal server error, error: %v", err)
@@ -189,7 +189,7 @@ func (adh *authDBHandler) CheckIfUsernameExist(username string) (*models.TheMonk
 	var tmu models.TheMonkeysUser
 	if err := adh.db.QueryRow(`
 			SELECT ua.user_id, ua.profile_id, ua.username, ua.first_name, ua.last_name, 
-			uai.email_id, uai.password_hash, uai.pwd_recovery_token, uai.pwd_recovery_timeout,
+			uai.email_id, uai.password_hash, uai.password_recovery_token, uai.password_recovery_timeout,
 			evs.ev_status, us.usr_status, uai.email_validation_token, uai.email_verification_timeout
 			FROM USER_ACCOUNT ua
 			LEFT JOIN USER_AUTH_INFO uai ON ua.user_id = uai.user_id
