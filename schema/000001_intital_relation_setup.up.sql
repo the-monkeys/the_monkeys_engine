@@ -8,7 +8,7 @@ CREATE TABLE IF NOT EXISTS user_role (
     role_desc VARCHAR(50) NOT NULL
 );
 
-CREATE TABLE IF NOT EXISTS USER_ACCOUNT (
+CREATE TABLE IF NOT EXISTS user_account (
     user_id BIGSERIAL NOT NULL,
     profile_id VARCHAR(32) NOT NULL,
     username VARCHAR(32) NOT NULL,
@@ -33,7 +33,7 @@ ALTER TABLE USER_ACCOUNT
 ADD CONSTRAINT user_id_unique UNIQUE (user_id);
 
 
-CREATE TABLE IF NOT EXISTS EMAIL_VALIDATION_STATUS (
+CREATE TABLE IF NOT EXISTS email_validation_status (
     id SERIAL NOT NULL PRIMARY KEY,
     ev_status VARCHAR(100) UNIQUE
 );
@@ -44,26 +44,26 @@ CREATE TABLE IF NOT EXISTS auth_provider (
 );
 
 
-CREATE TABLE IF NOT EXISTS USER_AUTH_INFO (
+CREATE TABLE IF NOT EXISTS user_auth_info (
     id BIGSERIAL NOT NULL,
     user_id BIGINT NOT NULL,
     username VARCHAR(32) NOT NULL,
     email_id VARCHAR(100) NOT NULL,
-    password_hash VARCHAR(100) NOT NULL,
+    password_hash VARCHAR(255) NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    password_recovery_token VARCHAR(100),
+    password_recovery_timeout TIMESTAMP,
+    password_recovery_time TIMESTAMP,
     password_updated_at TIMESTAMP,
     email_validation_token VARCHAR(100),
     email_verification_timeout TIMESTAMP,
     email_validation_status INTEGER NOT NULL,
     email_validation_time TIMESTAMP,
-    pwd_recovery_token VARCHAR(100),
-    pwd_recovery_timeout TIMESTAMP,
-    pwd_recovery_time TIMESTAMP,
     auth_provider_id INTEGER NOT NULL,
     PRIMARY KEY (id),
 
-    FOREIGN KEY (user_id) REFERENCES USER_ACCOUNT(user_id) ON DELETE CASCADE ON UPDATE NO ACTION,
-    FOREIGN KEY (email_validation_status) REFERENCES EMAIL_VALIDATION_STATUS(id) ON DELETE NO ACTION ON UPDATE NO ACTION,
+    FOREIGN KEY (user_id) REFERENCES user_account(user_id) ON DELETE CASCADE ON UPDATE NO ACTION,
+    FOREIGN KEY (email_validation_status) REFERENCES email_validation_status(id) ON DELETE NO ACTION ON UPDATE NO ACTION,
     FOREIGN KEY (auth_provider_id) REFERENCES auth_provider(id) ON DELETE NO ACTION ON UPDATE NO ACTION
 );
 

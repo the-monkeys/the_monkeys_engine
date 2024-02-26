@@ -2,7 +2,9 @@ package services
 
 import (
 	"context"
+	"database/sql"
 	"errors"
+	"fmt"
 
 	"log"
 	"math/rand"
@@ -79,7 +81,10 @@ func (as *AuthzSvc) RegisterUser(ctx context.Context, req *pb.RegisterUserReques
 	// user.UpdateTime = time.Now().Format(common.DATE_TIME_FORMAT)
 	user.UserStatus = "active"
 	user.EmailVerificationToken = encHash
-	user.EmailVerificationTimeout = time.Now().Add(time.Hour * 24)
+	user.EmailVerificationTimeout = sql.NullTime{
+		Time:  time.Now().Add(time.Hour * 24),
+		Valid: true,
+	}
 	if req.LoginMethod.String() == pb.RegisterUserRequest_LoginMethod_name[0] {
 		user.LoginMethod = "the-monkeys"
 	}
@@ -91,14 +96,14 @@ func (as *AuthzSvc) RegisterUser(ctx context.Context, req *pb.RegisterUserReques
 	}
 
 	// Send email verification mail as a routine else the register api gets slower
-	emailBody := utils.EmailVerificationHTML(user.Email, hash)
+	emailBody := utils.EmailVerificationHTML(user.Username, hash)
 	go func() {
-		err := as.SendMail(user.Username, emailBody)
+		err := as.SendMail(user.Email, emailBody)
 		if err != nil {
 			// Handle error
 			log.Printf("Failed to send mail post registration: %v", err)
 		}
-		logrus.Info("The user must have gotten a mail for email verification!")
+		logrus.Info("Email Sent!")
 	}()
 
 	logrus.Infof("user %s is successfully registered.", user.Email)
@@ -177,6 +182,7 @@ func (as *AuthzSvc) Login(ctx context.Context, req *pb.LoginUserRequest) (*pb.Lo
 	// Check if the user is existing the db or not
 	user, err := as.dbConn.CheckIfEmailExist(req.Email)
 	if err != nil {
+		// TODO: Check not found and internal error
 		return &pb.LoginUserResponse{
 			StatusCode: http.StatusNotFound,
 			Error: &pb.Error{
@@ -184,7 +190,7 @@ func (as *AuthzSvc) Login(ctx context.Context, req *pb.LoginUserRequest) (*pb.Lo
 				Message: service_types.EmailNotRegistered,
 				Error:   service_types.ErrEmailNotRegistered,
 			},
-		}, err
+		}, nil
 	}
 
 	// Check if the password match with the password hash
@@ -284,7 +290,7 @@ func (as *AuthzSvc) ResetPassword(ctx context.Context, req *pb.ResetPasswordReq)
 		}, err
 	}
 
-	timeTill, err := time.Parse("2006-01-02 15:04:05.999999 -0700 +0000", user.PasswordVerificationTimeout.String())
+	timeTill, err := time.Parse("2006-01-02 15:04:05.999999 -0700 +0000", user.PasswordVerificationTimeout.Time.String())
 	if err != nil {
 		logrus.Error(err)
 		return nil, nil
@@ -296,7 +302,7 @@ func (as *AuthzSvc) ResetPassword(ctx context.Context, req *pb.ResetPasswordReq)
 	}
 
 	// Verify reset token
-	if ok := utils.CheckPasswordHash(req.Token, user.PasswordVerificationToken); !ok {
+	if ok := utils.CheckPasswordHash(req.Token, user.PasswordVerificationToken.String); !ok {
 		logrus.Errorf("the token didn't match, error: %+v", err)
 		return nil, status.Errorf(codes.Unauthenticated, "token didn't match")
 	}
@@ -368,7 +374,10 @@ func (as *AuthzSvc) RequestForEmailVerification(ctx context.Context, req *pb.Ema
 	encHash := utils.HashPassword(hash)
 
 	user.EmailVerificationToken = encHash
-	user.EmailVerificationTimeout = time.Now().Add(time.Minute * 5)
+	user.EmailVerificationTimeout = sql.NullTime{
+		Time:  time.Now().Add(time.Minute * 5),
+		Valid: true, // Valid is true if Time is not NULL
+	}
 
 	if err := as.dbConn.UpdateEmailVerificationToken(user); err != nil {
 		return nil, err
@@ -384,7 +393,7 @@ func (as *AuthzSvc) RequestForEmailVerification(ctx context.Context, req *pb.Ema
 			// Handle error
 			log.Printf("Failed to send mail for password recovery: %v", err)
 		}
-		logrus.Info("The user must have gotten a mail for email verification!")
+		logrus.Info("Email Sent!")
 	}()
 
 	return &pb.EmailVerificationRes{
@@ -393,23 +402,29 @@ func (as *AuthzSvc) RequestForEmailVerification(ctx context.Context, req *pb.Ema
 }
 
 func (as *AuthzSvc) VerifyEmail(ctx context.Context, req *pb.VerifyEmailReq) (*pb.VerifyEmailRes, error) {
-	// var timeOut string
-	logrus.Infof("verifying email: %s", req.GetUsername())
-
+	// Check if the username exists in the database
 	user, err := as.dbConn.CheckIfUsernameExist(req.Username)
 	if err != nil {
-		return &pb.VerifyEmailRes{
-			Error: &pb.Error{
-				Status:  http.StatusNotFound,
-				Message: service_types.EmailNotRegistered,
-				Error:   service_types.ErrEmailNotRegistered,
-			},
-		}, err
+		if err == sql.ErrNoRows {
+			return &pb.VerifyEmailRes{
+				Error: &pb.Error{
+					Status:  http.StatusNotFound,
+					Message: service_types.EmailNotRegistered,
+					Error:   service_types.ErrEmailNotRegistered,
+				},
+			}, nil
+		}
+		return nil, fmt.Errorf("failed to check username: %w", err)
 	}
-	timeTill, err := time.Parse(time.RFC3339, user.EmailVerificationTimeout.String())
 
+	// Parse the email verification timeout from the user
+	timeTill, err := time.Parse(time.RFC3339, user.EmailVerificationTimeout.Time.Format(time.RFC3339))
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse email verification timeout: %w", err)
+	}
+
+	// Check if the email verification timeout has expired
 	if timeTill.Before(time.Now()) {
-		logrus.Errorf("the token has already expired, error: %+v", err)
 		return nil, status.Errorf(codes.Unauthenticated, "token expired already")
 	}
 
@@ -426,6 +441,8 @@ func (as *AuthzSvc) VerifyEmail(ctx context.Context, req *pb.VerifyEmailReq) (*p
 	}
 
 	logrus.Infof("verified email: %s", user.Email)
+
+	// Return a success response with the status code 200
 	return &pb.VerifyEmailRes{
 		StatusCode: 200,
 	}, nil
