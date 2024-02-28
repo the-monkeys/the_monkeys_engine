@@ -1,49 +1,51 @@
 # Contributing Guidelines
+
 We're glad you're thinking about contributing to The Monkeys. If you think something is missing or could be improved, please open issues and pull requests. If you'd like to help this project grow, we'd love to have you. 
 
-* If you find any issue or bug please create a Github issue or mail us at [mail.themonkeys.life@gmail.com](mail.themonkeys.life@gmail.com). 
-* Create branches in your fork, and submit PRs from your forked branch.
+## Reporting Issues
+
+If you find any issue or bug, please create a Github issue or mail us at mail.themonkeys.life@gmail.com. 
+
+## Submitting Pull Requests
+
+Create branches in your fork, and submit PRs from your forked branch.
 
 # Local Setup Requirement
-* Postgres
-* Opensearch
-* Golang 1.18
+
+## Linux and MacBook
+
+The following tools are required for local setup:
+
+* Docker
+* Golang v1.18.0+
 * Protoc compiler
 * [migrate](https://github.com/golang-migrate/migrate)
 
-NOTE: Have a config file in `/etc/the_monkey/dev.env` if you are using Linux/Mac. In case if you have a Windows machine you can keep the dev.env in your fav directory and set up the path `services/api_gateway/config/config.go` file and other `config.go` files in different microservice.
+## Additional Setup
 
+If you want the `Makefile` to read config.yml, install `yq`:
+
+```bash
+snap install yq
 ```
-API_GATEWAY_HTTPS=0.0.0.0:port1
-API_GATEWAY_HTTP=0.0.0.0:port2
-AUTH_SERVICE=127.0.0.1:port3
-STORY_SERVICE=127.0.0.1:port4
-USER_SERVICE=127.0.0.1:port5
-BLOG_SERVICE=127.0.0.1:port6
-
-# Postgres
-DB_URL=postgres://username:password@host:port/database?sslmode=disable
-
-# Auth JWT token
-JWT_SECRET_KEY=r43t18sc
-
-# Opensearch and Elasticsearch
-OPENSEARCH_ADDRESS=https://address:port
-OSUSERNAME=admin
-OSPASSWORD=admin
-
-```
-
-
-
-
-# Install linting tool
+* Install linting tool
 ```
 curl -sfL https://install.goreleaser.com/github.com/golangci/golangci-lint.sh | sh -s -- -b $(go env GOPATH)/bin vX.Y.Z
 ```
 
 ### Run go lint command
 $ `golangci-lint run`
+
+## Windows
+* WSL 2
+* Docker
+* Golang v1.21.0+
+* Protoc compiler
+* [migrate](https://github.com/golang-migrate/migrate)
+* `make` command
+* `yq` for reading from yaml
+* Install and Linter
+
 
 
 

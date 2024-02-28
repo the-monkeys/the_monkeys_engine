@@ -47,11 +47,11 @@ function uninstallService()
 }
 
 THE_MONKEYS_SERVICES=(
-    "api_gateway"
-    "article_and_post"
-    "auth_service"
-    "blogsandposts_service"
-    "user_service"
+    "the_monkeys_gateway"
+    "the_monkeys_authz"
+    "the_monkeys_blog"
+    "the_monkeys_users"
+    "the_monkeys_file_storage"
 )
 
 echo "[Installing THE_MONKEYS services...]"

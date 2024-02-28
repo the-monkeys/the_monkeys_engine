@@ -1,0 +1,143 @@
+syntax = "proto3";
+
+package auth_svc;
+
+option go_package = "./apis/serviceconn/gateway_authz/pb";
+
+message RegisterUserRequest {
+  string firstName = 1;
+  string lastName = 2;
+  string email = 3;
+  string password = 4;
+  LoginMethod loginMethod = 5;
+
+  enum LoginMethod {
+    The_MONKEYS = 0;
+    GOOGLE_ACC = 1;
+    ANDROID = 2;
+    IPHONE = 3;
+  } 
+}
+
+message RegisterUserResponse {
+    int64 statusCode = 1;
+    string token = 2;
+    bool emailVerified = 3;
+    int64 userId = 4;
+    string userName = 5;
+    string first_name = 6;
+    string last_name = 7;
+    string email = 8;
+    bool email_verification_status = 9;
+    Error error = 10;
+}
+
+message Error {
+  int32 status = 1;
+  string error = 2;
+  string message = 3;
+}
+
+message ValidateRequest { 
+  string token = 1;
+  string email = 2;
+  int64 userId = 3;
+  string userName = 4;
+}
+
+message ValidateResponse {
+  int64 statusCode = 1;
+  string email = 2;
+  int64 userId = 3;
+  string userName = 4;
+  Error error = 5;
+}
+
+message LoginUserRequest {
+  string email = 1;
+  string password = 2;
+}
+
+message LoginUserResponse {
+  int64 statusCode = 1;
+  string token = 2;
+  bool emailVerified = 3;
+  int64 userId = 4;
+  string userName = 5;
+  string first_name = 6;
+  string last_name = 7;
+  string email = 8;
+  bool email_verification_status = 9;
+  Error error = 10;
+}
+
+message ForgotPasswordReq {
+  string email = 1;
+}
+
+message ForgotPasswordRes {
+  Error error = 1;
+}
+
+message ResetPasswordReq {
+  int64 id = 1;
+  string token = 2;
+  string email = 3;
+  string username = 4;
+}
+
+message ResetPasswordRes {
+  int64 statusCode = 1;
+  string token = 2;
+  bool emailVerified = 3;
+  int64 userId = 4;
+  string userName = 5;
+  string first_name = 6;
+  string last_name = 7;
+  string email = 8;
+  bool email_verification_status = 9;
+  Error error = 10;
+}
+
+message UpdatePasswordReq {
+  string password = 1;
+  string username = 2;
+  string email = 3;
+}
+
+message UpdatePasswordRes {
+  int64 statusCode = 1;
+  Error error = 2;
+}
+
+message EmailVerificationReq {
+  string email = 1;
+}
+
+message EmailVerificationRes {
+  int64 statusCode = 1;
+  Error error = 2;
+}
+
+message VerifyEmailReq {
+  string email = 1;
+  string username = 2;
+  string token = 3;
+}
+
+message VerifyEmailRes {
+  int64 statusCode = 1;
+  Error error = 2;
+}
+
+
+service AuthService {
+  rpc RegisterUser(RegisterUserRequest) returns (RegisterUserResponse) {}
+  rpc Validate(ValidateRequest) returns (ValidateResponse) {}
+  rpc Login(LoginUserRequest) returns (LoginUserResponse) {}
+  rpc ForgotPassword(ForgotPasswordReq) returns (ForgotPasswordRes) {}
+  rpc ResetPassword(ResetPasswordReq) returns (ResetPasswordRes) {}
+  rpc UpdatePassword(UpdatePasswordReq) returns (UpdatePasswordRes) {}
+  rpc RequestForEmailVerification(EmailVerificationReq) returns (EmailVerificationRes) {}
+  rpc VerifyEmail(VerifyEmailReq) returns (VerifyEmailRes) {}
+}

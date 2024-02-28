@@ -1,3 +1,0 @@
-ALTER TABLE the_monkeys_user 
-ADD COLUMN deactivated BOOLEAN DEFAULT FALSE, 
-ADD COLUMN account_verified BOOLEAN DEFAULT FALSE;

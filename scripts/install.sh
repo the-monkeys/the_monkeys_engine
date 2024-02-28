@@ -145,12 +145,11 @@ EOF
 }
 
 THE_MONKEYS_SERVICES=(
-    "api_gateway"
-    "article_and_post"
-    "auth_service"
-    "blogsandposts_service"
-    "user_service"
-    "file_server"
+    "the_monkeys_gateway"
+    "the_monkeys_authz"
+    "the_monkeys_blog"
+    "the_monkeys_users"
+    "the_monkeys_file_storage"
 )
 
 # create a new user and group for the monkeys
