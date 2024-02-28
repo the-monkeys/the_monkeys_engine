@@ -2,6 +2,7 @@ package main
 
 import (
 	"net"
+	"os"
 
 	"github.com/the-monkeys/the_monkeys/common"
 	"github.com/the-monkeys/the_monkeys/config"
@@ -12,6 +13,23 @@ import (
 	"github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
 )
+
+func init() {
+	// Define the complete path including `/` and the folder name
+	folderPath := "/" + constant.ProfileDir
+
+	// Check if the directory already exists
+	_, err := os.Stat(folderPath)
+
+	// If the directory doesn't exist, create it with permissions 0755
+	if os.IsNotExist(err) {
+		err = os.MkdirAll(folderPath, 0755)
+	}
+
+	if err != nil {
+		os.Exit(0)
+	}
+}
 
 func main() {
 	cfg, err := config.GetConfig()
@@ -26,7 +44,7 @@ func main() {
 		log.Errorf("File server failed to listen at port %v, error: %+v", cfg.Microservices.TheMonkeysFileStore, err)
 	}
 
-	fileService := server.NewFileService(constant.BLOG_FILES, common.PROFILE_PIC_DIR)
+	fileService := server.NewFileService(constant.ProfileDir, common.PROFILE_PIC_DIR)
 	// newFileServer := server.NewFileServer(common.PROFILE_PIC_DIR, common.BLOG_FILES, log)
 
 	grpcServer := grpc.NewServer()
@@ -34,7 +52,7 @@ func main() {
 	pb.RegisterUploadBlogFileServer(grpcServer, fileService)
 	// fs.RegisterFileServiceServer(grpcServer, newFileServer)
 
-	log.Infof("The file server started at: %v", cfg.Microservices.TheMonkeysFileStore)
+	log.Infof("✅ the file server started at: %v", cfg.Microservices.TheMonkeysFileStore)
 
 	if err := grpcServer.Serve(lis); err != nil {
 		log.Fatalln("Failed to serve:", err)
