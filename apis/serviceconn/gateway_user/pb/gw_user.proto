@@ -6,7 +6,26 @@ import "google/protobuf/timestamp.proto";
 
 option go_package = "./apis/serviceconn/gateway_user/pb";
 
-
+message UserProfileReq {
+    string user_id = 1;
+    string user_name = 2;
+    string email = 3;
+}
+message UserProfileRes {
+    int64 profile_id = 1;
+    string username = 2; 
+    string first_name = 3;
+    string last_name = 4;
+    string date_of_birth = 5;
+    int64 role_id = 6;
+    string bio = 7;
+    string avatar_url = 8; 
+    google.protobuf.Timestamp created_at = 9;
+    google.protobuf.Timestamp updated_at = 10; 
+    string address = 11;
+    int64 contact_number = 12;
+    int64 user_status = 13;
+}
 message UserActivityReq {
     string user_id = 1;
     string user_name = 2;
@@ -23,4 +42,5 @@ message UserActivityRes {
 
 service UserService {
     rpc GetUserActivities(UserActivityReq) returns (UserActivityRes) {}
+    rpc GetUserProfile(UserProfileReq) returns (UserProfileRes) {}
 }
