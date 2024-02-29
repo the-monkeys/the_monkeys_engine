@@ -48,7 +48,7 @@ func (as *AuthzSvc) RegisterUser(ctx context.Context, req *pb.RegisterUserReques
                 Message: "Email FirstName LastName Password are not  entered",
                 Error:   "Incomplete,information required ",
             },
-        }, errors.New("Incomplete, information required")
+        }, errors.New("incomplete, information required")
     }
 	
 
