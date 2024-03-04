@@ -1,6 +1,7 @@
 package user_service
 
 import (
+	"context"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -36,7 +37,7 @@ func RegisterUserRouter(router *gin.Engine, cfg *config.Config, authClient *auth
 
 	routes.Use(mware.AuthRequired)
 
-	// routes.GET("/user/:id", usc.GetProfile)
+	routes.GET("/user/:id", usc.GetProfile)
 	// routes.POST("/user/:id", usc.UpdateProfile)
 	// routes.POST("/user/deactivate/:id", usc.DeleteMyAccount)
 	routes.POST("/activities/:user_name", usc.GetUserActivities)
@@ -44,26 +45,28 @@ func RegisterUserRouter(router *gin.Engine, cfg *config.Config, authClient *auth
 	return usc
 }
 
-// func (asc *UserServiceClient) GetProfile(ctx *gin.Context) {
-// 	// get id
-// 	id := ctx.Param("id")
-// 	userId, err := strconv.ParseInt(id, 10, 64)
-// 	if err != nil {
-// 		ctx.AbortWithError(http.StatusBadRequest, err)
-// 		return
-// 	}
+func (asc *UserServiceClient) GetProfile(ctx *gin.Context) {
+	// get id
+	id := ctx.Param("id")
 
-// 	res, err := asc.Client.GetMyProfile(context.Background(), &pb.GetMyProfileReq{
-// 		Id: userId,
-// 	})
+	body := GetProfile{}
+	if err := ctx.BindJSON(&body); err != nil {
+		_ = ctx.AbortWithError(http.StatusBadRequest, err)
+		return
+	}
+	res, err := asc.Client.GetUserProfile(context.Background(), &pb.UserProfileReq{
+		UserId:   id,
+		UserName: body.UserName,
+		Email:    body.Email,
+	})
 
-// 	if err != nil {
-// 		errors.RestError(ctx, err, "user")
-// 		return
-// 	}
+	if err != nil {
+		errors.RestError(ctx, err, "user")
+		return
+	}
 
-// 	ctx.JSON(http.StatusAccepted, &res)
-// }
+	ctx.JSON(http.StatusAccepted, &res)
+}
 
 // func (asc *UserServiceClient) UpdateProfile(ctx *gin.Context) {
 // 	// get id

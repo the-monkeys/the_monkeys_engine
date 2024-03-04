@@ -1,4 +1,4 @@
-package server
+package services
 
 import (
 	"context"
@@ -22,26 +22,20 @@ func NewUserSvc(dbConn database.UserDb, log *logrus.Logger) *UserSvc {
 }
 
 func (us *UserSvc) GetUserProfile(ctx context.Context, req *pb.UserProfileReq) (*pb.UserProfileRes, error) {
-	user, err := us.dbConn.CheckIfEmailExist(req.Email)
+	us.log.Infof("user %v has requested profile info.", req.Email)
+	_, err := us.dbConn.CheckIfEmailExist(req.Email)
+	if err != nil {
+		us.log.Errorf("the user doesn't exists: %v", err)
+		return nil, err
+	}
+
+	userDetails, err := us.dbConn.GetMyProfile(req.Email)
 	if err != nil {
 		us.log.Errorf("error while finding the user profile: %v", err)
 		return nil, err
 	}
-	return &pb.UserProfileRes{
-		ProfileId: user.ProfileId,
-		Username:  user.Username,
-		FirstName: user.FirstName,
-		LastName:  user.LastName,
-		// DateOfBirth:   user.Dat,
-		// RoleId:        user.Role,
-		// Bio:           user.ProfileId,
-		// AvatarUrl:     user.ProfileId,
-		// CreatedAt:     user.ProfileId,
-		// UpdatedAt:     user.ProfileId,
-		// Address:       user.ProfileId,
-		// ContactNumber: user.ProfileId,
-		UserStatus: user.UserStatus,
-	}, nil
+
+	return userDetails, err
 }
 
 func (us *UserSvc) GetUserActivities(ctx context.Context, req *pb.UserActivityReq) (*pb.UserActivityRes, error) {

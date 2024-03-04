@@ -1,4 +1,4 @@
-package server
+package services
 
 // type UserService struct {
 // 	db          *database.UserDbHandler

@@ -7,7 +7,7 @@ import (
 	"github.com/the-monkeys/the_monkeys/apis/serviceconn/gateway_user/pb"
 	"github.com/the-monkeys/the_monkeys/config"
 	"github.com/the-monkeys/the_monkeys/microservices/the_monkeys_users/internal/database"
-	"github.com/the-monkeys/the_monkeys/microservices/the_monkeys_users/internal/server"
+	"github.com/the-monkeys/the_monkeys/microservices/the_monkeys_users/internal/services"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 )
@@ -36,7 +36,7 @@ func main() {
 	// }
 
 	// userService := database.NewUserDbHandler(db, log, isv.NewBlogServiceClient(conn))
-	userService := server.NewUserSvc(db, log)
+	userService := services.NewUserSvc(db, log)
 
 	grpcServer := grpc.NewServer()
 

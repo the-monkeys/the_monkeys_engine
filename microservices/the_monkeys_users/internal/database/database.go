@@ -4,21 +4,19 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"time"
 
 	_ "github.com/lib/pq"
 	"github.com/sirupsen/logrus"
-	"github.com/the-monkeys/the_monkeys/common"
 	"github.com/the-monkeys/the_monkeys/config"
 
+	"github.com/the-monkeys/the_monkeys/apis/serviceconn/gateway_user/pb"
 	"github.com/the-monkeys/the_monkeys/microservices/the_monkeys_users/internal/models"
-	"github.com/the-monkeys/the_monkeys/microservices/the_monkeys_users/internal/pb"
 )
 
 type UserDb interface {
 	CheckIfEmailExist(email string) (*models.TheMonkeysUser, error)
 	CheckIfUsernameExist(username string) (*models.TheMonkeysUser, error)
-	GetMyProfile(id int64) (*pb.GetMyProfileRes, error)
+	GetMyProfile(email string) (*pb.UserProfileRes, error)
 }
 
 type uDBHandler struct {
@@ -93,63 +91,56 @@ func (uh *uDBHandler) CheckIfUsernameExist(username string) (*models.TheMonkeysU
 	return &tmu, nil
 }
 
-func (uh *uDBHandler) GetMyProfile(id int64) (*pb.GetMyProfileRes, error) {
-	profile := &models.MyProfile{}
-	countryCode := sql.NullString{}
-	if err := uh.db.QueryRow(`SELECT id, first_name, last_name, email, create_time,
-	is_active, country_code, mobile_no, about, instagram, twitter, email_verified FROM
-	the_monkeys_user WHERE id=$1`, id).Scan(&profile.Id, &profile.FirstName, &profile.LastName,
-		&profile.Email, &profile.CreateTime, &profile.IsActive, &countryCode, &profile.Mobile,
-		&profile.About, &profile.Instagram, &profile.Twitter, &profile.EmailVerified); err != nil {
+func (uh *uDBHandler) GetMyProfile(email string) (*pb.UserProfileRes, error) {
+	var profile *pb.UserProfileRes
+	if err := uh.db.QueryRow(`
+			SELECT ua.profile_id, ua.username, ua.first_name, ua.last_name,  ua.date_of_birth, 
+			ua.bio, ua.avatar_url, ua.created_at, ua.updated_at, ua.address,
+			ua.contact_number, us.usr_status
+			FROM USER_ACCOUNT ua
+			LEFT JOIN USER_AUTH_INFO uai ON ua.user_id = uai.user_id
+			LEFT JOIN email_validation_status evs ON uai.email_validation_status = evs.id
+			LEFT JOIN user_status us ON ua.user_status = us.id
+			WHERE uai.email_id = $1;
+		`, email).
+		Scan(&profile.ProfileId, &profile.Username, &profile.FirstName, &profile.LastName, &profile.DateOfBirth, &profile.Bio, &profile.AvatarUrl,
+			&profile.CreatedAt, &profile.UpdatedAt, &profile.Address, &profile.ContactNumber, &profile.UserStatus); err != nil {
+		logrus.Errorf("can't find a user profile existing with email %s, error: %+v", email, err)
 		return nil, err
 	}
 
-	res := &pb.GetMyProfileRes{
-		Id:            profile.Id,
-		FirstName:     profile.FirstName,
-		LastName:      profile.LastName,
-		Email:         profile.Email,
-		CreateTime:    nil,
-		IsActive:      profile.IsActive,
-		CountryCode:   profile.CountryCode,
-		Mobile:        profile.Mobile,
-		About:         profile.About,
-		Instagram:     profile.Instagram,
-		Twitter:       profile.Twitter,
-		EmailVerified: profile.EmailVerified,
-	}
-	return res, nil
+	return profile, nil
 }
 
 // TODO: If the record doesn't exist throw 404 error
-func (uh *uDBHandler) UpdateMyProfile(info *pb.SetMyProfileReq) error {
-	stmt, err := uh.db.Prepare(`UPDATE the_monkeys_user SET first_name=$1, last_name=$2,
-	country_code=$3, mobile_no=$4, about=$5, instagram=$6, twitter=$7, update_time=$8 WHERE id=$9`)
-	if err != nil {
-		uh.log.Errorf("cannot prepare update profile statement, error: %v", err)
-		return err
-	}
-	defer stmt.Close()
-	time := time.Now().Format(common.DATE_TIME_FORMAT)
-	res, err := stmt.Exec(info.FirstName, info.LastName, info.CountryCode, info.MobileNo,
-		info.About, info.Instagram, info.Twitter, time, info.Id)
-	if err != nil {
-		uh.log.Errorf("cannot execute update profile statement, error: %v", err)
-		return err
-	}
+// func (uh *uDBHandler) UpdateMyProfile(info *pb.SetMyProfileReq) error {
+// 	stmt, err := uh.db.Prepare(`UPDATE the_monkeys_user SET first_name=$1, last_name=$2,
+// 	country_code=$3, mobile_no=$4, about=$5, instagram=$6, twitter=$7, update_time=$8 WHERE id=$9`)
+// 	if err != nil {
+// 		uh.log.Errorf("cannot prepare update profile statement, error: %v", err)
+// 		return err
+// 	}
+// 	defer stmt.Close()
+// 	time := time.Now().Format(common.DATE_TIME_FORMAT)
+// 	res, err := stmt.Exec(info.FirstName, info.LastName, info.CountryCode, info.MobileNo,
+// 		info.About, info.Instagram, info.Twitter, time, info.Id)
+// 	if err != nil {
+// 		uh.log.Errorf("cannot execute update profile statement, error: %v", err)
+// 		return err
+// 	}
 
-	row, err := res.RowsAffected()
-	if err != nil {
-		logrus.Errorf("error while checking rows affected for %s, error: %v", info.Email, err)
-		return err
-	}
-	if row > 1 {
-		logrus.Errorf("more or less than 1 row is affected for %s, error: %v", info.Email, err)
-		return errors.New("more or less than 1 row is affected")
-	}
+// 	row, err := res.RowsAffected()
+// 	if err != nil {
+// 		logrus.Errorf("error while checking rows affected for %s, error: %v", info.Email, err)
+// 		return err
+// 	}
+// 	if row > 1 {
+// 		logrus.Errorf("more or less than 1 row is affected for %s, error: %v", info.Email, err)
+// 		return errors.New("more or less than 1 row is affected")
+// 	}
 
-	return nil
-}
+// 	return nil
+// }
 
 // TODO: If the record doesn't exist throw 404 error
 func (uh *uDBHandler) UploadProfilePic(pic []byte, id int64) error {

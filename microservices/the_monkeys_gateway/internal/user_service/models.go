@@ -14,3 +14,8 @@ type UpdateProfile struct {
 	Twitter     string `json:"twitter,omitempty"`
 	Email       string `json:"email,omitempty"`
 }
+
+type GetProfile struct {
+	UserName string `json:"username,omitempty"`
+	Email    string `json:"email,omitempty"`
+}
