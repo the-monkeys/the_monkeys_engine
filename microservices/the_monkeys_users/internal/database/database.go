@@ -19,6 +19,7 @@ type UserDb interface {
 	CheckIfEmailExist(email string) (*models.TheMonkeysUser, error)
 	CheckIfUsernameExist(username string) (*models.TheMonkeysUser, error)
 	GetMyProfile(id int64) (*pb.GetMyProfileRes, error)
+	GetUserProfile(profileId string)(*models.TheMonkeysUser,error)
 }
 
 type uDBHandler struct {
@@ -46,6 +47,25 @@ func NewUserDbHandler(cfg *config.Config, log *logrus.Logger) (UserDb, error) {
 	}
 
 	return &uDBHandler{db: dbPsql, log: log}, nil
+}
+// To get User Profile 
+func (uh *uDBHandler)GetUserProfile(profile_id string)(*models.TheMonkeysUser,error){
+	var tmu models.TheMonkeysUser
+	if err :=uh.db.QueryRow( `SELECT ua.user_id, ua.profile_id, ua.username, ua.first_name, ua.last_name, 
+		uai.email_id, uai.password_hash, evs.ev_status, us.usr_status, uai.email_validation_token,
+		uai.email_verification_timeout
+		FROM USER_ACCOUNT ua
+		LEFT JOIN USER_AUTH_INFO uai ON ua.user_id = uai.user_id
+		LEFT JOIN email_validation_status evs ON uai.email_validation_status = evs.id
+		LEFT JOIN user_status us ON ua.user_status = us.id
+		WHERE uai.profile_id = $1;
+	`, profile_id).Scan(&tmu.Id, &tmu.ProfileId, &tmu.Username, &tmu.FirstName, &tmu.LastName, &tmu.Email, &tmu.Password,
+		&tmu.EmailVerificationStatus, &tmu.UserStatus, &tmu.EmailVerificationToken, &tmu.EmailVerificationTimeout);err != nil {
+		logrus.Errorf("can't find a user existing with this profile id  %s, error: %+v", profile_id, err)
+		return nil, err
+	}
+
+	return &tmu,nil
 }
 
 // TODO: Find all the fields of models.TheMonkeysUser
