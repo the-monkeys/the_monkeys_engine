@@ -11,10 +11,10 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
 
+	"github.com/the-monkeys/the_monkeys/apis/serviceconn/gateway_file_service/pb"
 	"github.com/the-monkeys/the_monkeys/config"
 	"github.com/the-monkeys/the_monkeys/microservices/the_monkeys_gateway/errors"
 	"github.com/the-monkeys/the_monkeys/microservices/the_monkeys_gateway/internal/auth"
-	"github.com/the-monkeys/the_monkeys/microservices/the_monkeys_gateway/internal/file_server/pb"
 	"google.golang.org/grpc"
 )
 
@@ -27,7 +27,8 @@ func NewFileServiceClient(cfg *config.Config) pb.UploadBlogFileClient {
 	if err != nil {
 		logrus.Errorf("cannot dial to grpc file server: %v", err)
 	}
-	logrus.Infof("The Gateway is dialing to file gRPC server at: %v", cfg.Microservices.TheMonkeysFileStore)
+
+	logrus.Infof("✅ the monkeys gateway is dialing to the file rpc server at: %v", cfg.Microservices.TheMonkeysFileStore)
 	return pb.NewUploadBlogFileClient(cc)
 }
 

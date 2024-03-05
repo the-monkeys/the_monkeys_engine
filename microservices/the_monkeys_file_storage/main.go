@@ -4,10 +4,10 @@ import (
 	"net"
 	"os"
 
+	"github.com/the-monkeys/the_monkeys/apis/serviceconn/gateway_file_service/pb"
 	"github.com/the-monkeys/the_monkeys/common"
 	"github.com/the-monkeys/the_monkeys/config"
 	"github.com/the-monkeys/the_monkeys/microservices/the_monkeys_file_storage/constant"
-	"github.com/the-monkeys/the_monkeys/microservices/the_monkeys_file_storage/internal/pb"
 	"github.com/the-monkeys/the_monkeys/microservices/the_monkeys_file_storage/internal/server"
 
 	"github.com/sirupsen/logrus"
@@ -17,6 +17,7 @@ import (
 func init() {
 	// Define the complete path including `/` and the folder name
 	folderPath := "/" + constant.ProfileDir
+	blogPath := "/" + constant.BlogDir
 
 	// Check if the directory already exists
 	_, err := os.Stat(folderPath)
@@ -24,10 +25,20 @@ func init() {
 	// If the directory doesn't exist, create it with permissions 0755
 	if os.IsNotExist(err) {
 		err = os.MkdirAll(folderPath, 0755)
+		if err != nil {
+			logrus.Fatalf("Error creating folder path: %v", err)
+		}
 	}
 
-	if err != nil {
-		os.Exit(0)
+	// Check if the blogPath directory already exists
+	_, err = os.Stat(blogPath)
+
+	// If the blogPath directory doesn't exist, create it with permissions 0755
+	if os.IsNotExist(err) {
+		err = os.MkdirAll(blogPath, 0755)
+		if err != nil {
+			logrus.Fatalf("Error creating blog path: %v", err)
+		}
 	}
 }
 

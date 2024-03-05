@@ -1,5 +1,6 @@
 package constant
 
 const (
-	ProfileDir = "the_monkeys"
+	ProfileDir = "profile"
+	BlogDir    = "blogs"
 )

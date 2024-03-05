@@ -81,6 +81,8 @@ services:
       - db-migrations
     volumes:
       - .:/go/src/app
+      - the_monkeys_profile:/profile
+      - blogs_volume:/blogs
     ports:
       - "50054:50054"
     working_dir: /go/src/app
@@ -141,5 +143,7 @@ networks:
 
 volumes:
   postgres_data:
-
+  the_monkeys_profile:
+  blogs_volume:
+  
 
