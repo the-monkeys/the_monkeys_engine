@@ -5,7 +5,6 @@ import (
 	"os"
 
 	"github.com/the-monkeys/the_monkeys/apis/serviceconn/gateway_file_service/pb"
-	"github.com/the-monkeys/the_monkeys/common"
 	"github.com/the-monkeys/the_monkeys/config"
 	"github.com/the-monkeys/the_monkeys/microservices/the_monkeys_file_storage/constant"
 	"github.com/the-monkeys/the_monkeys/microservices/the_monkeys_file_storage/internal/server"
@@ -55,7 +54,7 @@ func main() {
 		log.Errorf("File server failed to listen at port %v, error: %+v", cfg.Microservices.TheMonkeysFileStore, err)
 	}
 
-	fileService := server.NewFileService(constant.ProfileDir, common.PROFILE_PIC_DIR)
+	fileService := server.NewFileService(constant.BlogDir, constant.ProfileDir)
 	// newFileServer := server.NewFileServer(common.PROFILE_PIC_DIR, common.BLOG_FILES, log)
 
 	grpcServer := grpc.NewServer()
@@ -63,7 +62,7 @@ func main() {
 	pb.RegisterUploadBlogFileServer(grpcServer, fileService)
 	// fs.RegisterFileServiceServer(grpcServer, newFileServer)
 
-	log.Infof("✅ the file server started at: %v", cfg.Microservices.TheMonkeysFileStore)
+	log.Infof("✅ the file storage server started at: %v", cfg.Microservices.TheMonkeysFileStore)
 
 	if err := grpcServer.Serve(lis); err != nil {
 		log.Fatalln("Failed to serve:", err)

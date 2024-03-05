@@ -116,7 +116,7 @@ func (asc *FileServiceClient) GetBlogFile(ctx *gin.Context) {
 
 	resp, err := stream.Recv()
 	if err == io.EOF {
-
+		logrus.Info("received the complete stream")
 	}
 	if err != nil {
 		errors.RestError(ctx, err, "file_service")
