@@ -35,7 +35,20 @@ func (us *UserSvc) GetUserProfile(ctx context.Context, req *pb.UserProfileReq) (
 		return nil, err
 	}
 
-	return userDetails, err
+	return &pb.UserProfileRes{
+		ProfileId:   userDetails.ProfileId,
+		Username:    userDetails.Username,
+		FirstName:   userDetails.FirstName,
+		LastName:    userDetails.LastName,
+		DateOfBirth: userDetails.DateOfBirth.Time.String(),
+		Bio:         userDetails.Bio.String,
+		AvatarUrl:   userDetails.AvatarUrl.String,
+		// CreatedAt:     userDetails.CreatedAt.Time.String(),
+		// UpdatedAt:     userDetails.UpdatedAt,
+		Address:       userDetails.Address.String,
+		ContactNumber: userDetails.ContactNumber.Int64,
+		UserStatus:    userDetails.UserStatus,
+	}, err
 }
 
 func (us *UserSvc) GetUserActivities(ctx context.Context, req *pb.UserActivityReq) (*pb.UserActivityRes, error) {

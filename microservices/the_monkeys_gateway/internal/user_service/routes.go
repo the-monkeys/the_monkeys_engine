@@ -37,7 +37,7 @@ func RegisterUserRouter(router *gin.Engine, cfg *config.Config, authClient *auth
 
 	routes.Use(mware.AuthRequired)
 
-	routes.GET("/user/:id", usc.GetProfile)
+	routes.GET("/:id", usc.GetProfile)
 	// routes.POST("/user/:id", usc.UpdateProfile)
 	// routes.POST("/user/deactivate/:id", usc.DeleteMyAccount)
 	routes.POST("/activities/:user_name", usc.GetUserActivities)
@@ -46,18 +46,24 @@ func RegisterUserRouter(router *gin.Engine, cfg *config.Config, authClient *auth
 }
 
 func (asc *UserServiceClient) GetProfile(ctx *gin.Context) {
-	// get id
-	id := ctx.Param("id")
+	username := ctx.Param("id")
 
-	body := GetProfile{}
-	if err := ctx.BindJSON(&body); err != nil {
-		_ = ctx.AbortWithError(http.StatusBadRequest, err)
+	email := ctx.Request.Header.Get("email")
+	if email == "" {
+		ctx.AbortWithStatus(http.StatusUnauthorized)
 		return
 	}
+
+	userId := ctx.Request.Header.Get("user_id")
+	if userId == "" {
+		ctx.AbortWithStatus(http.StatusUnauthorized)
+		return
+	}
+
 	res, err := asc.Client.GetUserProfile(context.Background(), &pb.UserProfileReq{
-		UserId:   id,
-		UserName: body.UserName,
-		Email:    body.Email,
+		UserId:   userId,
+		UserName: username,
+		Email:    email,
 	})
 
 	if err != nil {

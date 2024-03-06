@@ -65,7 +65,7 @@ func main() {
 	// article.RegisterArticleRoutes(server.router, cfg, authClient)
 
 	// blogsandposts.RegisterBlogRouter(server.router, &cfg, authClient)
-	file_server.RegisterUserRouter(server.router, cfg, authClient)
+	file_server.RegisterFileStorageRouter(server.router, cfg, authClient)
 
 	server.start(context.Background(), cfg)
 

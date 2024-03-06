@@ -9,14 +9,13 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/the-monkeys/the_monkeys/config"
 
-	"github.com/the-monkeys/the_monkeys/apis/serviceconn/gateway_user/pb"
 	"github.com/the-monkeys/the_monkeys/microservices/the_monkeys_users/internal/models"
 )
 
 type UserDb interface {
 	CheckIfEmailExist(email string) (*models.TheMonkeysUser, error)
 	CheckIfUsernameExist(username string) (*models.TheMonkeysUser, error)
-	GetMyProfile(email string) (*pb.UserProfileRes, error)
+	GetMyProfile(email string) (*models.UserProfileRes, error)
 }
 
 type uDBHandler struct {
@@ -111,8 +110,8 @@ func (uh *uDBHandler) CheckIfUsernameExist(username string) (*models.TheMonkeysU
 	return &tmu, nil
 }
 
-func (uh *uDBHandler) GetMyProfile(email string) (*pb.UserProfileRes, error) {
-	var profile *pb.UserProfileRes
+func (uh *uDBHandler) GetMyProfile(email string) (*models.UserProfileRes, error) {
+	var profile models.UserProfileRes
 	if err := uh.db.QueryRow(`
 			SELECT ua.profile_id, ua.username, ua.first_name, ua.last_name,  ua.date_of_birth, 
 			ua.bio, ua.avatar_url, ua.created_at, ua.updated_at, ua.address,
@@ -129,7 +128,7 @@ func (uh *uDBHandler) GetMyProfile(email string) (*pb.UserProfileRes, error) {
 		return nil, err
 	}
 
-	return profile, nil
+	return &profile, nil
 }
 
 // TODO: If the record doesn't exist throw 404 error
