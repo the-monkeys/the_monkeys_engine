@@ -1,7 +1,7 @@
 version: '3.1'
 services:
   the_monkeys_db:
-    container_name: "monkeys-db"
+    container_name: "the-monkeys-psql"
     image: bitnami/postgresql:latest
     restart: always
     environment:
@@ -21,6 +21,7 @@ services:
       retries: 5
 
   db-migrations:
+    container_name: "the-monkeys-psql-migrate"
     image: migrate/migrate:v4.15.2
     volumes:
       - ./schema:/migrations
@@ -41,7 +42,7 @@ services:
     restart: on-failure
 
   the_monkeys_gateway:
-    container_name: "api-gateway"
+    container_name: "the-monkeys-gateway"
     image: golang:latest
     networks:
       - monkeys-network
@@ -56,7 +57,7 @@ services:
     command: go run microservices/the_monkeys_gateway/main.go
 
   the_monkeys_authz:
-    container_name: "auth-service"
+    container_name: "the-monkeys-auth"
     image: golang:latest
     networks:
       - monkeys-network
@@ -69,6 +70,24 @@ services:
       - "50051:50051"
     working_dir: /go/src/app
     command: go run microservices/the_monkeys_authz/main.go
+
+  the_monkeys_file_server:
+    container_name: "the-monkeys-file-server"
+    image: golang:latest
+    networks:
+      - monkeys-network
+    depends_on:
+      - the_monkeys_db
+      - db-migrations
+    volumes:
+      - .:/go/src/app
+      - the_monkeys_profile:/profile
+      - blogs_volume:/blogs
+    ports:
+      - "50054:50054"
+    working_dir: /go/src/app
+    command: go run microservices/the_monkeys_file_storage/main.go
+
   # the_monkeys_gateway:
   #   container_name: "monkeys-engine"
   #   build:
@@ -124,5 +143,7 @@ networks:
 
 volumes:
   postgres_data:
-
+  the_monkeys_profile:
+  blogs_volume:
+  
 
