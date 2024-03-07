@@ -117,7 +117,6 @@ func (asc *ServiceClient) Login(ctx *gin.Context) {
 		return
 	}
 
-	// do the trimming
 	body.Email = strings.TrimSpace(body.Email)
 
 	res, err := asc.Client.Login(context.Background(), &pb.LoginUserRequest{
@@ -148,8 +147,6 @@ func (asc *ServiceClient) Login(ctx *gin.Context) {
 
 func (asc *ServiceClient) ForgotPassword(ctx *gin.Context) {
 	body := ForgetPass{}
-
-	body.Email = strings.TrimSpace(body.Email)
 
 	if err := ctx.BindJSON(&body); err != nil {
 		asc.Log.Errorf("json body is not correct, error: %v", err)
