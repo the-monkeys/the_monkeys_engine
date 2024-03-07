@@ -76,7 +76,7 @@ services:
     image: golang:latest
     networks:
       - monkeys-network
-    depends_on:
+    depends_on: # TODO: File server doesn't depend on any db so remove this field
       - the_monkeys_db
       - db-migrations
     volumes:
@@ -88,18 +88,20 @@ services:
     working_dir: /go/src/app
     command: go run microservices/the_monkeys_file_storage/main.go
 
-  # the_monkeys_gateway:
-  #   container_name: "monkeys-engine"
-  #   build:
-  #     context: .
-  #     dockerfile: Dockerfile
-  #   ports:
-  #     - "8081:8081"
-  #   networks:
-  #     - monkeys-network
-  #   depends_on:
-  #     - the_monkeys_db
-  #     - db-migrations
+  the_monkeys_user:
+    container_name: "the-monkeys-user"
+    image: golang:latest
+    networks:
+      - monkeys-network
+    depends_on:
+      - the_monkeys_db
+      - db-migrations
+    volumes:
+      - .:/go/src/app
+    ports:
+      - "50053:50053"
+    working_dir: /go/src/app
+    command: go run microservices/the_monkeys_users/main.go
 
   # opensearch-node1:
   #   image: opensearchproject/opensearch:1.2.1

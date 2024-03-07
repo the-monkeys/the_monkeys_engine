@@ -32,7 +32,7 @@ func NewFileServiceClient(cfg *config.Config) pb.UploadBlogFileClient {
 	return pb.NewUploadBlogFileClient(cc)
 }
 
-func RegisterUserRouter(router *gin.Engine, cfg *config.Config, authClient *auth.ServiceClient) *FileServiceClient {
+func RegisterFileStorageRouter(router *gin.Engine, cfg *config.Config, authClient *auth.ServiceClient) *FileServiceClient {
 	mware := auth.InitAuthMiddleware(authClient)
 
 	usc := &FileServiceClient{

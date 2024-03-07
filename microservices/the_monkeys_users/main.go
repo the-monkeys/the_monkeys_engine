@@ -6,7 +6,8 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/the-monkeys/the_monkeys/apis/serviceconn/gateway_user/pb"
 	"github.com/the-monkeys/the_monkeys/config"
-	"github.com/the-monkeys/the_monkeys/microservices/the_monkeys_users/internal/server"
+	"github.com/the-monkeys/the_monkeys/microservices/the_monkeys_users/internal/database"
+	"github.com/the-monkeys/the_monkeys/microservices/the_monkeys_users/internal/services"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 )
@@ -18,7 +19,10 @@ func main() {
 	}
 	log := logrus.New()
 
-	// db := database.NewUserDbHandler(cfg, log)
+	db, err := database.NewUserDbHandler(cfg, log)
+	if err != nil {
+		log.Fatalln("failed to connect to the database:", err)
+	}
 
 	lis, err := net.Listen("tcp", cfg.Microservices.TheMonkeysUser)
 	if err != nil {
@@ -31,8 +35,8 @@ func main() {
 	// 	return
 	// }
 
-	// userService := server.NewUserService(db, log, isv.NewBlogServiceClient(conn))
-	userService := server.NewUserSvc()
+	// userService := database.NewUserDbHandler(db, log, isv.NewBlogServiceClient(conn))
+	userService := services.NewUserSvc(db, log)
 
 	grpcServer := grpc.NewServer()
 
