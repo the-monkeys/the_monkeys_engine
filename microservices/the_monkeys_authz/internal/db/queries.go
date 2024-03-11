@@ -1,5 +1,29 @@
 package db
 
+import (
+	"database/sql"
+)
+
+type Repository interface {
+	// Get operation
+	CheckIfEmailExist()
+	CheckIfUsernameExist()
+
+	// Create operation
+	RegisterUser()
+	CreateAUserLog()
+
+	// Update operation
+	UpdatePasswordRecoveryToken()
+	UpdatePassword()
+	UpdateEmailVerificationToken()
+	UpdateEmailVerificationStatus()
+}
+
+type postgresDB struct {
+	db *sql.DB
+}
+
 // func (auth *authDBHandler) RegisterUser(user models.TheMonkeysUser) (int64, error) {
 // 	stmt, err := auth.db.Prepare(`INSERT INTO the_monkeys_user (
 // 		unique_id, first_name, last_name, email, password, create_time,

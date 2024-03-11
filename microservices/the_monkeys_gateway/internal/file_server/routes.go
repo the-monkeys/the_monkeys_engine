@@ -12,10 +12,12 @@ import (
 	"github.com/sirupsen/logrus"
 
 	"github.com/the-monkeys/the_monkeys/apis/serviceconn/gateway_file_service/pb"
+	"github.com/the-monkeys/the_monkeys/common"
 	"github.com/the-monkeys/the_monkeys/config"
 	"github.com/the-monkeys/the_monkeys/microservices/the_monkeys_gateway/errors"
 	"github.com/the-monkeys/the_monkeys/microservices/the_monkeys_gateway/internal/auth"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 )
 
 type FileServiceClient struct {
@@ -23,7 +25,14 @@ type FileServiceClient struct {
 }
 
 func NewFileServiceClient(cfg *config.Config) pb.UploadBlogFileClient {
-	cc, err := grpc.Dial(cfg.Microservices.TheMonkeysFileStore, grpc.WithInsecure())
+	cc, err := grpc.Dial(cfg.Microservices.TheMonkeysFileStore,
+		grpc.WithTransportCredentials(insecure.NewCredentials()),
+		grpc.WithDefaultCallOptions(
+			grpc.MaxCallRecvMsgSize(common.MaxMsgSize),
+			grpc.MaxCallSendMsgSize(common.MaxMsgSize),
+		),
+	)
+
 	if err != nil {
 		logrus.Errorf("cannot dial to grpc file server: %v", err)
 	}
