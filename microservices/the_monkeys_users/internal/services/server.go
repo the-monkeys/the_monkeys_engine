@@ -2,6 +2,7 @@ package services
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/sirupsen/logrus"
 	"github.com/the-monkeys/the_monkeys/apis/serviceconn/gateway_user/pb"
@@ -55,4 +56,8 @@ func (us *UserSvc) GetUserActivities(ctx context.Context, req *pb.UserActivityRe
 	logrus.Infof("Trying to fetch user activities for: %v", req.Email)
 
 	return &pb.UserActivityRes{}, nil
+}
+func (us *UserSvc) UpdateUserProfile(ctx context.Context, req *pb.UpdateUserProfileReq) (*pb.UpdateUserProfileRes, error){
+	fmt.Printf("req: %+v\n", req)
+	return nil,nil
 }
