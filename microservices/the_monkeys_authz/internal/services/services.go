@@ -71,7 +71,7 @@ func (as *AuthzSvc) RegisterUser(ctx context.Context, req *pb.RegisterUserReques
 	encHash := utils.HashPassword(hash)
 
 	// Create a userId and username
-	user.ProfileId = utils.RandomString(16)
+	user.AccountId = utils.RandomString(16)
 	user.Username = utils.RandomString(12)
 	user.FirstName = req.FirstName
 	user.LastName = req.GetLastName()

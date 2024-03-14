@@ -2,12 +2,18 @@ package db
 
 import (
 	"database/sql"
+	"fmt"
+
+	"github.com/sirupsen/logrus"
+	"github.com/the-monkeys/the_monkeys/config"
+	"github.com/the-monkeys/the_monkeys/microservices/the_monkeys_authz/internal/models"
 )
 
 type Repository interface {
 	// Get operation
-	CheckIfEmailExist()
-	CheckIfUsernameExist()
+	GetUserByEmail(email string)
+	GetUserByUsername(username string)
+	GetUserByAccountId(accountID string) (*models.TheMonkeysAccount, error)
 
 	// Create operation
 	RegisterUser()
@@ -21,136 +27,54 @@ type Repository interface {
 }
 
 type postgresDB struct {
-	db *sql.DB
+	db  *sql.DB
+	log *logrus.Logger
 }
 
-// func (auth *authDBHandler) RegisterUser(user models.TheMonkeysUser) (int64, error) {
-// 	stmt, err := auth.db.Prepare(`INSERT INTO the_monkeys_user (
-// 		unique_id, first_name, last_name, email, password, create_time,
-// 		update_time, is_active, role, email_verification_token,
-// 		email_verification_timeout, login_method) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12) RETURNING id;`)
-// 	defer stmt.Close()
-// 	if err != nil {
-// 		logrus.Errorf("cannot prepare statement to register user for %s error: %+v", user.Email, err)
-// 		return 0, err
-// 	}
+func NewAuthPostgresDb(cfg *config.Config, log *logrus.Logger) (Repository, error) {
+	url := fmt.Sprintf("postgres://%s:%s@%s:%d/%s?sslmode=disable",
+		cfg.Postgresql.PrimaryDB.DBUsername,
+		cfg.Postgresql.PrimaryDB.DBPassword,
+		cfg.Postgresql.PrimaryDB.DBHost,
+		cfg.Postgresql.PrimaryDB.DBPort,
+		cfg.Postgresql.PrimaryDB.DBName,
+	)
 
-// 	var id int64
-// 	err = stmt.QueryRow(user.UUID, user.FirstName, user.LastName, user.Email,
-// 		user.Password, user.CreateTime, user.UpdateTime, user.IsActive, user.Role, user.EmailVerificationToken,
-// 		user.EmailVerificationTimeout, user.LoginMethod).Scan(&id)
+	dbPsql, err := sql.Open("postgres", url)
+	if err != nil {
+		logrus.Fatalf("cannot connect psql using sql driver, error:, %+v", err)
+		return nil, err
+	}
 
-// 	if err != nil {
-// 		logrus.Errorf("cannot execute register user query for %s, error: %v", user.Email, err)
-// 		return 0, err
-// 	}
+	if err = dbPsql.Ping(); err != nil {
+		logrus.Errorf("ping test failed to psql using sql driver, error: %+v", err)
+		return nil, err
 
-// 	return id, nil
-// }
+	}
 
-// func (auth *authDBHandler) UpdateEmailVerToken(user models.TheMonkeysUser) error {
-// 	stmt, err := auth.db.Prepare(`UPDATE the_monkeys_user SET
-// 	email_verification_token=$1,
-// 	email_verification_timeout=$2 WHERE email=$3;`)
-// 	defer stmt.Close()
-// 	if err != nil {
-// 		logrus.Errorf("cannot prepare statement to update verify email token for %s error: %+v", user.Email, err)
-// 		return err
-// 	}
+	return &postgresDB{db: dbPsql, log: log}, nil
+}
 
-// 	res, err := stmt.Exec(user.EmailVerificationToken, user.EmailVerificationTimeout, user.Email)
-// 	if err != nil {
-// 		logrus.Errorf("cannot update the verification details for %s, error: %v", user.Email, err)
-// 		return err
-// 	}
+func (auth *postgresDB) GetUserByEmail(email string) {}
 
-// 	row, err := res.RowsAffected()
-// 	if err != nil {
-// 		logrus.Errorf("error while checking rows affected for %s, error: %v", user.Email, err)
-// 		return err
-// 	}
-// 	if row != 1 {
-// 		logrus.Errorf("more or less than 1 row is affected for %s, error: %v", user.Email, err)
-// 		return err
-// 	}
-// 	return nil
-// }
+func (auth *postgresDB) GetUserByUsername(username string) {}
 
-// func (auth *authDBHandler) GetNamesEmailFromEmail(req *pb.ForgotPasswordReq) (*models.TheMonkeysUser, error) {
-// 	var user models.TheMonkeysUser
+func (auth *postgresDB) GetUserByAccountId(accountID string) (*models.TheMonkeysAccount, error) {
+	var tma models.TheMonkeysAccount
+	if err := auth.db.QueryRow(`SELECT id, account_id, username, first_name, last_name, email 
+	FROM user_accounts where account_id=$1;`, accountID).Scan(&tma.Id,
+		&tma.AccountId, &tma.Username, &tma.FirstName, &tma.LastName, &tma.Email); err != nil {
+		auth.log.Errorf("can't find a user existing with account id %s, error: %+v", accountID, err)
+		return nil, err
+	}
 
-// 	if err := auth.db.QueryRow("SELECT id, first_name, last_name, email from the_monkeys_user where email=$1;", req.GetEmail()).Scan(
-// 		&user.Id, &user.FirstName, &user.LastName, &user.Email); err != nil {
-// 		switch err {
-// 		case sql.ErrNoRows:
-// 			logrus.Errorf("cannot fine the user with id %v ", req.GetEmail())
-// 			return nil, status.Errorf(codes.NotFound, "failed to find the record, error: %v", err)
-// 		case sql.ErrTxDone:
-// 			logrus.Errorf("The transaction has already been committed or rolled back.")
-// 			return nil, status.Errorf(codes.Internal, "failed to find the record, error: %v", err)
-// 		case sql.ErrConnDone:
-// 			logrus.Errorf("The database connection has been closed.")
-// 			return nil, status.Errorf(codes.Unavailable, "failed to find the record, error: %v", err)
-// 		default:
-// 			logrus.Errorf("An internal server error occurred: %v\n", err)
-// 			return nil, status.Errorf(codes.Internal, "failed to find the record, error: %v", err)
-// 		}
-// 	}
+	return &tma, nil
+}
 
-// 	return &user, nil
-// }
+func (auth *postgresDB) RegisterUser()   {}
+func (auth *postgresDB) CreateAUserLog() {}
 
-// func (auth *authDBHandler) UpdatePasswordRecoveryToken(hash string, req *models.TheMonkeysUser) error {
-// 	// TODO: start a database transaction from here till all the process are complete
-// 	sqlStmt, err := auth.db.Prepare(`INSERT INTO pw_reset (
-// 		user_id, email, recovery_hash, time_out, last_password_reset)
-// 		VALUES ($1, $2, $3, $4, $5);`)
-// 	if err != nil {
-// 		logrus.Errorf("cannot prepare the reset link for %s, error: %v", req.Email, err)
-// 		return status.Errorf(codes.Internal, "internal server error, error: %v", err)
-// 	}
-
-// 	result, err := sqlStmt.Exec(req.Id, req.Email, hash, time.Now().Add(time.Minute*5), time.Now().Format(common.DATE_TIME_FORMAT))
-// 	if err != nil {
-// 		logrus.Errorf("cannot sent the reset link for %s, error: %v", req.Email, err)
-// 		return status.Errorf(codes.Internal, "internal server error, error: %v", err)
-// 	}
-// 	affectedRows, err := result.RowsAffected()
-// 	if err != nil {
-// 		logrus.Errorf("cannot check for affected rows for %s, error: %v", req.Email, err)
-// 		return status.Errorf(codes.Internal, "internal server error, error: %v", err)
-// 	}
-// 	if affectedRows != 1 {
-// 		logrus.Errorf("more than 1 rows are getting affected for %s, error: %v", req.Email, err)
-// 		return status.Errorf(codes.Internal, "internal server error, error: %v", err)
-// 	}
-
-// 	return nil
-// }
-
-// func (auth *authDBHandler) UpdatePassword(password, email string) error {
-// 	stmt, err := auth.db.Prepare(`UPDATE the_monkeys_user SET
-// 	password=$1 WHERE email=$2;`)
-// 	defer stmt.Close()
-// 	if err != nil {
-// 		logrus.Errorf("cannot prepare statement to update password for %s error: %+v", email, err)
-// 		return err
-// 	}
-
-// 	res, err := stmt.Exec(password, email)
-// 	if err != nil {
-// 		logrus.Errorf("cannot update the password for %s, error: %v", email, err)
-// 		return err
-// 	}
-
-// 	row, err := res.RowsAffected()
-// 	if err != nil {
-// 		logrus.Errorf("error while checking rows affected for %s, error: %v", email, err)
-// 		return err
-// 	}
-// 	if row != 1 {
-// 		logrus.Errorf("more or less than 1 row is affected for %s, error: %v", email, err)
-// 		return err
-// 	}
-// 	return nil
-// }
+func (auth *postgresDB) UpdatePasswordRecoveryToken()   {}
+func (auth *postgresDB) UpdatePassword()                {}
+func (auth *postgresDB) UpdateEmailVerificationToken()  {}
+func (auth *postgresDB) UpdateEmailVerificationStatus() {}

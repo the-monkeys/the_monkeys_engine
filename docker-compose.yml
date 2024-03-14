@@ -103,6 +103,16 @@ services:
     working_dir: /go/src/app
     command: go run microservices/the_monkeys_users/main.go
 
+networks:
+  monkeys-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+  the_monkeys_profile:
+  blogs_volume:
+  
+
   # opensearch-node1:
   #   image: opensearchproject/opensearch:1.2.1
   #   container_name: monkeys-os
@@ -137,15 +147,4 @@ services:
   #     - monkeys-network    
   #   volumes:
   #     - /var/lib/rabbitmq
-
-
-networks:
-  monkeys-network:
-    driver: bridge
-
-volumes:
-  postgres_data:
-  the_monkeys_profile:
-  blogs_volume:
-  
 

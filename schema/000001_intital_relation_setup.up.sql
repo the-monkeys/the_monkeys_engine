@@ -13,10 +13,11 @@ CREATE TABLE IF NOT EXISTS user_role (
 -- Creating user account table
 CREATE TABLE IF NOT EXISTS user_account (
     id BIGSERIAL PRIMARY KEY,
-    account_id VARCHAR(32) NOT NULL,
+    account_id VARCHAR(64) NOT NULL,
     username VARCHAR(32) NOT NULL,
     first_name VARCHAR(32),
     last_name VARCHAR(32),
+    email VARCHAR(128) NOT NULL UNIQUE, -- Ensuring email uniqueness
     date_of_birth DATE,
     role_id INTEGER,
     bio TEXT,
@@ -26,16 +27,13 @@ CREATE TABLE IF NOT EXISTS user_account (
     address VARCHAR(255),
     contact_number VARCHAR(20), -- Changed data type
     user_status INTEGER NOT NULL,
-    UNIQUE(id, username, account_id),
-    FOREIGN KEY (user_status) REFERENCES user_status(id) ON DELETE NO ACTION ON UPDATE NO ACTION,
-    FOREIGN KEY (role_id) REFERENCES user_role(id) ON DELETE NO ACTION ON UPDATE NO ACTION
+    view_permission VARCHAR(50) DEFAULT 'public' -- 'public', 'private', 'friends', etc.
 );
 
 -- Adding unique constraint on user_id in user_account table
 ALTER TABLE user_account
 ADD CONSTRAINT user_id_unique UNIQUE (id);
-ALTER TABLE user_account
-ADD COLUMN view_permission VARCHAR(50) DEFAULT 'public'; -- 'public', 'private', 'friends', etc.
+
 
 -- Creating email validation status table
 CREATE TABLE IF NOT EXISTS email_validation_status (

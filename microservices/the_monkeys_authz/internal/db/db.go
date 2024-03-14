@@ -10,6 +10,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/the-monkeys/the_monkeys/common"
 	"github.com/the-monkeys/the_monkeys/config"
+	"github.com/the-monkeys/the_monkeys/constants"
 	"github.com/the-monkeys/the_monkeys/microservices/the_monkeys_authz/internal/models"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -61,16 +62,16 @@ func NewAuthDBHandler(cfg *config.Config) (AuthDBHandler, error) {
 func (adh *authDBHandler) CheckIfEmailExist(email string) (*models.TheMonkeysUser, error) {
 	var tmu models.TheMonkeysUser
 	if err := adh.db.QueryRow(`
-			SELECT ua.user_id, ua.profile_id, ua.username, ua.first_name, ua.last_name, 
-			uai.email_id, uai.password_hash, evs.ev_status, us.usr_status, uai.email_validation_token,
+			SELECT ua.id, ua.account_id, ua.username, ua.first_name, ua.last_name, 
+			ua.email, uai.password_hash, evs.status, us.usr_status, uai.email_validation_token,
 			uai.email_verification_timeout
 			FROM USER_ACCOUNT ua
-			LEFT JOIN USER_AUTH_INFO uai ON ua.user_id = uai.user_id
+			LEFT JOIN user_auth_info uai ON ua.id = uai.user_id
 			LEFT JOIN email_validation_status evs ON uai.email_validation_status = evs.id
 			LEFT JOIN user_status us ON ua.user_status = us.id
-			WHERE uai.email_id = $1;
+			WHERE ua.email = $1;
 		`, email).
-		Scan(&tmu.Id, &tmu.ProfileId, &tmu.Username, &tmu.FirstName, &tmu.LastName, &tmu.Email, &tmu.Password,
+		Scan(&tmu.Id, &tmu.AccountId, &tmu.Username, &tmu.FirstName, &tmu.LastName, &tmu.Email, &tmu.Password,
 			&tmu.EmailVerificationStatus, &tmu.UserStatus, &tmu.EmailVerificationToken, &tmu.EmailVerificationTimeout); err != nil {
 		logrus.Errorf("can't find a user existing with email %s, error: %+v", email, err)
 		return nil, err
@@ -112,33 +113,32 @@ func (adh *authDBHandler) RegisterUser(user *models.TheMonkeysUser) (int64, erro
 }
 
 func (adh *authDBHandler) insertIntoUserAccount(tx *sql.Tx, user *models.TheMonkeysUser) (int64, error) {
-	stmt, err := tx.Prepare(`INSERT INTO USER_ACCOUNT (
-		profile_id, username, first_name, last_name, 
-		role_id, user_status) VALUES ($1, $2, $3, $4, $5, $6) RETURNING user_id;`)
+	stmt, err := tx.Prepare(`INSERT INTO user_account (
+		account_id, username, first_name, last_name, email,
+		role_id, user_status, view_permission) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING id;`)
 	if err != nil {
 		logrus.Errorf("cannot prepare statement to add user into the USER_ACCOUNT: %v", err)
 		return 0, err
 	}
 	defer stmt.Close()
 
-	var profileId int64
-	err = stmt.QueryRow(user.ProfileId, user.Username, user.FirstName, user.LastName, 2, 1).Scan(&profileId)
+	var userId int64
+	err = stmt.QueryRow(user.AccountId, user.Username, user.FirstName, user.LastName, user.Email, 4, 1, constants.UserPubilc).Scan(&userId)
 	if err != nil {
 		logrus.Errorf("cannot execute query to add user to the USER_ACCOUNT: %v", err)
 		return 0, err
 	}
 
-	return profileId, nil
+	return userId, nil
 }
 
-func (adh *authDBHandler) insertIntoUserAuthInfo(tx *sql.Tx, user *models.TheMonkeysUser, profileId int64) (int64, error) {
-	stmt, err := tx.Prepare(fmt.Sprintf(`
-	INSERT INTO USER_AUTH_INFO (
-	user_id, username, email_id, password_hash, 
+func (adh *authDBHandler) insertIntoUserAuthInfo(tx *sql.Tx, user *models.TheMonkeysUser, userId int64) (int64, error) {
+	stmt, err := tx.Prepare(`
+	INSERT INTO user_auth_info (
+	user_id, password_hash, 
 	email_validation_token, email_validation_status, email_verification_timeout, auth_provider_id) 
-	VALUES ($1, $2, $3, $4, $5, (SELECT id FROM email_validation_status where ev_status='unverified' LIMIT 1), $6, (SELECT id FROM auth_provider where provider_name='%s' LIMIT 1)) 
-	RETURNING id;
-	`, user.LoginMethod))
+	VALUES ($1, $2, $3, $4, $5, $6) RETURNING id;
+	`)
 	if err != nil {
 		logrus.Errorf("cannot prepare statement to add user into the USER_AUTH_INFO: %v", err)
 		return 0, err
@@ -146,8 +146,8 @@ func (adh *authDBHandler) insertIntoUserAuthInfo(tx *sql.Tx, user *models.TheMon
 	defer stmt.Close()
 
 	var authId int64
-	err = stmt.QueryRow(profileId, user.Username, user.Email, user.Password,
-		user.EmailVerificationToken, user.EmailVerificationTimeout).Scan(&authId)
+	err = stmt.QueryRow(userId, user.Password, user.EmailVerificationToken,
+		1, user.EmailVerificationTimeout, 1).Scan(&authId) // TODO: emailVerificationStatus and auth provider make it correct
 	if err != nil {
 		logrus.Errorf("cannot execute query to add user to the USER_AUTH_INFO: %v", err)
 		return 0, err
@@ -197,7 +197,7 @@ func (adh *authDBHandler) CheckIfUsernameExist(username string) (*models.TheMonk
 			LEFT JOIN user_status us ON ua.user_status = us.id
 			WHERE ua.username = $1;
 		`, username).
-		Scan(&tmu.Id, &tmu.ProfileId, &tmu.Username, &tmu.FirstName, &tmu.LastName, &tmu.Email,
+		Scan(&tmu.Id, &tmu.AccountId, &tmu.Username, &tmu.FirstName, &tmu.LastName, &tmu.Email,
 			&tmu.Password, &tmu.PasswordVerificationToken, &tmu.PasswordVerificationTimeout,
 			&tmu.EmailVerificationStatus, &tmu.UserStatus, &tmu.EmailVerificationToken,
 			&tmu.EmailVerificationTimeout); err != nil {
