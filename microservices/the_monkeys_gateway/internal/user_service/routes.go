@@ -8,6 +8,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/the-monkeys/the_monkeys/apis/serviceconn/gateway_user/pb"
 	"github.com/the-monkeys/the_monkeys/config"
+	
 	"github.com/the-monkeys/the_monkeys/microservices/the_monkeys_gateway/errors"
 	"github.com/the-monkeys/the_monkeys/microservices/the_monkeys_gateway/internal/auth"
 	"google.golang.org/grpc"
@@ -41,7 +42,8 @@ func RegisterUserRouter(router *gin.Engine, cfg *config.Config, authClient *auth
 	// routes.POST("/user/:id", usc.UpdateProfile)
 	// routes.POST("/user/deactivate/:id", usc.DeleteMyAccount)
 	routes.POST("/activities/:user_name", usc.GetUserActivities)
-
+	routes.PATCH("/:username",usc.UpdateUserProfile)
+    routes.PUT("/:username",usc.UpdateUserProfile)
 	return usc
 }
 
@@ -137,4 +139,60 @@ func (asc *UserServiceClient) GetUserActivities(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusOK, res)
+}
+
+func (asc *UserServiceClient) UpdateUserProfile(ctx *gin.Context) {
+	isPartial := false
+	username := ctx.Param("username") 
+	   
+	
+		email := ctx.Request.Header.Get("email")
+		if email == "" {
+			ctx.AbortWithStatus(http.StatusUnauthorized)
+			return
+		}
+	
+		profileId := ctx.Request.Header.Get("profile_id")
+		if profileId == "" {
+			ctx.AbortWithStatus(http.StatusUnauthorized)
+			return
+		}
+		client := ctx.Request.Header.Get("client_id")
+		if client == "" {
+			ctx.AbortWithStatus(http.StatusUnauthorized)
+			return
+		}
+		
+		body := UpdateUserProfile{}
+		if err := ctx.BindJSON(&body); err != nil {
+			ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request body"})
+			return
+		}
+         
+		if ctx.Request.Method == "PATCH" {
+			isPartial = true
+		}
+	
+		res, err := asc.Client.UpdateUserProfile(context.Background(), &pb.UpdateUserProfileReq{
+			CurrentUsername: username,
+			Username: body.UserName,
+			Email:    body.Email,
+			FirstName: body.FirstName,
+			LastName: body.LastName,
+			DateOfBirth: body.DateOfBirth,
+			Bio:  body.Bio,
+			Address: body.Address,
+			ContactNumber: body.ContactNumber,
+			ProfileId: profileId ,
+			Client: client,
+			Partial: isPartial,
+			
+
+		})
+		if err!= nil{
+			ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update user profile"})
+    return
+		}
+		ctx.JSON(http.StatusOK, res)
+
 }

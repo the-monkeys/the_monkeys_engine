@@ -71,7 +71,7 @@ func (as *AuthzSvc) RegisterUser(ctx context.Context, req *pb.RegisterUserReques
 	encHash := utils.HashPassword(hash)
 
 	// Create a userId and username
-	user.ProfileId = utils.RandomString(16)
+	user.AccountId = utils.RandomString(16)
 	user.Username = utils.RandomString(12)
 	user.FirstName = req.FirstName
 	user.LastName = req.GetLastName()
@@ -336,8 +336,20 @@ func (as *AuthzSvc) ResetPassword(ctx context.Context, req *pb.ResetPasswordReq)
 func (as *AuthzSvc) UpdatePassword(ctx context.Context, req *pb.UpdatePasswordReq) (*pb.UpdatePasswordRes, error) {
 	logrus.Infof("updating password for: %+v", req)
 
+	user, err := as.dbConn.CheckIfUsernameExist(req.Username)
+	if err != nil {
+		return &pb.UpdatePasswordRes{
+			Error: &pb.Error{
+				Status:  http.StatusNotFound,
+				Message: service_types.EmailNotRegistered,
+				Error:   "An account is not registered with this email",
+			},
+		}, err
+	}
+
 	encHash := utils.HashPassword(req.Password)
 	if err := as.dbConn.UpdatePassword(encHash, &models.TheMonkeysUser{
+		Id:       user.Id,
 		Email:    req.Email,
 		Username: req.Username,
 	}); err != nil {

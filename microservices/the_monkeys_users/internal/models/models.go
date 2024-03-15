@@ -4,7 +4,8 @@ import (
 	"database/sql"
 )
 
-type MyProfile struct {
+// TODO: Change as per schema user_account table
+type UserAccount struct {
 	Id            int64
 	FirstName     string
 	LastName      string

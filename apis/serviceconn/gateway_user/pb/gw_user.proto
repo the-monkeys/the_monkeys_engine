@@ -4,6 +4,9 @@ package auth_svc;
 
 import "google/protobuf/timestamp.proto";
 
+
+
+
 option go_package = "./apis/serviceconn/gateway_user/pb";
 
 message UserProfileReq {
@@ -40,7 +43,46 @@ message UserActivityRes {
     string description = 5;
 }
 
+// message Error {
+//     int32 status = 1;
+//     string error = 2;
+//     string message = 3;
+// }
+
+message UpdateUserProfileReq {
+    string profile_id = 1;
+    string username = 2; 
+    string first_name = 3;
+    string last_name = 4;
+    string date_of_birth = 5;
+    string bio = 6;
+    string address = 7;
+    string contact_number = 8;
+    string email = 9;
+    string ip_address = 10;
+    string client = 11;
+    bool partial = 12;
+    string current_username = 13;
+}
+
+message UpdateUserProfileRes {
+    string profile_id = 1;
+    string username = 2; 
+    string first_name = 3;
+    string last_name = 4;
+    string date_of_birth = 5;
+    string bio = 6;
+    string address = 7;
+    int64 contact_number = 8;
+    string email = 9;
+    int64  status = 10;
+    string error = 11;
+}
+
+
+
 service UserService {
     rpc GetUserActivities(UserActivityReq) returns (UserActivityRes) {}
     rpc GetUserProfile(UserProfileReq) returns (UserProfileRes) {}
+    rpc UpdateUserProfile(UpdateUserProfileReq) returns (UpdateUserProfileRes) {}
 }

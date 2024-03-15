@@ -17,15 +17,23 @@ type JwtWrapper struct {
 
 type jwtClaims struct {
 	jwt.StandardClaims
-	Id    int64
-	Email string
+	AccountId string
+	Email     string
+	Username  string
+	ClientId  string
+	Client    string
+	IpAddress string
 }
 
 // TODO: Add Username, profile_name and client_id
 func (w *JwtWrapper) GenerateToken(user *models.TheMonkeysUser) (signedToken string, err error) {
 	claims := &jwtClaims{
-		Id:    user.Id,
-		Email: user.Email,
+		AccountId: user.AccountId,
+		Email:     user.Email,
+		Username:  user.Username,
+		ClientId:  user.ClientId,
+		Client:    user.Client,
+		IpAddress: user.IpAddress,
 		StandardClaims: jwt.StandardClaims{
 			ExpiresAt: time.Now().Local().Add(time.Hour * time.Duration(w.ExpirationHours)).Unix(),
 			Issuer:    w.Issuer,
