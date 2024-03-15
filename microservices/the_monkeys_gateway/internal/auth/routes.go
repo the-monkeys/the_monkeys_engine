@@ -2,7 +2,6 @@ package auth
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 	"strings"
 
@@ -22,6 +21,7 @@ type ServiceClient struct {
 	Log    logrus.Logger
 }
 
+// InitServiceClient initializes the gRPC connection to the auth service.
 func InitServiceClient(cfg *config.Config) pb.AuthServiceClient {
 	cc, err := grpc.Dial(cfg.Microservices.TheMonkeysAuthz, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
@@ -43,13 +43,13 @@ func RegisterAuthRouter(router *gin.Engine, cfg *config.Config) *ServiceClient {
 
 	routes.POST("/register", asc.Register)
 	routes.POST("/login", asc.Login)
+	routes.GET("/is-authenticated", asc.IsUserAuthenticated)
 
 	// Forgot password
 	routes.POST("/forgot-pass", asc.ForgotPassword)
 	routes.POST("/reset-password", asc.ResetPassword)
 
 	// Is the user authenticated
-	routes.GET("/is-authenticated", asc.IsUserAuthenticated)
 
 	mware := InitAuthMiddleware(asc)
 	routes.Use(mware.AuthRequired)
@@ -198,10 +198,9 @@ func (asc *ServiceClient) ResetPassword(ctx *gin.Context) {
 }
 
 func (asc *ServiceClient) UpdatePassword(ctx *gin.Context) {
-
-	authorization := ctx.Request.Header.Get("authorization")
+	authorization := ctx.Request.Header.Get("Authorization")
 	// TODO: Take more fields from header like: email, username,
-	// profile id etc and pass it in ValidateRequest{} to check if the token matches with all of those
+	// account id etc and pass it in ValidateRequest{} to check if the token matches with all of those
 	if authorization == "" {
 		ctx.AbortWithStatus(http.StatusUnauthorized)
 		return
@@ -218,7 +217,7 @@ func (asc *ServiceClient) UpdatePassword(ctx *gin.Context) {
 		Token: token[1],
 	})
 
-	fmt.Printf("res: %+v\n", res)
+	logrus.Infof("Validation response: %+v\n", res)
 
 	if err != nil || res.StatusCode != http.StatusOK {
 		ctx.AbortWithStatus(http.StatusUnauthorized)

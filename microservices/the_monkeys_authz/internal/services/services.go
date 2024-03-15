@@ -336,8 +336,20 @@ func (as *AuthzSvc) ResetPassword(ctx context.Context, req *pb.ResetPasswordReq)
 func (as *AuthzSvc) UpdatePassword(ctx context.Context, req *pb.UpdatePasswordReq) (*pb.UpdatePasswordRes, error) {
 	logrus.Infof("updating password for: %+v", req)
 
+	user, err := as.dbConn.CheckIfUsernameExist(req.Username)
+	if err != nil {
+		return &pb.UpdatePasswordRes{
+			Error: &pb.Error{
+				Status:  http.StatusNotFound,
+				Message: service_types.EmailNotRegistered,
+				Error:   "An account is not registered with this email",
+			},
+		}, err
+	}
+
 	encHash := utils.HashPassword(req.Password)
 	if err := as.dbConn.UpdatePassword(encHash, &models.TheMonkeysUser{
+		Id:       user.Id,
 		Email:    req.Email,
 		Username: req.Username,
 	}); err != nil {
