@@ -59,5 +59,11 @@ func (us *UserSvc) GetUserActivities(ctx context.Context, req *pb.UserActivityRe
 }
 func (us *UserSvc) UpdateUserProfile(ctx context.Context, req *pb.UpdateUserProfileReq) (*pb.UpdateUserProfileRes, error){
 	fmt.Printf("req: %+v\n", req)
+	us.log.Infof("checking if email is exists with this profile .", req.Email)
+	_, err := us.dbConn.CheckIfEmailExist(req.Email)
+	if err != nil {
+		us.log.Errorf("the user doesn't exists: %v", err)
+		return nil, err
+	}
 	return nil,nil
 }
