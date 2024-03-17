@@ -34,6 +34,7 @@ CREATE TABLE IF NOT EXISTS user_account (
 ALTER TABLE user_account
 ADD CONSTRAINT user_id_unique UNIQUE (id);
 
+
 -- Creating email validation status table
 CREATE TABLE IF NOT EXISTS email_validation_status (
     id SERIAL PRIMARY KEY,
