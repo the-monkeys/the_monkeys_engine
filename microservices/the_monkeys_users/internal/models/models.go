@@ -6,36 +6,33 @@ import (
 
 // TODO: Change as per schema user_account table
 type UserAccount struct {
-	Id                int64                 `json:"id"`
-	AccountId         string                `json:"account_id"`
-	UserName          string                `json:"username"`
-	FirstName         string                `json:"firstname"`
-	LastName          string                `json:"lastname"`
-	Email             string                `json:"email"`
-	DateOfBirth       sql.NullTime          `json:"date_of_birth"`
-    Bio               sql.NullString        `json:"bio"`
-    Address           sql.NullString        `json:"address"`
-	ContactNumber     sql.NullInt64         `json:"contact_number"`
-	UserStatus        string                `json:"user_status"`
+	Id            int64          `json:"id"`
+	AccountId     string         `json:"account_id"`
+	UserName      string         `json:"username"`
+	FirstName     string         `json:"firstname"`
+	LastName      string         `json:"lastname"`
+	Email         string         `json:"email"`
+	DateOfBirth   sql.NullTime   `json:"date_of_birth"`
+	Bio           sql.NullString `json:"bio"`
+	Address       sql.NullString `json:"address"`
+	ContactNumber sql.NullInt64  `json:"contact_number"`
+	UserStatus    string         `json:"user_status"`
 }
 
-type UserAuthInfo struct{
-	Id                          int64                 `json:"id"`
-	UserId                      int64                 `json:"user_id"`
-	PasswordHash                sql.NullString        `json:"password_hash"`
-	CreatedAt                   sql.NullTime          `json:"created_at"`
-	PasswordRecoveryToken       sql.NullString        `json:"password_recovery_token"`
-	PasswordRecoveryTimeout     sql.NullTime          `json:"password_recovery_timeout"`
-	PasswordUpdatedAt           sql.NullTime          `json:"password_updated_at"`
-	EmailVerificationToken      string                `json:"email_verification_token"`
-	EmailVerificationTimeout    sql.NullTime          `json:"email_verification_timeout"`
-	EmailValidationStatus       string                 `json:"email_validation_satus"`
-	EmailValidationTime         sql.NullTime           `json:"email_validation_time"`
-	AuthProviderId              int64                   `json:"auth_provider_id"`
-
-
+type UserAuthInfo struct {
+	Id                       int64          `json:"id"`
+	UserId                   int64          `json:"user_id"`
+	PasswordHash             sql.NullString `json:"password_hash"`
+	CreatedAt                sql.NullTime   `json:"created_at"`
+	PasswordRecoveryToken    sql.NullString `json:"password_recovery_token"`
+	PasswordRecoveryTimeout  sql.NullTime   `json:"password_recovery_timeout"`
+	PasswordUpdatedAt        sql.NullTime   `json:"password_updated_at"`
+	EmailVerificationToken   string         `json:"email_verification_token"`
+	EmailVerificationTimeout sql.NullTime   `json:"email_verification_timeout"`
+	EmailValidationStatus    string         `json:"email_validation_satus"`
+	EmailValidationTime      sql.NullTime   `json:"email_validation_time"`
+	AuthProviderId           int64          `json:"auth_provider_id"`
 }
-
 
 type TheMonkeysUser struct {
 	Id                          int64          `json:"id"`
