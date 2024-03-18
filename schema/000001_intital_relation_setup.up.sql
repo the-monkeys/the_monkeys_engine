@@ -1,7 +1,7 @@
 -- Creating user status table
 CREATE TABLE IF NOT EXISTS user_status (
     id SERIAL PRIMARY KEY,
-    usr_status VARCHAR(100) NOT NULL
+    status VARCHAR(100) NOT NULL
 );
 
 -- Creating user role table
@@ -193,7 +193,7 @@ INSERT INTO email_validation_status (status) VALUES ('unverified'), ('verificati
 INSERT INTO auth_provider (provider_name) VALUES ('the-monkeys'), ('google-oauth2'), ('instagram-oauth2');
 
 -- Inserting predefined user statuses
-INSERT INTO user_status (usr_status) VALUES ('active'), ('inactive'), ('hidden');
+INSERT INTO user_status (status) VALUES ('active'), ('inactive'), ('hidden');
 
 -- Inserting data into permissions granted for all roles
 INSERT INTO permissions_granted (role_id, permission_id)

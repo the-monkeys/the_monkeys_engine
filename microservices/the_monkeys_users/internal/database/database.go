@@ -15,7 +15,7 @@ import (
 type UserDb interface {
 	CheckIfEmailExist(email string) (*models.TheMonkeysUser, error)
 	CheckIfUsernameExist(username string) (*models.TheMonkeysUser, error)
-	GetMyProfile(email string) (*models.UserProfileRes, error)
+	GetMyProfile(username string) (*models.UserProfileRes, error)
 }
 
 type uDBHandler struct {
@@ -110,21 +110,21 @@ func (uh *uDBHandler) CheckIfUsernameExist(username string) (*models.TheMonkeysU
 	return &tmu, nil
 }
 
-func (uh *uDBHandler) GetMyProfile(email string) (*models.UserProfileRes, error) {
+func (uh *uDBHandler) GetMyProfile(username string) (*models.UserProfileRes, error) {
 	var profile models.UserProfileRes
 	if err := uh.db.QueryRow(`
-			SELECT ua.account_id, ua.username, ua.first_name, ua.last_name,  ua.date_of_birth, 
-			ua.bio, ua.avatar_url, ua.created_at, ua.updated_at, ua.address,
-			ua.contact_number, us.usr_status
-			FROM USER_ACCOUNT ua
-			LEFT JOIN USER_AUTH_INFO uai ON ua.user_id = uai.user_id
-			LEFT JOIN email_validation_status evs ON uai.email_validation_status = evs.id
-			LEFT JOIN user_status us ON ua.user_status = us.id
-			WHERE ua.email = $1;
-		`, email).
-		Scan(&profile.ProfileId, &profile.Username, &profile.FirstName, &profile.LastName, &profile.DateOfBirth, &profile.Bio, &profile.AvatarUrl,
-			&profile.CreatedAt, &profile.UpdatedAt, &profile.Address, &profile.ContactNumber, &profile.UserStatus); err != nil {
-		logrus.Errorf("can't find a user profile existing with email %s, error: %+v", email, err)
+			SELECT ua.account_id, ua.username, ua.first_name, ua.last_name, ua.email, ua.date_of_birth,
+			ua.bio, ua.avatar_url, ua.created_at, ua.updated_at, ua.address, ua.contact_number, us.status,
+			ua.view_permission
+			
+			FROM user_account ua
+			INNER JOIN user_status us ON us.id = ua.user_status
+			WHERE ua.username = $1;
+		`, username).
+		Scan(&profile.AccountId, &profile.Username, &profile.FirstName, &profile.LastName, &profile.Email,
+			&profile.DateOfBirth, &profile.Bio, &profile.AvatarUrl, &profile.CreatedAt, &profile.UpdatedAt,
+			&profile.Address, &profile.ContactNumber, &profile.UserStatus, &profile.ViewPermission); err != nil {
+		logrus.Errorf("can't find a user profile existing with username %s, error: %+v", username, err)
 		return nil, err
 	}
 
