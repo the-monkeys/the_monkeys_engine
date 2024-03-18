@@ -113,14 +113,14 @@ func (uh *uDBHandler) CheckIfUsernameExist(username string) (*models.TheMonkeysU
 func (uh *uDBHandler) GetMyProfile(email string) (*models.UserProfileRes, error) {
 	var profile models.UserProfileRes
 	if err := uh.db.QueryRow(`
-			SELECT ua.profile_id, ua.username, ua.first_name, ua.last_name,  ua.date_of_birth, 
+			SELECT ua.account_id, ua.username, ua.first_name, ua.last_name,  ua.date_of_birth, 
 			ua.bio, ua.avatar_url, ua.created_at, ua.updated_at, ua.address,
 			ua.contact_number, us.usr_status
 			FROM USER_ACCOUNT ua
 			LEFT JOIN USER_AUTH_INFO uai ON ua.user_id = uai.user_id
 			LEFT JOIN email_validation_status evs ON uai.email_validation_status = evs.id
 			LEFT JOIN user_status us ON ua.user_status = us.id
-			WHERE uai.email_id = $1;
+			WHERE ua.email = $1;
 		`, email).
 		Scan(&profile.ProfileId, &profile.Username, &profile.FirstName, &profile.LastName, &profile.DateOfBirth, &profile.Bio, &profile.AvatarUrl,
 			&profile.CreatedAt, &profile.UpdatedAt, &profile.Address, &profile.ContactNumber, &profile.UserStatus); err != nil {
