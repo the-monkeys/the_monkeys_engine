@@ -29,13 +29,13 @@ func (us *UserSvc) GetUserProfile(ctx context.Context, req *pb.UserProfileReq) (
 	}
 
 	us.log.Infof("user %v has requested profile info.", req.Email)
-	_, err := us.dbConn.CheckIfEmailExist(req.Email)
+	_, err := us.dbConn.CheckIfUsernameExist(req.UserName)
 	if err != nil {
 		us.log.Errorf("the user doesn't exists: %v", err)
 		return nil, err
 	}
 
-	userDetails, err := us.dbConn.GetMyProfile(req.Email)
+	userDetails, err := us.dbConn.GetMyProfile(req.UserName)
 	if err != nil {
 		us.log.Errorf("error while finding the user profile: %v", err)
 		return nil, err

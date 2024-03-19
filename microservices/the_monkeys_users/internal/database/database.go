@@ -69,11 +69,11 @@ func (uh *uDBHandler) GetUserProfile(profile_id string) (*models.TheMonkeysUser,
 func (uh *uDBHandler) CheckIfEmailExist(email string) (*models.TheMonkeysUser, error) {
 	var tmu models.TheMonkeysUser
 	if err := uh.db.QueryRow(`
-			SELECT ua.user_id, ua.profile_id, ua.username, ua.first_name, ua.last_name, 
-			uai.email_id, uai.password_hash, evs.ev_status, us.usr_status, uai.email_validation_token,
+			SELECT ua.id, ua.account_id, ua.username, ua.first_name, ua.last_name, 
+			ua.email, uai.password_hash, evs.status, us.status, uai.email_validation_token,
 			uai.email_verification_timeout
 			FROM USER_ACCOUNT ua
-			LEFT JOIN USER_AUTH_INFO uai ON ua.user_id = uai.user_id
+			LEFT JOIN USER_AUTH_INFO uai ON ua.id = uai.user_id
 			LEFT JOIN email_validation_status evs ON uai.email_validation_status = evs.id
 			LEFT JOIN user_status us ON ua.user_status = us.id
 			WHERE uai.email_id = $1;
@@ -90,11 +90,11 @@ func (uh *uDBHandler) CheckIfEmailExist(email string) (*models.TheMonkeysUser, e
 func (uh *uDBHandler) CheckIfUsernameExist(username string) (*models.TheMonkeysUser, error) {
 	var tmu models.TheMonkeysUser
 	if err := uh.db.QueryRow(`
-			SELECT ua.user_id, ua.profile_id, ua.username, ua.first_name, ua.last_name, 
-			uai.email_id, uai.password_hash, uai.password_recovery_token, uai.password_recovery_timeout,
-			evs.ev_status, us.usr_status, uai.email_validation_token, uai.email_verification_timeout
+			SELECT ua.id, ua.account_id, ua.username, ua.first_name, ua.last_name, 
+			ua.email, uai.password_hash, uai.password_recovery_token, uai.password_recovery_timeout,
+			evs.status, us.status, uai.email_validation_token, uai.email_verification_timeout
 			FROM USER_ACCOUNT ua
-			LEFT JOIN USER_AUTH_INFO uai ON ua.user_id = uai.user_id
+			LEFT JOIN USER_AUTH_INFO uai ON ua.id = uai.user_id
 			LEFT JOIN email_validation_status evs ON uai.email_validation_status = evs.id
 			LEFT JOIN user_status us ON ua.user_status = us.id
 			WHERE ua.username = $1;
