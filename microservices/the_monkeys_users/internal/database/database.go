@@ -72,7 +72,7 @@ func (uh *uDBHandler) CheckIfEmailExist(email string) (*models.TheMonkeysUser, e
             LEFT JOIN user_status us ON ua.user_status = us.id
             WHERE ua.email = $1;
         `, email).
-		Scan(&tmu.Id, &tmu.ProfileId, &tmu.Username, &tmu.FirstName, &tmu.LastName, &tmu.Email, &tmu.Password,
+		Scan(&tmu.Id, &tmu.AccountId, &tmu.Username, &tmu.FirstName, &tmu.LastName, &tmu.Email, &tmu.Password,
 			&tmu.EmailVerificationStatus, &tmu.UserStatus, &tmu.EmailVerificationToken, &tmu.EmailVerificationTimeout); err != nil {
 		logrus.Errorf("can't find a user existing with email %s, error: %+v", email, err)
 		return nil, err
@@ -93,7 +93,7 @@ func (uh *uDBHandler) CheckIfUsernameExist(username string) (*models.TheMonkeysU
 			LEFT JOIN user_status us ON ua.user_status = us.id
 			WHERE ua.username = $1;
 		`, username).
-		Scan(&tmu.Id, &tmu.ProfileId, &tmu.Username, &tmu.FirstName, &tmu.LastName, &tmu.Email,
+		Scan(&tmu.Id, &tmu.AccountId, &tmu.Username, &tmu.FirstName, &tmu.LastName, &tmu.Email,
 			&tmu.Password, &tmu.PasswordVerificationToken, &tmu.PasswordVerificationTimeout,
 			&tmu.EmailVerificationStatus, &tmu.UserStatus, &tmu.EmailVerificationToken,
 			&tmu.EmailVerificationTimeout); err != nil {
