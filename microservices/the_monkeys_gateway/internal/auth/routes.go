@@ -47,7 +47,7 @@ func RegisterAuthRouter(router *gin.Engine, cfg *config.Config) *ServiceClient {
 
 	// Forgot password
 	routes.POST("/forgot-pass", asc.ForgotPassword)
-	routes.POST("/reset-password", asc.ConfirmPasswordVerificationLink)
+	routes.GET("/reset-password", asc.ConfirmPasswordVerificationLink)
 
 	// Is the user authenticated
 
