@@ -76,11 +76,11 @@ func (s *Server) start(ctx context.Context, config *config.Config) {
 	if os.Getenv("NO_TLS") != "1" {
 		tlsCert = os.Getenv("TLS_CERT")
 		if tlsCert == "" {
-			tlsCert = "local/cert.pem"
+			tlsCert = "config/certs/cert.pem"
 		}
 		tlsKey = os.Getenv("TLS_KEY")
 		if tlsKey == "" {
-			tlsKey = "local/prv_key.pem"
+			tlsKey = "config/certs/prv_key.pem"
 		}
 	}
 
