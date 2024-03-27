@@ -285,3 +285,27 @@ func (uh *uDBHandler) DeleteUserProfile(username string) error {
 	tx.Commit()
 	return nil
 }
+
+// Write a function to create a user log user_account_log
+func (uh *uDBHandler) AddUserLog(username string, ip string, description string, clientName string) error {
+	var id int64
+    //From username find user id
+	if err := uh.db.QueryRow(`
+			SELECT id FROM user_account WHERE username = $1;`, username).Scan(&id); err != nil {
+		logrus.Errorf("can't get id by using username %s, error: %+v", username, err)
+		return nil
+	}
+
+	//From clientname find client id
+	if err := uh.db.QueryRow(`
+			SELECT id FROM clients WHERE clientname = $1;`, clientName).Scan(&id); err != nil {
+		logrus.Errorf("can't get id by using client name %s, error: %+v", clientName, err)
+		return nil
+	}
+    //Add a user log to user_account_log table
+     if err := uh.db.QueryRow(`INSERT INTO ual.ip_address,ual.description,FROM user_account_log.ual WHERE id =$1`,id).Scan(&ip,&description);err!=nil{
+		logrus.Errorf("can't get ip and description by using id %s,%s error:%+v", ip,description,err)
+	 }
+
+	return nil
+}
