@@ -255,6 +255,7 @@ func (uh *uDBHandler) DeactivateMyAccount(id int64) error {
 
 	return nil
 }
+
 func (uh *uDBHandler) DeleteUserProfile(username string) error {
 	tx, err := uh.db.Begin()
 	if err != nil {
