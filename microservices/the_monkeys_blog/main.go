@@ -4,10 +4,9 @@ import (
 	"log"
 	"net"
 
-	isv "github.com/the-monkeys/the_monkeys/apis/interservice/blogs/pb"
 	"github.com/the-monkeys/the_monkeys/config"
 	"github.com/the-monkeys/the_monkeys/microservices/the_monkeys_blog/internal/pb"
-	"github.com/the-monkeys/the_monkeys/microservices/the_monkeys_blog/internal/service"
+	"github.com/the-monkeys/the_monkeys/microservices/the_monkeys_blog/internal/services"
 
 	"github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
@@ -28,18 +27,18 @@ func main() {
 
 	logger := logrus.New()
 
-	osClient, err := service.NewOpenSearchClient(cfg.Opensearch.Address, cfg.Opensearch.Username, cfg.Opensearch.Password, logger)
+	osClient, err := services.NewOpenSearchClient(cfg.Opensearch.Address, cfg.Opensearch.Username, cfg.Opensearch.Password, logger)
 	if err != nil {
 		logger.Fatalf("cannot get the opensearch client, error: %v", err)
 	}
 
-	blogService := service.NewBlogService(*osClient, logger)
-	interservice := service.NewInterservice(*osClient, logger)
+	blogService := services.NewBlogService(*osClient, logger)
+	// interservice := services.NewInterservice(*osClient, logger)
 
 	grpcServer := grpc.NewServer()
 
 	pb.RegisterBlogsAndPostServiceServer(grpcServer, blogService)
-	isv.RegisterBlogServiceServer(grpcServer, interservice)
+	// isv.RegisterBlogServiceServer(grpcServer, interservice)
 
 	logrus.Info("starting the blog server at address: ", cfg.Microservices.TheMonkeysBlog)
 	if err := grpcServer.Serve(lis); err != nil {
