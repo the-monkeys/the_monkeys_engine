@@ -1,9 +1,9 @@
-swagger: '2.0'
+swagger: "2.0"
 info:
   title: The Monkeys
   version: 0.0.1
 tags:
-  - name: Authentication
+  - name: Auth Service
 consumes:
   - application/json
 produces:
@@ -13,7 +13,7 @@ paths:
     post:
       operationId: AuthService.register
       responses:
-        '201':
+        "201":
           description: A successful response.
           schema:
             type: object
@@ -61,14 +61,14 @@ paths:
               password:
                 type: string
                 example: "ExamplePass"
-              
+
       tags:
-        - Register
+        - Access
   /auth/login:
     post:
       operationId: AuthService.login
       responses:
-        '201':
+        "201":
           description: A successful response.
           schema:
             type: object
@@ -110,41 +110,14 @@ paths:
               password:
                 type: string
                 example: "ExamplePass"
-              
+
       tags:
-        - Login
-  /auth/forgot-pass:
-    post:
-      operationId: AuthService.ForgetPass
-      responses:
-        '200':
-          description: A successful response.
-          schema:
-            type: object
-            properties:
-              status:
-                type: integer
-                example: 200
-        default:
-          description: An unexpected error response.
-          schema: {}
-      parameters:
-        - name: body
-          in: body
-          required: true
-          schema:
-            type: object
-            properties:
-              email:
-                type: string
-                example: "email@example.com"
-      tags:
-        - Forget Password
+        - Access
   /auth/is-authenticated:
-    post:
+    get:
       operationId: AuthService.UserAuthenticated
       responses:
-        '200':
+        "200":
           description: A successful response.
           schema:
             type: object
@@ -166,5 +139,152 @@ paths:
           description: Description for Header2
       tags:
         - Is User authenticated
+  /auth/forgot-pass:
+    post:
+      operationId: AuthService.ForgetPass
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            type: object
+            properties:
+              status:
+                type: integer
+                example: 200
+        default:
+          description: An unexpected error response.
+          schema: {}
+      parameters:
+        - name: body
+          in: body
+          required: true
+          schema:
+            type: object
+            properties:
+              email:
+                type: string
+                example: "email@example.com"
+      tags:
+        - Reset Password
+  /auth/reset-password:
+    get:
+      operationId: Reset.Pass
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            type: object
+            properties:
+              status_code:
+                type: integer
+                example: 200
+              token:
+                type: string
+                example: adnhdh2438ruy8webfsdb
+        default:
+          description: An unexpected error response.
+          schema: {}
+      parameters:
+        - name: user
+          in: query
+          required: true
+          description: Username of the user
+          type: string
+        - name: evpw
+          in: query
+          required: true
+          description: Reset password token
+          type: string
+      tags:
+        - Reset Password
 
+  /auth/update-password:
+    post:
+      operationId: Update.Passowrd
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            type: object
+            properties:
+              status_code:
+                type: integer
+                example: 200
+        default:
+          description: An unexpected error response.
+          schema: {}
+      parameters:
+        - name: body
+          in: body
+          required: true
+          schema:
+            type: object
+            properties:
+              new_password:
+                type: string
+                example: "NewPass123"
+      tags:
+        - Reset Password
+  /auth/req-email-verification:
+    post:
+      operationId: AuthService.ReqForEmailVerification
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            type: object
+            properties:
+              status_code:
+                type: integer
+                example: 200
+        default:
+          description: An unexpected error response.
+          schema: {}
+      parameters:
+        - in: header
+          name: Authorization
+          type: string
+          required: true
+          description: Description for Header1
+        - in: body
+          name: body
+          required: true
+          schema:
+            type: object
+            properties:
+              email:
+                type: string
+      tags:
+        - Email Verification
+  /auth/verify-email:
+    get:
+      operationId: AuthService.VerifyEmail
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            type: object
+            properties:
+              status_code:
+                type: integer
+                example: 200
+              token:
+                type: string
+                example: adnhdh2438ruy8webfsdb
+        default:
+          description: An unexpected error response.
+          schema: {}
+      parameters:
+        - name: user
+          in: query
+          required: true
+          description: Username of the user
+          type: string
+        - name: evpw
+          in: query
+          required: true
+          description: Reset password token
+          type: string
+      tags:
+        - Email Verification
 definitions: {}
