@@ -167,3 +167,9 @@ func (us *UserSvc) DeleteUserProfile(ctx context.Context, req *pb.DeleteUserProf
 	}, nil
 
 }
+
+func (us *UserSvc) GetAllTopics(context.Context, *pb.GetTopicsRequests) (*pb.GetTopicsResponse, error) {
+	us.log.Info("test")
+	res,err := us.dbConn.GetAllTopicsFromDb()
+	return res,err
+}

@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/the-monkeys/the_monkeys/apis/serviceconn/gateway_user/pb"
 	_ "github.com/lib/pq"
 	"github.com/sirupsen/logrus"
 	"github.com/the-monkeys/the_monkeys/config"
@@ -21,6 +22,7 @@ type UserDb interface {
 	GetUserProfile(username string) (*models.UserAccount, error)
 	UpdateUserProfile(username string, dbUserInfo *models.UserProfileRes) error
 	DeleteUserProfile(username string) error
+	GetAllTopicsFromDb() (*pb.GetTopicsResponse, error)
 }
 
 type uDBHandler struct {
@@ -321,4 +323,27 @@ func (uh *uDBHandler) AddUserLog(username string, ip string, description string,
 	}
 
 	return nil
+}
+
+func (uh *uDBHandler) GetAllTopicsFromDb() (*pb.GetTopicsResponse, error) {
+	resp := &pb.GetTopicsResponse{}
+	topics := []*pb.Topics{}
+	rows, err := uh.db.Query("SELECT description, category FROM topics")
+	if err!=nil{
+		return nil,err
+	}
+	defer rows.Close()
+	var topic,category string
+	for rows.Next() {
+		err := rows.Scan(&topic, &category)
+		if err!=nil{
+			return nil,err
+		}
+		topics = append(topics, &pb.Topics{
+			Topic: topic,
+			Category: category,
+		})
+	}
+	resp.Topics = topics
+	return resp, err
 }
