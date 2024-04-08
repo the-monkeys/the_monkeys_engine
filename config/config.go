@@ -47,6 +47,16 @@ type Email struct {
 	SMTPHost     string `mapstructure:"smtp_host"`
 }
 
+type MessageQueue struct {
+	Protocol string   `mapstructure:"protocol"`
+	Host     string   `mapstructure:"host"`
+	Port     int      `mapstructure:"port"`
+	Username string   `mapstructure:"username"`
+	Password string   `mapstructure:"password"`
+	Exchange string   `mapstructure:"exchange_name"`
+	Queue    []string `mapstructure:"queue_name"`
+}
+
 type Authentication struct {
 	EmailVerificationAddr string `mapstructure:"email_verification_addr"`
 }
@@ -58,6 +68,7 @@ type Config struct {
 	JWT               JWT               `mapstructure:"jwt"`
 	Opensearch        Opensearch        `mapstructure:"opensearch"`
 	Email             Email             `mapstructure:"email"`
+	MessageQueue      MessageQueue      `mapstructure:"message_queue"`
 	Authentication    Authentication    `mapstructure:"authentication"`
 }
 

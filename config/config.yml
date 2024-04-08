@@ -23,16 +23,27 @@ postgresql:
     db_name: the_monkeys_user_dev
 jwt:
   secret_key: Secret
+
 opensearch:
   address: https://localhost:9200
   os_username: admin
   os_password: admin
+
 email:
   smtp_address: ""
   smtp_mail: ""
   smtp_password: ""
   smtp_host: ""
 
+message_queue:
+  protocol: amqp
+  host: localhost
+  port: 5672
+  username: guest
+  password: guest
+  exchange_name: the_monkeys_exchange
+  queue_name: [the_monkeys_queue]
+  
 authentication:
   # provide the domain name or the gateway addr
-  email_verification_addr: 0.0.0.0:8081
+  email_verification_addr: http://127.0.0.1:8081

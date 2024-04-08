@@ -114,7 +114,7 @@ CREATE TABLE IF NOT EXISTS payment_info (
 -- Creating topics table
 CREATE TABLE IF NOT EXISTS topics (
     id SERIAL PRIMARY KEY,
-    description VARCHAR(100) NOT NULL,
+    topic VARCHAR(100) NOT NULL,
     category VARCHAR(100) NOT NULL,
     user_id BIGINT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -207,10 +207,9 @@ JOIN permissions p ON r.role_desc IN ('Admin', 'Owner', 'Editor', 'Viewer')
 AND p.permission_desc IN ('Read', 'Write', 'Edit', 'Delete', 'Archive');
 
 -- Insert some default topics
-INSERT INTO topics (description, category) VALUES
+INSERT INTO topics (topic, category) VALUES
 ('Reading', 'Hobbies'),
 ('Writing', 'Hobbies'),
-('Coding', 'Tech'),
 ('Hiking', 'Outdoors'),
 ('Photography', 'Hobbies'),
 ('Music', 'Entertainment'),
@@ -249,7 +248,6 @@ INSERT INTO topics (description, category) VALUES
 ('Spirituality', 'Wellness'),
 ('Hardware and IOTs', 'Tech'),
 ('Humour', 'Entertainment'),
-('Opinion', 'Writing'),
 ('Books', 'Reading'),
 ('Trains', 'Transportation'),
 ('Aviation', 'Transportation'),
@@ -452,7 +450,6 @@ INSERT INTO topics (description, category) VALUES
 ('Linux', 'Operating Systems'),
 ('Macos', 'Operating Systems'),
 ('Windows', 'Operating Systems'),
-('Writing', 'Media'),
 ('30 Day Challenge', 'Media'),
 ('Book Reviews', 'Media'),
 ('Books', 'Media'),
