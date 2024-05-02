@@ -186,17 +186,17 @@ func (us *UserSvc) GetAllTopics(context.Context, *pb.GetTopicsRequests) (*pb.Get
 }
 
 func (us *UserSvc) GetAllCategories(ctx context.Context, req *pb.GetAllCategoriesReq) (*pb.GetAllCategoriesRes, error) {
-    us.log.Info("getting all the Description and Categories")
+	us.log.Info("getting all the Description and Categories")
 
-    res, err := us.dbConn.GetAllCategories()
-    if err != nil {
-        if errors.Is(err, sql.ErrNoRows) {
-            us.log.Errorf("no Categories and Description found in the database: %v", err)
-            return nil, errors.New("no Categories found")
-        }
-        us.log.Errorf("error while querying the Categories: %v", err)
-        return nil, errors.New("error while querying the categories")
-    }
+	res, err := us.dbConn.GetAllCategories()
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			us.log.Errorf("no Categories and Description found in the database: %v", err)
+			return nil, errors.New("no Categories found")
+		}
+		us.log.Errorf("error while querying the Categories: %v", err)
+		return nil, errors.New("error while querying the categories")
+	}
 
-    return res, nil
+	return res, nil
 }

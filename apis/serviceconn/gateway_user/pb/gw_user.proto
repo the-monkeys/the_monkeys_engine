@@ -95,7 +95,6 @@ message DeleteUserProfileRes {
 }
 
 message GetTopicsRequests {
-
 }
 
 message Topics {
@@ -112,17 +111,11 @@ message Category {
 } 
 
 message GetAllCategoriesReq {
-
 }
 
 message GetAllCategoriesRes {
     map<string, Category> category = 1;
-
 }
-
-
-
-
 
 service UserService {
     rpc GetUserActivities(UserActivityReq) returns (UserActivityRes) {}

@@ -355,7 +355,7 @@ func (uh *uDBHandler) GetAllTopicsFromDb() (*pb.GetTopicsResponse, error) {
 	resp.Topics = topics
 	return resp, nil
 }
-func (uh *uDBHandler)GetAllCategories() (*pb.GetAllCategoriesRes, error){
+func (uh *uDBHandler) GetAllCategories() (*pb.GetAllCategoriesRes, error) {
 	resp := &pb.GetAllCategoriesRes{}
 	categories := make(map[string]*pb.Category)
 	rows, err := uh.db.Query("SELECT  DISTINCT description, category FROM topics ")
@@ -367,7 +367,7 @@ func (uh *uDBHandler)GetAllCategories() (*pb.GetAllCategoriesRes, error){
 		return nil, common.ErrInternal
 	}
 	defer rows.Close()
-	
+
 	var Description, category string
 	for rows.Next() {
 		err := rows.Scan(&Description, &category)
@@ -375,16 +375,16 @@ func (uh *uDBHandler)GetAllCategories() (*pb.GetAllCategoriesRes, error){
 			return nil, err
 		}
 		if _, ok := categories[category]; !ok {
-            categories[category] = &pb.Category{
-                Topics: make([]string, 0), // Initialize Topics slice for the category
-            }
-        }
+			categories[category] = &pb.Category{
+				Topics: make([]string, 0), // Initialize Topics slice for the category
+			}
+		}
 
-        // Append Description to the Topics slice of the corresponding category
-        categories[category].Topics = append(categories[category].Topics, Description)
-    }
+		// Append Description to the Topics slice of the corresponding category
+		categories[category].Topics = append(categories[category].Topics, Description)
+	}
 
-    // Assign the map to resp.Categories
-    resp.Category = categories
-    return resp, nil
+	// Assign the map to resp.Categories
+	resp.Category = categories
+	return resp, nil
 }
