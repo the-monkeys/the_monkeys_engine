@@ -103,6 +103,43 @@ services:
     working_dir: /go/src/app
     command: go run microservices/the_monkeys_users/main.go
 
+  opensearch-node1: 
+    image: opensearchproject/opensearch:1.2.1
+    container_name: monkeys-os
+    environment:
+      - cluster.name=opensearch-cluster
+      - node.name=opensearch-node1
+      - discovery.seed_hosts=opensearch-node1
+      - cluster.initial_master_nodes=opensearch-node1
+      - bootstrap.memory_lock=true # along with the memlock settings below, disables swapping
+      - "OPENSEARCH_JAVA_OPTS=-Xms512m -Xmx512m" # minimum and maximum Java heap size, recommend setting both to 50% of system RAM
+      - plugins.security.disabled=true
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    volumes:
+     - /usr/share/opensearch/data
+    ports:
+      - 9200:9200
+      - 9600:9600 # required for Performance Analyzer
+    networks:
+      - monkeys-network
+
+  the_monkeys_blog:
+    container_name: "the-monkeys-blog"
+    image: golang:latest
+    networks:
+      - monkeys-network
+    depends_on:
+      - opensearch-node1
+    volumes:
+      - .:/go/src/app
+    ports:
+      - "50052:50052"
+    working_dir: /go/src/app
+    command: go run microservices/the_monkeys_blog/main.go
+
 networks:
   monkeys-network:
     driver: bridge
@@ -111,30 +148,7 @@ volumes:
   postgres_data:
   the_monkeys_profile:
   blogs_volume:
-  
 
-  # opensearch-node1:
-  #   image: opensearchproject/opensearch:1.2.1
-  #   container_name: monkeys-os
-  #   environment:
-  #     - cluster.name=opensearch-cluster
-  #     - node.name=opensearch-node1
-  #     - discovery.seed_hosts=opensearch-node1
-  #     - cluster.initial_master_nodes=opensearch-node1
-  #     - bootstrap.memory_lock=true # along with the memlock settings below, disables swapping
-  #     - "OPENSEARCH_JAVA_OPTS=-Xms512m -Xmx512m" # minimum and maximum Java heap size, recommend setting both to 50% of system RAM
-  #     - plugins.security.disabled=true
-  #   ulimits:
-  #     memlock:
-  #       soft: -1
-  #       hard: -1
-  #   volumes:
-  #    - /usr/share/opensearch/data
-  #   ports:
-  #     - 9200:9200
-  #     - 9600:9600 # required for Performance Analyzer
-  #   networks:
-  #     - monkeys-network
 
   # the-monkeys-rabbitmq:
   #   image: rabbitmq:latest
