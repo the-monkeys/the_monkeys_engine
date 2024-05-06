@@ -37,7 +37,7 @@ func NewOpenSearchClient(url, username, password string, log *logrus.Logger) (Op
 }
 
 func (os *opensearchStorage) DraftABlog(ctx context.Context, blog *pb.DraftBlogRequest) (*opensearchapi.Response, error) {
-	os.log.Infof("DraftABlog: received an article with id: %s", blog.ID)
+	os.log.Infof("DraftABlog: received an article with id: %s", blog.BlogId)
 
 	bs, err := json.Marshal(blog)
 	if err != nil {
@@ -49,7 +49,7 @@ func (os *opensearchStorage) DraftABlog(ctx context.Context, blog *pb.DraftBlogR
 
 	osReq := opensearchapi.IndexRequest{
 		Index:      constants.OpensearchArticleIndex,
-		DocumentID: blog.ID,
+		DocumentID: blog.BlogId,
 		Body:       document,
 	}
 

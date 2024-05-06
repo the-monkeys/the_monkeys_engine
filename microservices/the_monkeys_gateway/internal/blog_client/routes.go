@@ -81,8 +81,8 @@ func (asc *BlogServiceClient) DraftABlog(ctx *gin.Context) {
 		}
 
 		resp, err := asc.Client.DraftBlog(context.Background(), &pb.DraftBlogRequest{
-			ID:   id,
-			Blog: blog,
+			BlogId: id,
+			Blog:   blog,
 		})
 		if err != nil {
 			logrus.Errorf("error while creating draft blog: %v", err)

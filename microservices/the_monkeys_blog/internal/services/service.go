@@ -19,7 +19,9 @@ func NewBlogService(client database.OpensearchStorage, logger *logrus.Logger) *B
 }
 
 func (blog *BlogService) DraftBlog(ctx context.Context, req *pb.DraftBlogRequest) (*pb.BlogResponse, error) {
-	blog.logger.Infof("blog id %s is being updated", req.ID)
+	blog.logger.Infof("blog id %s is being updated", req.BlogId)
+
+	req.IsDraft = true
 
 	_, err := blog.osClient.DraftABlog(ctx, req)
 	if err != nil {
