@@ -24,7 +24,8 @@ postgresql:
 jwt:
   secret_key: Secret
 opensearch:
-  address: https://localhost:9200
+  address: http://localhost:9200
+  os_host: http://opensearch_node1:9200
   os_username: admin
   os_password: admin
 email:

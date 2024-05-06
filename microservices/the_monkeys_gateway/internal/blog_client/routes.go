@@ -1,9 +1,12 @@
 package blog_client
 
 import (
+	"context"
+	"encoding/json"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/gorilla/websocket"
 	"github.com/sirupsen/logrus"
 	"github.com/the-monkeys/the_monkeys/apis/serviceconn/gateway_blog/pb"
 	"github.com/the-monkeys/the_monkeys/config"
@@ -11,6 +14,8 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 )
+
+var upgrader = websocket.Upgrader{}
 
 type BlogServiceClient struct {
 	Client pb.BlogServiceClient
@@ -29,16 +34,16 @@ func NewBlogServiceClient(cfg *config.Config) pb.BlogServiceClient {
 func RegisterBlogRouter(router *gin.Engine, cfg *config.Config, authClient *auth.ServiceClient) *BlogServiceClient {
 	mware := auth.InitAuthMiddleware(authClient)
 
-	blogCli := &BlogServiceClient{
+	blogClient := &BlogServiceClient{
 		Client: NewBlogServiceClient(cfg),
 	}
-	routes := router.Group("/api/v1/post")
+	routes := router.Group("/api/v1/blog")
 	// routes.GET("/", blogCli.Get100Blogs)
 	// routes.GET("/:id", blogCli.GetArticleById)
 	// routes.GET("/tag", blogCli.Get100PostsByTags)
 
 	routes.Use(mware.AuthRequired)
-	routes.POST("/create/:id", blogCli.DraftAndPublish)
+	routes.GET("/draft/:id", blogClient.DraftABlog)
 
 	// routes.POST("/", blogCli.CreateABlog)
 	// routes.PUT("/edit/:id", blogCli.EditArticles)
@@ -47,14 +52,57 @@ func RegisterBlogRouter(router *gin.Engine, cfg *config.Config, authClient *auth
 
 	// Based on the editor.js APIS
 
-	return blogCli
+	return blogClient
 }
 
-func (asc *BlogServiceClient) DraftAndPublish(ctx *gin.Context) {
+func (asc *BlogServiceClient) DraftABlog(ctx *gin.Context) {
 	id := ctx.Param("id")
 
-	ctx.JSON(http.StatusAccepted, id)
+	conn, err := upgrader.Upgrade(ctx.Writer, ctx.Request, nil)
+	if err != nil {
+		logrus.Println(err)
+		return
+	}
 
+	// Infinite loop to listen to WebSocket connection
+	for {
+		_, msg, err := conn.ReadMessage()
+		if err != nil {
+			logrus.Println(err)
+			return
+		}
+
+		// Unmarshal the received message into the Blog struct
+		var blog *pb.Blog
+		err = json.Unmarshal(msg, &blog)
+		if err != nil {
+			logrus.Println("Error unmarshalling message:", err)
+			return
+		}
+
+		resp, err := asc.Client.DraftBlog(context.Background(), &pb.DraftBlogRequest{
+			ID:   id,
+			Blog: blog,
+		})
+		if err != nil {
+			logrus.Errorf("error while creating draft blog: %v", err)
+			_ = ctx.AbortWithError(http.StatusInternalServerError, err)
+			return
+		}
+
+		response, err := json.Marshal(resp)
+		if err != nil {
+			logrus.Println("Error unmarshalling response message:", err)
+			return
+		}
+
+		// Send a response message to the client (optional)
+		err = conn.WriteMessage(websocket.TextMessage, response)
+		if err != nil {
+			logrus.Println(err)
+			return
+		}
+	}
 }
 
 // func (asc *BlogServiceClient) CreateABlog(ctx *gin.Context) {

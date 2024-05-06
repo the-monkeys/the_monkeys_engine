@@ -6,8 +6,11 @@ package blog_svc;
 
 option go_package = "./apis/serviceconn/gateway_blog/pb";
 
+// TODO: Add isDraft, 
 message DraftBlogRequest {
-    Blog blog = 1;
+    string ID = 1;
+    string owner_account_id = 2;
+    Blog blog = 3;
 }
 
 message BlogResponse {
