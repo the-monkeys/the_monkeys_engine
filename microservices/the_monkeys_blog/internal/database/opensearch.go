@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
 	"log"
 	"net/http"
 	"strings"
@@ -142,7 +143,7 @@ func (os *opensearchStorage) PublishBlogById(ctx context.Context, blogId string)
 func (storage *opensearchStorage) GetPublishedBlogById(ctx context.Context, id string) (*pb.GetBlogByIdRes, error) {
 	res, err := storage.client.Search(
 		storage.client.Search.WithContext(context.Background()),
-		storage.client.Search.WithIndex("the_monkeys_blogs"),
+		storage.client.Search.WithIndex(constants.OpensearchArticleIndex),
 		storage.client.Search.WithBody(strings.NewReader(fmt.Sprintf(`{
 			"query": {
 				"bool": {
@@ -161,35 +162,51 @@ func (storage *opensearchStorage) GetPublishedBlogById(ctx context.Context, id s
 		storage.client.Search.WithPretty(),
 	)
 
-	storage.log.Infof("Response: %+v", res)
+	// storage.log.Infof("Response: %+v", res)
 	if err != nil {
 		log.Fatalf("fetching the blog: %s", err)
 		return nil, err
 	}
 	defer res.Body.Close()
 
-	var r map[string]interface{}
-	if err := json.NewDecoder(res.Body).Decode(&r); err != nil {
+	bodyBytes, err := io.ReadAll(res.Body)
+	if err != nil {
+		storage.log.Errorf("error reading response body, error: %+v", err)
 		return nil, err
 	}
 
-	// for _, hit := range r["hits"].(map[string]interface{})["hits"].([]interface{}) {
-	// 	source := hit.(map[string]interface{})["_source"].(map[string]interface{})
-	// 	return &Blog{
-	// 		ID:         source["blog_id"].(string),
-	// 		IsDraft:    source["is_draft"].(bool),
-	// 		IsArchived: source["is_archived"].(bool),
-	// 	}, nil
-	// }
+	var source map[string]interface{}
+	err = json.Unmarshal(bodyBytes, &source)
+	if err != nil {
+		storage.log.Errorf("error unmarshalling blog, error: %+v", err)
+		return nil, err
+	}
 
+	if len(source["hits"].(map[string]interface{})["hits"].([]interface{})) == 0 {
+		storage.log.Errorf("no blog found with id: %s", id)
+		return nil, fmt.Errorf("no blog found with id: %s", id)
+	}
+
+	firstHit := source["hits"].(map[string]interface{})["hits"].([]interface{})[0]
+	firstHitMap, ok := firstHit.(map[string]interface{})
+	if !ok {
+		log.Fatalf("error converting first hit to map[string]interface{}")
+		return nil, fmt.Errorf("error converting first hit to map[string]interface{}")
+	}
+
+	bx, err := json.MarshalIndent(firstHitMap["_source"], "", "\t")
+	if err != nil {
+		storage.log.Errorf("error marshalling the _source, error: %+v", err)
+		return nil, err
+	}
 	blogRes := &pb.GetBlogByIdRes{}
 
-	// if err = json.Unmarshal(bx, blogRes); err != nil {
-	// 	storage.log.Errorf("error un-marshalling the bytes into struct, error: %+v", err)
-	// 	return nil, err
-	// }
+	if err = json.Unmarshal(bx, blogRes); err != nil {
+		storage.log.Errorf("error un-marshalling the bytes into struct, error: %+v", err)
+		return nil, err
+	}
 
-	// storage.log.Infof("successfully fetched blog with id: %s", req.BlogId)
+	storage.log.Infof("successfully fetched blog with id: %s", id)
 	return blogRes, nil
 }
 

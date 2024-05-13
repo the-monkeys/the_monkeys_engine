@@ -73,8 +73,8 @@ func (blog *BlogService) PublishBlog(ctx context.Context, req *pb.PublishBlogReq
 }
 
 func (blog *BlogService) GetBlogById(ctx context.Context, req *pb.GetBlogByIdReq) (*pb.GetBlogByIdRes, error) {
-	// return blog.osClient.GetBlogById(ctx, req)
-	return nil, nil
+	blog.logger.Infof("fetching blog with id: %s", req.BlogId)
+	return blog.osClient.GetPublishedBlogById(ctx, req.BlogId)
 }
 
 func (blog *BlogService) ArchivehBlogById(ctx context.Context, req *pb.ArchiveBlogReq) (*pb.ArchiveBlogResp, error) {
