@@ -3,6 +3,7 @@ package blog_client
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -40,7 +41,7 @@ func RegisterBlogRouter(router *gin.Engine, cfg *config.Config, authClient *auth
 	routes := router.Group("/api/v1/blog")
 	// routes.GET("/", blogCli.Get100Blogs)
 	routes.GET("/:id", blogClient.GetBlogeById)
-	// routes.GET("/tag", blogCli.Get100PostsByTags)
+	routes.GET("/tags", blogClient.GetBlogsByTagsName)
 
 	routes.Use(mware.AuthRequired)
 	routes.GET("/draft/:id", blogClient.DraftABlog)
@@ -126,6 +127,30 @@ func (asc *BlogServiceClient) ArchiveBlogById(ctx *gin.Context) {
 	resp, err := asc.Client.ArchivehBlogById(context.Background(), &pb.ArchiveBlogReq{
 		BlogId: id,
 	})
+
+	if err != nil {
+		logrus.Errorf("error while creating draft blog: %v", err)
+		_ = ctx.AbortWithError(http.StatusInternalServerError, err)
+		return
+	}
+
+	ctx.JSON(http.StatusOK, resp)
+}
+
+func (asc *BlogServiceClient) GetBlogsByTagsName(ctx *gin.Context) {
+	tags := Tags{}
+	if err := ctx.BindJSON(&tags); err != nil {
+		logrus.Errorf("error while marshalling tags: %v", err)
+		_ = ctx.AbortWithError(http.StatusBadRequest, err)
+		return
+	}
+
+	req := &pb.GetBlogsByTagsNameReq{}
+	req.TagNames = append(req.TagNames, tags.Tags...)
+
+	fmt.Printf("req: %+v\n", req)
+
+	resp, err := asc.Client.GetBlogsByTagsName(context.Background(), req)
 
 	if err != nil {
 		logrus.Errorf("error while creating draft blog: %v", err)
