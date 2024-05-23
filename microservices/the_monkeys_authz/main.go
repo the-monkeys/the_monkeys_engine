@@ -1,7 +1,6 @@
 package main
 
 import (
-	"log"
 	"net"
 
 	"github.com/sirupsen/logrus"
@@ -16,7 +15,7 @@ import (
 func main() {
 	cfg, err := config.GetConfig()
 	if err != nil {
-		log.Fatalf("cannot load auth service config, error: %v", err)
+		logrus.Errorf("cannot load auth service config, error: %v", err)
 		return
 	}
 
