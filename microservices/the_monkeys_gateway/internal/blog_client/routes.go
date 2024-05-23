@@ -57,7 +57,7 @@ func (asc *BlogServiceClient) DraftABlog(ctx *gin.Context) {
 
 	conn, err := upgrader.Upgrade(ctx.Writer, ctx.Request, nil)
 	if err != nil {
-		logrus.Println(err)
+		logrus.Errorf("error upgrading connection: %v", err)
 		return
 	}
 
@@ -65,7 +65,7 @@ func (asc *BlogServiceClient) DraftABlog(ctx *gin.Context) {
 	for {
 		_, msg, err := conn.ReadMessage()
 		if err != nil {
-			logrus.Println(err)
+			logrus.Errorf("error reading the message: %v", err)
 			continue
 		}
 
@@ -73,7 +73,7 @@ func (asc *BlogServiceClient) DraftABlog(ctx *gin.Context) {
 		var draftBlog *pb.DraftBlogRequest
 		err = json.Unmarshal(msg, &draftBlog)
 		if err != nil {
-			logrus.Println("Error unmarshalling message:", err)
+			logrus.Errorf("Error unmarshalling message: %v", err)
 			continue
 		}
 
@@ -94,7 +94,7 @@ func (asc *BlogServiceClient) DraftABlog(ctx *gin.Context) {
 		// Send a response message to the client (optional)
 		err = conn.WriteMessage(websocket.TextMessage, response)
 		if err != nil {
-			logrus.Println(err)
+			logrus.Errorf("error returning the response message: %v", err)
 			continue
 		}
 	}
