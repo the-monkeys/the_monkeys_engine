@@ -47,13 +47,7 @@ func RegisterBlogRouter(router *gin.Engine, cfg *config.Config, authClient *auth
 	routes.GET("/draft/:id", blogClient.DraftABlog)
 	routes.POST("/publish/:id", blogClient.PublishBlogById)
 	routes.POST("/archive/:id", blogClient.ArchiveBlogById)
-
-	// routes.POST("/", blogCli.CreateABlog)
-	// routes.PUT("/edit/:id", blogCli.EditArticles)
-	// routes.PATCH("/edit/:id", blogCli.EditArticles)
 	// routes.DELETE("/delete/:id", blogCli.DeleteBlogById)
-
-	// Based on the editor.js APIS
 
 	return blogClient
 }
@@ -72,7 +66,7 @@ func (asc *BlogServiceClient) DraftABlog(ctx *gin.Context) {
 		_, msg, err := conn.ReadMessage()
 		if err != nil {
 			logrus.Println(err)
-			return
+			continue
 		}
 
 		// Unmarshal the received message into the Blog struct
@@ -80,7 +74,7 @@ func (asc *BlogServiceClient) DraftABlog(ctx *gin.Context) {
 		err = json.Unmarshal(msg, &draftBlog)
 		if err != nil {
 			logrus.Println("Error unmarshalling message:", err)
-			return
+			continue
 		}
 
 		draftBlog.BlogId = id
@@ -88,21 +82,20 @@ func (asc *BlogServiceClient) DraftABlog(ctx *gin.Context) {
 		resp, err := asc.Client.DraftBlog(context.Background(), draftBlog)
 		if err != nil {
 			logrus.Errorf("error while creating draft blog: %v", err)
-			_ = ctx.AbortWithError(http.StatusInternalServerError, err)
-			return
+			continue
 		}
 
 		response, err := json.Marshal(resp)
 		if err != nil {
 			logrus.Println("Error unmarshalling response message:", err)
-			return
+			continue
 		}
 
 		// Send a response message to the client (optional)
 		err = conn.WriteMessage(websocket.TextMessage, response)
 		if err != nil {
 			logrus.Println(err)
-			return
+			continue
 		}
 	}
 }
