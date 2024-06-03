@@ -2,8 +2,8 @@ package server
 
 import (
 	"context"
+	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -12,6 +12,8 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/the-monkeys/the_monkeys/apis/serviceconn/gateway_file_service/pb"
 	"github.com/the-monkeys/the_monkeys/microservices/the_monkeys_file_storage/internal/utils"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 type FileService struct {
@@ -64,7 +66,7 @@ func (fs *FileService) UploadBlogFile(stream pb.UploadBlogFile_UploadBlogFileSer
 	if _, err := os.Stat(filePath); os.IsNotExist(err) {
 		logrus.Infof("the file, %s doesn't exists", filePath)
 
-		err := ioutil.WriteFile(filePath, byteSlice, 0644)
+		err := os.WriteFile(filePath, byteSlice, 0644)
 		if err != nil {
 			logrus.Errorf("cannot create a file for this blog id: %s", blogId)
 			return err
@@ -83,8 +85,17 @@ func (fs *FileService) GetBlogFile(req *pb.GetBlogFileReq, stream pb.UploadBlogF
 	fileName := filepath.Join(fs.path, req.BlogId, req.FileName)
 	logrus.Infof("there is a request to retrieve the file, %s", fileName)
 
+	_, err := os.Stat(fileName)
+	if err != nil {
+		if os.IsNotExist(err) {
+			return status.Errorf(codes.NotFound, fmt.Sprintf("image for blog id %v not found", req.BlogId))
+		} else {
+			return status.Errorf(codes.Internal, "something went wrong")
+		}
+	}
+
 	rawFileName := strings.ReplaceAll(fileName, "\n", "")
-	fileBytes, err := ioutil.ReadFile(rawFileName)
+	fileBytes, err := os.ReadFile(rawFileName)
 	if err != nil {
 		logrus.Errorf("cannot read the file: %s, error: %v", fileName, fileBytes)
 		return err
@@ -118,7 +129,7 @@ func (fs *FileService) UploadProfilePic(stream pb.UploadBlogFile_UploadProfilePi
 	logrus.Infof("File server got request to save profile pic")
 	var byteSlice []byte
 	var blogId string
-	var fileName string
+
 	for {
 		chunk, err := stream.Recv()
 		if err == io.EOF {
@@ -130,11 +141,10 @@ func (fs *FileService) UploadProfilePic(stream pb.UploadBlogFile_UploadProfilePi
 
 		byteSlice = append(byteSlice, chunk.Data...)
 		blogId = chunk.UserId
-		fileName = chunk.FileType
 	}
 	logrus.Infof("Uploading a file for user id: %v", blogId)
 
-	fileName = "profile.png"
+	fileName := "profile.png"
 	dirPath, filePath := utils.ConstructPath(fs.profilePicPath, blogId, fileName)
 
 	// Check if directory exists, if not create it
@@ -148,7 +158,7 @@ func (fs *FileService) UploadProfilePic(stream pb.UploadBlogFile_UploadProfilePi
 		}
 	}
 
-	err := ioutil.WriteFile(filePath, byteSlice, 0644)
+	err := os.WriteFile(filePath, byteSlice, 0644)
 	if err != nil {
 		logrus.Errorf("cannot create a file for this blog id: %s", blogId)
 		return err
@@ -163,11 +173,18 @@ func (fs *FileService) UploadProfilePic(stream pb.UploadBlogFile_UploadProfilePi
 }
 
 func (fs *FileService) GetProfilePic(req *pb.GetProfilePicReq, stream pb.UploadBlogFile_GetProfilePicServer) error {
-	logrus.Infof("File server got request to retrieve profile pic")
 	fileName := filepath.Join(fs.profilePicPath, req.UserId, req.FileName)
-	logrus.Infof("there is a request to retrieve the profile pic for user, %s", req.UserId)
 
-	fileBytes, err := ioutil.ReadFile(fileName)
+	_, err := os.Stat(fileName)
+	if err != nil {
+		if os.IsNotExist(err) {
+			return status.Errorf(codes.NotFound, fmt.Sprintf("profile picture for %v not found", req.UserId))
+		} else {
+			return status.Errorf(codes.Internal, "something went wrong")
+		}
+	}
+
+	fileBytes, err := os.ReadFile(fileName)
 	if err != nil {
 		logrus.Errorf("cannot read the profile pic: %s, error: %v", fileName, fileBytes)
 		return err
