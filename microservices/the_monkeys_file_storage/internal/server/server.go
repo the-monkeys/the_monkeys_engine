@@ -128,7 +128,7 @@ func (fs *FileService) DeleteBlogFile(ctx context.Context, req *pb.DeleteBlogFil
 func (fs *FileService) UploadProfilePic(stream pb.UploadBlogFile_UploadProfilePicServer) error {
 	logrus.Infof("File server got request to save profile pic")
 	var byteSlice []byte
-	var blogId string
+	var userName string
 
 	for {
 		chunk, err := stream.Recv()
@@ -140,12 +140,12 @@ func (fs *FileService) UploadProfilePic(stream pb.UploadBlogFile_UploadProfilePi
 		}
 
 		byteSlice = append(byteSlice, chunk.Data...)
-		blogId = chunk.UserId
+		userName = chunk.UserId
 	}
-	logrus.Infof("Uploading a file for user id: %v", blogId)
+	logrus.Infof("Uploading a file for user id: %v", userName)
 
 	fileName := "profile.png"
-	dirPath, filePath := utils.ConstructPath(fs.profilePicPath, blogId, fileName)
+	dirPath, filePath := utils.ConstructPath(fs.profilePicPath, userName, fileName)
 
 	// Check if directory exists, if not create it
 	if _, err := os.Stat(dirPath); os.IsNotExist(err) {
@@ -153,14 +153,14 @@ func (fs *FileService) UploadProfilePic(stream pb.UploadBlogFile_UploadProfilePi
 
 		err := os.MkdirAll(dirPath, 0755)
 		if err != nil {
-			logrus.Errorf("cannot create a directory for this blog id: %s", blogId)
+			logrus.Errorf("cannot create a directory for this blog id: %s", userName)
 			return err
 		}
 	}
 
 	err := os.WriteFile(filePath, byteSlice, 0644)
 	if err != nil {
-		logrus.Errorf("cannot create a file for this blog id: %s", blogId)
+		logrus.Errorf("cannot create a file for this blog id: %s", userName)
 		return err
 	}
 

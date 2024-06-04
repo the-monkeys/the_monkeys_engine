@@ -42,11 +42,11 @@ func main() {
 	for {
 		qConn, err = queue.GetConn(cfg.RabbitMQ)
 		if err != nil {
-			logrus.Errorf("cannot connect to rabbitMq service: %v", err)
+			logrus.Errorf("auth service cannot connect to rabbitMq service: %v", err)
 			time.Sleep(time.Second)
 			continue
 		} else {
-			logrus.Errorf("Connected to rabbitMQ!")
+			logrus.Errorf("✅ auth service connected to rabbitMQ!")
 			break
 		}
 	}
