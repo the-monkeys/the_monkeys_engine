@@ -7,7 +7,7 @@ const (
 	VerifiedEmailForPassChange   = "%s verified email to change the password"
 	UpdatedPassword              = "%s updated the password"
 	Logout                       = "Logged Out"
-	UpdateProfile                = "Updated Profile"
+	UpdateProfile                = " %s has updated the profile information"
 	RequestForEmailVerification  = "%s requested Email Verification"
 	VerifyEmail                  = "%s verified Email"
 	UserStatusChange             = "Changed User Status"

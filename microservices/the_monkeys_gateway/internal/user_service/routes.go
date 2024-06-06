@@ -46,7 +46,7 @@ func RegisterUserRouter(router *gin.Engine, cfg *config.Config, authClient *auth
 	routes.GET("/:id", usc.GetUserProfile)
 	routes.POST("/activities/:user_name", usc.GetUserActivities)
 	routes.PATCH("/:username", usc.UpdateUserProfile)
-	routes.PUT("/:username", usc.UpdateUserProfile)
+	// routes.PUT("/:username", usc.UpdateUserProfile)
 	routes.DELETE("/:username", usc.DeleteUserProfile)
 
 	return usc
@@ -58,12 +58,6 @@ func (asc *UserServiceClient) GetUserProfile(ctx *gin.Context) {
 		isPrivate = true
 	}
 
-	// email := ctx.Request.Header.Get("email")
-	// if email == "" {
-	// 	ctx.AbortWithStatus(http.StatusUnauthorized)
-	// 	return
-	// }
-
 	res, err := asc.Client.GetUserProfile(context.Background(), &pb.UserProfileReq{
 		Username: username,
 		// Email:     email,
@@ -71,8 +65,16 @@ func (asc *UserServiceClient) GetUserProfile(ctx *gin.Context) {
 	})
 
 	if err != nil {
-		errors.RestError(ctx, err, "user")
-		return
+		if status, ok := status.FromError(err); ok {
+			switch status.Code() {
+			case codes.NotFound:
+				ctx.AbortWithStatusJSON(http.StatusOK, gin.H{"message": "the user does not exist"})
+				return
+			default:
+				ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"message": "something went wrong"})
+				return
+			}
+		}
 	}
 
 	ctx.JSON(http.StatusAccepted, &res)
@@ -139,11 +141,8 @@ func (asc *UserServiceClient) UpdateUserProfile(ctx *gin.Context) {
 		return
 	}
 
-	// email := ctx.Request.Header.Get("email")
-	// if email == "" {
-	// 	ctx.AbortWithStatus(http.StatusUnauthorized)
-	// 	return
-	// }
+	ipAddress := ctx.Request.Header.Get("ip")
+	client := ctx.Request.Header.Get("client")
 
 	body := UpdateUserProfile{}
 	if err := ctx.BindJSON(&body); err != nil {
@@ -156,17 +155,20 @@ func (asc *UserServiceClient) UpdateUserProfile(ctx *gin.Context) {
 	}
 
 	res, err := asc.Client.UpdateUserProfile(context.Background(), &pb.UpdateUserProfileReq{
-		Username:            username,
-		UsernameToBeUpdated: body.UserName,
-		FirstName:           body.FirstName,
-		LastName:            body.LastName,
-		DateOfBirth:         body.DateOfBirth,
-		Bio:                 body.Bio,
-		Address:             body.Address,
-		ContactNumber:       body.ContactNumber,
-		// ProfileId:       profileId,
-		// Client:          client,
-		Partial: isPartial,
+		Username:      username,
+		FirstName:     body.FirstName,
+		LastName:      body.LastName,
+		DateOfBirth:   body.DateOfBirth,
+		Bio:           body.Bio,
+		Address:       body.Address,
+		ContactNumber: body.ContactNumber,
+		Twitter:       body.Twitter,
+		Instagram:     body.Instagram,
+		Linkedin:      body.LinkedIn,
+		Github:        body.Github,
+		Ip:            ipAddress,
+		Client:        client,
+		Partial:       isPartial,
 	})
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update user profile"})
