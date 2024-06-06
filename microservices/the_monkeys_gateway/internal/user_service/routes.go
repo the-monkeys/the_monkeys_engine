@@ -77,7 +77,7 @@ func (asc *UserServiceClient) GetUserProfile(ctx *gin.Context) {
 		}
 	}
 
-	ctx.JSON(http.StatusAccepted, &res)
+	ctx.JSON(http.StatusOK, &res)
 }
 
 func (asc *UserServiceClient) GetUserPublicProfile(ctx *gin.Context) {
@@ -137,7 +137,7 @@ func (asc *UserServiceClient) UpdateUserProfile(ctx *gin.Context) {
 
 	username := ctx.Param("username")
 	if username != ctx.GetString("userName") {
-		ctx.AbortWithStatus(http.StatusUnauthorized)
+		ctx.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"message": "you are unauthorized to perform this action"})
 		return
 	}
 
@@ -146,7 +146,7 @@ func (asc *UserServiceClient) UpdateUserProfile(ctx *gin.Context) {
 
 	body := UpdateUserProfile{}
 	if err := ctx.BindJSON(&body); err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request body"})
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "Invalid request body"})
 		return
 	}
 
@@ -171,8 +171,13 @@ func (asc *UserServiceClient) UpdateUserProfile(ctx *gin.Context) {
 		Partial:       isPartial,
 	})
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update user profile"})
-		return
+		if status.Code(err) == codes.NotFound {
+			ctx.AbortWithStatusJSON(http.StatusUnauthorized, ReturnMessage{Message: "user not found"})
+			return
+		} else {
+			ctx.AbortWithStatusJSON(http.StatusUnauthorized, ReturnMessage{Message: "couldn't update user informations"})
+			return
+		}
 	}
 	ctx.JSON(http.StatusOK, res)
 

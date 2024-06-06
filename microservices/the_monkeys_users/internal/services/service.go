@@ -136,7 +136,8 @@ func (us *UserSvc) UpdateUserProfile(ctx context.Context, req *pb.UpdateUserProf
 	// Update the user
 	err = us.dbConn.UpdateUserProfile(req.Username, mappedDBUser)
 	if err != nil {
-		return nil, err
+		us.log.Errorf("error while updating the profile for user %s, err: %v", req.Username, err)
+		return nil, status.Errorf(codes.Internal, "cannot update the user profile")
 	}
 
 	// Update the user log
