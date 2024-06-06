@@ -35,7 +35,7 @@ func (us *UserSvc) GetUserProfile(ctx context.Context, req *pb.UserProfileReq) (
 		userProfile, err := us.dbConn.GetUserProfile(req.Username)
 		if err != nil {
 			us.log.Errorf("the user doesn't exists: %v", err)
-			return nil, status.Errorf(codes.NotFound, fmt.Sprintf("user %s doesn't exist: %v", req.Username, err))
+			return nil, status.Errorf(codes.NotFound, fmt.Sprintf("user %s doesn't exist", req.Username))
 		}
 		return &pb.UserProfileRes{
 			Username:  userProfile.UserName,
@@ -180,8 +180,8 @@ func (us *UserSvc) GetAllTopics(context.Context, *pb.GetTopicsRequests) (*pb.Get
 		if errors.Is(err, sql.ErrNoRows) {
 			us.log.Errorf("cannot find the topics in the database: %v", err)
 		}
-		us.log.Errorf("error while querrying the topics: %v", err)
-		return nil, errors.New("error while querrying the topics")
+		us.log.Errorf("error while querying the topics: %v", err)
+		return nil, errors.New("error while querying the topics")
 	}
 
 	return res, err
