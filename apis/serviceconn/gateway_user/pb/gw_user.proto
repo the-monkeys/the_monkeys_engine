@@ -128,6 +128,17 @@ message GetAllCategoriesRes {
     map<string, Category> category = 1;
 }
 
+message UpdateUsernameReq {
+    string current_username = 1;
+    string new_username = 2;
+    string client = 3;
+    string ip = 4;
+}
+
+message UpdateUsernameRes {
+    string message = 1;
+}
+
 service UserService {
     rpc GetUserActivities(UserActivityReq) returns (UserActivityRes) {}
     rpc GetUserProfile(UserProfileReq) returns (UserProfileRes) {}
@@ -135,5 +146,6 @@ service UserService {
     rpc DeleteUserProfile(DeleteUserProfileReq) returns (DeleteUserProfileRes) {}
     rpc GetAllTopics(GetTopicsRequests) returns (GetTopicsResponse) {}
     rpc GetAllCategories(GetAllCategoriesReq) returns (GetAllCategoriesRes) {}
+    rpc UpdateUsername(UpdateUsernameReq) returns (UpdateUsernameRes) {}
 }
 

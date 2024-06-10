@@ -265,7 +265,7 @@ func (as *AuthzSvc) Login(ctx context.Context, req *pb.LoginUserRequest) (*pb.Lo
 
 	go cache.AddUserLog(as.dbConn, user, constants.Login, constants.ServiceAuth, constants.EventLogin, as.logger)
 
-	return &pb.LoginUserResponse{
+	resp := &pb.LoginUserResponse{
 		StatusCode:    http.StatusOK,
 		Token:         token,
 		EmailVerified: false,
@@ -275,7 +275,8 @@ func (as *AuthzSvc) Login(ctx context.Context, req *pb.LoginUserRequest) (*pb.Lo
 		FirstName:     user.FirstName,
 		LastName:      user.LastName,
 		AccountId:     user.AccountId,
-	}, nil
+	}
+	return resp, nil
 }
 
 func (as *AuthzSvc) ForgotPassword(ctx context.Context, req *pb.ForgotPasswordReq) (*pb.ForgotPasswordRes, error) {

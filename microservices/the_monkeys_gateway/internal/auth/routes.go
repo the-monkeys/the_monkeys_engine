@@ -407,3 +407,7 @@ func (asc *ServiceClient) IsUserAuthenticated(ctx *gin.Context) {
 func (asc *ServiceClient) GetRoles(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, "administrator")
 }
+
+func (asc *ServiceClient) ChangePasswordWithCurrentPassword(ctx *gin.Context) {
+
+}
