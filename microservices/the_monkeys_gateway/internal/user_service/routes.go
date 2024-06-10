@@ -48,8 +48,6 @@ func RegisterUserRouter(router *gin.Engine, cfg *config.Config, authClient *auth
 	routes.PATCH("/:username", usc.UpdateUserProfile)
 	// routes.PUT("/:username", usc.UpdateUserProfile)
 	routes.DELETE("/:username", usc.DeleteUserProfile)
-	routes.PUT("/settings/:username", usc.UpdateUserName)
-	routes.POST("/settings/:username", usc.UpdateEmailAddress)
 
 	return usc
 }
@@ -221,39 +219,4 @@ func (asc *UserServiceClient) GetAllCategories(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusOK, res)
-}
-func (asc *UserServiceClient) UpdateUserName(ctx *gin.Context) {
-	currentUsername := ctx.Param("username")
-
-	ipAddress := ctx.Request.Header.Get("ip")
-	client := ctx.Request.Header.Get("client")
-
-	var updateUsername UpdateUsername
-
-	if err := ctx.BindJSON(&updateUsername); err != nil {
-		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "Invalid request body"})
-		return
-	}
-
-	resp, err := asc.Client.UpdateUsername(context.Background(), &pb.UpdateUsernameReq{
-		CurrentUsername: currentUsername,
-		NewUsername:     updateUsername.Username,
-		Client:          client,
-		Ip:              ipAddress,
-	})
-	if err != nil {
-		if status.Code(err) == codes.NotFound {
-			ctx.AbortWithStatusJSON(http.StatusNotFound, ReturnMessage{Message: "user not found"})
-			return
-		} else {
-			ctx.AbortWithStatusJSON(http.StatusInternalServerError, ReturnMessage{Message: "couldn't update username"})
-			return
-		}
-	}
-
-	ctx.JSON(http.StatusOK, resp)
-}
-
-func (asc *UserServiceClient) UpdateEmailAddress(ctx *gin.Context) {
-
 }

@@ -31,7 +31,6 @@ type UserDb interface {
 
 	// Update queries
 	UpdateUserProfile(username string, dbUserInfo *models.UserProfileRes) error
-	UpdateUserName(currentUsername, newUsername string) error
 
 	// Delete queries
 	DeleteUserProfile(username string) error

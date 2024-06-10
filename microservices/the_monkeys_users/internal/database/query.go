@@ -52,30 +52,3 @@ func (userDB *uDBHandler) CreateUserLog(user *models.UserLogs, description strin
 
 	return nil
 }
-
-func (uh *uDBHandler) UpdateUserName(currentUsername, newUsername string) error {
-	stmt, err := uh.db.Prepare(`UPDATE user_account SET username = $1 WHERE username = $2`)
-	if err != nil {
-		uh.log.Errorf("cannot prepare statement to update username, error: %v", err)
-		return err
-	}
-	defer stmt.Close()
-
-	res, err := stmt.Exec(newUsername, currentUsername)
-	if err != nil {
-		uh.log.Errorf("cannot execute update username query, error: %v", err)
-		return err
-	}
-
-	row, err := res.RowsAffected()
-	if err != nil {
-		logrus.Errorf("error while checking rows affected for update username query, error: %v", err)
-		return err
-	}
-	if row != 1 {
-		logrus.Errorf("more or less than 1 row is affected for update username query, error: %v", err)
-		return errors.New("more or less than 1 row is affected")
-	}
-
-	return nil
-}

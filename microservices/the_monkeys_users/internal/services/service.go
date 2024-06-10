@@ -8,7 +8,9 @@ import (
 
 	"github.com/sirupsen/logrus"
 	"github.com/the-monkeys/the_monkeys/apis/serviceconn/gateway_user/pb"
+	"github.com/the-monkeys/the_monkeys/config"
 	"github.com/the-monkeys/the_monkeys/constants"
+	"github.com/the-monkeys/the_monkeys/microservices/rabbitmq"
 	"github.com/the-monkeys/the_monkeys/microservices/the_monkeys_users/internal/cache"
 	"github.com/the-monkeys/the_monkeys/microservices/the_monkeys_users/internal/database"
 	"github.com/the-monkeys/the_monkeys/microservices/the_monkeys_users/internal/models"
@@ -21,13 +23,17 @@ import (
 type UserSvc struct {
 	dbConn database.UserDb
 	log    *logrus.Logger
+	config *config.Config
+	qConn  rabbitmq.Conn
 	pb.UnimplementedUserServiceServer
 }
 
-func NewUserSvc(dbConn database.UserDb, log *logrus.Logger) *UserSvc {
+func NewUserSvc(dbConn database.UserDb, log *logrus.Logger, config *config.Config, qConn rabbitmq.Conn) *UserSvc {
 	return &UserSvc{
 		dbConn: dbConn,
 		log:    log,
+		config: config,
+		qConn:  qConn,
 	}
 }
 
@@ -216,43 +222,4 @@ func (us *UserSvc) GetAllCategories(ctx context.Context, req *pb.GetAllCategorie
 	}
 
 	return res, nil
-}
-
-func (us *UserSvc) UpdateUsername(ctx context.Context, req *pb.UpdateUsernameReq) (*pb.UpdateUsernameRes, error) {
-	// Check if the user exists
-	user, err := us.dbConn.CheckIfUsernameExist(req.CurrentUsername)
-	if err != nil {
-		us.log.Errorf("error while checking if the username exists for user %s, err: %v", req.CurrentUsername, err)
-		if err == sql.ErrNoRows {
-			return nil, status.Errorf(codes.NotFound, fmt.Sprintf("user %s doesn't exist", req.CurrentUsername))
-		}
-		return nil, status.Errorf(codes.Internal, "cannot get the user profile")
-	}
-
-	// Update the username
-	err = us.dbConn.UpdateUserName(req.CurrentUsername, req.NewUsername)
-	if err != nil {
-		return nil, status.Errorf(codes.Internal, "could not update the username")
-	}
-
-	// Update the user log
-	if req.Ip == "" {
-		req.Ip = "127.0.0.1"
-	}
-
-	if req.Client == "" {
-		req.Client = "Others"
-	}
-
-	userLog := &models.UserLogs{
-		AccountId: user.AccountId,
-		IpAddress: req.Ip,
-		Client:    req.Client,
-	}
-
-	go cache.AddUserLog(us.dbConn, userLog, constants.UpdatedUserName, constants.ServiceUser, constants.EventUpdateUsername, us.log)
-
-	return &pb.UpdateUsernameRes{
-		Message: "Username updated",
-	}, nil
 }

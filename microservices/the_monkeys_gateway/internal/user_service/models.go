@@ -39,7 +39,3 @@ type UpdateUserProfile struct {
 type ReturnMessage struct {
 	Message string `json:"message"`
 }
-
-type UpdateUsername struct {
-	Username string `json:"username"`
-}
