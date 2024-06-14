@@ -67,6 +67,9 @@ services:
       - 9600:9600 # Performance Analyzer
     networks:
       - monkeys-network # All of the containers will join the same Docker bridge network
+    depends_on:
+      rabbitmq:
+        condition: service_healthy  # Wait for RabbitMQ to be healthy
     healthcheck:
       test: ["CMD", "curl", "-f", "-k", "http://localhost:9200"]
       interval: 30s
