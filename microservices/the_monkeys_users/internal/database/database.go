@@ -67,10 +67,10 @@ func NewUserDbHandler(cfg *config.Config, log *logrus.Logger) (UserDb, error) {
 func (uh *uDBHandler) GetUserProfile(username string) (*models.UserAccount, error) {
 	var tmu models.UserAccount
 	if err := uh.db.QueryRow(`
-        SELECT username, first_name, last_name, bio, avatar_url, created_at, linkedin, github, twitter, instagram 
+        SELECT username, first_name, last_name, bio, avatar_url, created_at, address, linkedin, github, twitter, instagram 
         FROM user_account WHERE username = $1;`, username).
 		Scan(&tmu.UserName, &tmu.FirstName, &tmu.LastName, &tmu.Bio, &tmu.AvatarUrl, &tmu.CreatedAt,
-			&tmu.LinkedIn, &tmu.Github, &tmu.Twitter, &tmu.Instagram); err != nil {
+			&tmu.Address, &tmu.LinkedIn, &tmu.Github, &tmu.Twitter, &tmu.Instagram); err != nil {
 		logrus.Errorf("can't find a user existing with this profile id  %s, error: %+v", username, err)
 		return nil, err
 	}

@@ -67,17 +67,14 @@ services:
       - 9600:9600 # Performance Analyzer
     networks:
       - monkeys-network # All of the containers will join the same Docker bridge network
-    depends_on:
-      rabbitmq:
-        condition: service_healthy  # Wait for RabbitMQ to be healthy
     healthcheck:
       test: ["CMD", "curl", "-f", "-k", "http://localhost:9200"]
       interval: 30s
       timeout: 10s
-      retries: 3
+      retries: 5
 
   rabbitmq:
-    image: rabbitmq:3-management-alpine
+    image: rabbitmq
     container_name: the-monkeys-rabbitmq
     ports:
       - "5672:5672"  # RabbitMQ default port
@@ -90,8 +87,8 @@ services:
     healthcheck:
       test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
       interval: 10s
-      timeout: 5s
-      retries: 2
+      timeout: 10s
+      retries: 5
 
   the_monkeys_gateway:
     container_name: "the-monkeys-gateway"
@@ -99,12 +96,9 @@ services:
     networks:
       - monkeys-network
     depends_on:
-      rabbitmq:
-        condition: service_healthy  # Wait for RabbitMQ to be healthy
-      db-migrations:
-        condition: service_completed_successfully  
-      the_monkeys_db:
-        condition: service_healthy
+      - rabbitmq
+      - db-migrations
+      - the_monkeys_db
     volumes:
       - .:/go/src/app
     ports:
@@ -118,12 +112,9 @@ services:
     networks:
       - monkeys-network
     depends_on:
-      rabbitmq:
-        condition: service_healthy  # Wait for RabbitMQ to be healthy
-      db-migrations:
-        condition: service_completed_successfully  
-      the_monkeys_db:
-        condition: service_healthy
+      - rabbitmq
+      - db-migrations
+      - the_monkeys_db
       # - opensearch_node1
     volumes:
       - .:/go/src/app
@@ -138,12 +129,9 @@ services:
     networks:
       - monkeys-network
     depends_on:
-      rabbitmq:
-        condition: service_healthy  # Wait for RabbitMQ to be healthy
-      db-migrations:
-        condition: service_completed_successfully  
-      the_monkeys_db:
-        condition: service_healthy
+      - rabbitmq
+      - db-migrations
+      - the_monkeys_db
     volumes:
       - .:/go/src/app
       - the_monkeys_profile:/profile
@@ -159,12 +147,9 @@ services:
     networks:
       - monkeys-network
     depends_on:
-      rabbitmq:
-        condition: service_healthy  # Wait for RabbitMQ to be healthy
-      db-migrations:
-        condition: service_completed_successfully  
-      the_monkeys_db:
-        condition: service_healthy
+      - rabbitmq
+      - db-migrations
+      - the_monkeys_db
     volumes:
       - .:/go/src/app
     ports:
@@ -178,14 +163,10 @@ services:
     networks:
       - monkeys-network
     depends_on:
-      rabbitmq:
-        condition: service_healthy  # Wait for RabbitMQ to be healthy
-      db-migrations:
-        condition: service_completed_successfully  
-      the_monkeys_db:
-        condition: service_healthy
-      opensearch_node1:
-        condition: service_healthy
+      - rabbitmq
+      - db-migrations
+      - the_monkeys_db
+      - opensearch_node1
     volumes:
       - .:/go/src/app
     ports:
