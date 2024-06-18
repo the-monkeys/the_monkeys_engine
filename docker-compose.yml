@@ -78,7 +78,7 @@ services:
       retries: 5
 
   rabbitmq:
-    image: rabbitmq
+    image: rabbitmq:3-management-alpine
     container_name: the-monkeys-rabbitmq
     ports:
       - "5672:5672"  # RabbitMQ default port
@@ -88,6 +88,8 @@ services:
     environment:
       RABBITMQ_DEFAULT_USER: guest
       RABBITMQ_DEFAULT_PASS: guest
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq  # Mount the volume for RabbitMQ data
     healthcheck:
       test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
       interval: 10s
@@ -186,7 +188,7 @@ volumes:
   postgres_data:
   the_monkeys_profile:
   blogs_volume:
-  rabbitmq-data:  # Named volume for better organization
+  rabbitmq_data:  # Named volume for better organization
   opensearch-data1:
     driver: local
 

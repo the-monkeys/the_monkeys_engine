@@ -23,3 +23,10 @@ type Data struct {
 type Tunes struct {
 	Footnotes []string `json:"footnotes"`
 }
+
+type MessageToUserSvc struct {
+	UserAccountId string `json:"user_account_id"`
+	BlogId        string `json:"blog_id"`
+	Action        string `json:"action"`
+	Status        string `json:"status"`
+}
