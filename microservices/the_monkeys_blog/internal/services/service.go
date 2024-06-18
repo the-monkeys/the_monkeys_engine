@@ -87,7 +87,7 @@ func (blog *BlogService) ArchivehBlogById(ctx context.Context, req *pb.ArchiveBl
 		return nil, err
 	}
 
-	updateResp, err := blog.osClient.ArchieveBlogById(ctx, req.BlogId)
+	updateResp, err := blog.osClient.AchieveBlogById(ctx, req.BlogId)
 	if err != nil {
 		blog.logger.Errorf("cannot archive the blog: %v", err)
 		return nil, err
