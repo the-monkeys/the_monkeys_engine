@@ -78,7 +78,7 @@ func ReadSecret[T any](secretName string, result *T) error {
 
 	secret, err := client.Secrets.KvV2Read(ctx, secretName, vault.WithMountPath("secret"))
 	if err != nil {
-		logrus.Errorf("error reading secret from Vault: %w", err)
+		logrus.Errorf("error reading secret from Vault: %v", err)
 		return err
 	}
 
