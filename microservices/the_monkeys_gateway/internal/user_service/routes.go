@@ -43,14 +43,18 @@ func RegisterUserRouter(router *gin.Engine, cfg *config.Config, authClient *auth
 
 	routes.Use(mware.AuthRequired)
 
-	routes.GET("/:id", usc.GetUserProfile)
+	{
+		routes.PUT("/:id", usc.UpdateUserProfile)
+		routes.PATCH("/:id", usc.UpdateUserProfile)
+		routes.GET("/:id", usc.GetUserProfile)
+		routes.DELETE("/:id", usc.DeleteUserProfile)
+	}
+
 	routes.POST("/activities/:user_name", usc.GetUserActivities)
-	routes.PATCH("/:username", usc.UpdateUserProfile)
-	// routes.PUT("/:username", usc.UpdateUserProfile)
-	routes.DELETE("/:username", usc.DeleteUserProfile)
 
 	return usc
 }
+
 func (asc *UserServiceClient) GetUserProfile(ctx *gin.Context) {
 	username := ctx.Param("id")
 	var isPrivate bool
@@ -132,29 +136,30 @@ func (asc *UserServiceClient) GetUserActivities(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, res)
 }
 
-func (asc *UserServiceClient) UpdateUserProfile(ctx *gin.Context) {
-	var isPartial bool
-
-	username := ctx.Param("username")
+func (usc *UserServiceClient) UpdateUserProfile(ctx *gin.Context) {
+	username := ctx.Param("id")
 	if username != ctx.GetString("userName") {
 		ctx.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"message": "you are unauthorized to perform this action"})
 		return
 	}
 
-	ipAddress := ctx.Request.Header.Get("ip")
-	client := ctx.Request.Header.Get("client")
+	ipAddress := ctx.Request.Header.Get("Ip")
+	client := ctx.Request.Header.Get("Client")
 
-	body := UpdateUserProfile{}
-	if err := ctx.BindJSON(&body); err != nil {
+	var req UpdateUserProfileRequest
+
+	if err := ctx.ShouldBindJSON(&req); err != nil {
 		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "Invalid request body"})
 		return
 	}
 
-	if ctx.Request.Method == "PATCH" {
+	body := req.Values
+	var isPartial bool
+	if ctx.Request.Method == http.MethodPatch {
 		isPartial = true
 	}
 
-	res, err := asc.Client.UpdateUserProfile(context.Background(), &pb.UpdateUserProfileReq{
+	res, err := usc.Client.UpdateUserProfile(context.Background(), &pb.UpdateUserProfileReq{
 		Username:      username,
 		FirstName:     body.FirstName,
 		LastName:      body.LastName,
@@ -180,8 +185,8 @@ func (asc *UserServiceClient) UpdateUserProfile(ctx *gin.Context) {
 		}
 	}
 	ctx.JSON(http.StatusOK, res)
-
 }
+
 func (asc *UserServiceClient) DeleteUserProfile(ctx *gin.Context) {
 	username := ctx.Param("username")
 	tokenUsername := ctx.GetString("userName")
