@@ -96,35 +96,16 @@ func (asc *UserServiceClient) GetUserPublicProfile(ctx *gin.Context) {
 
 	if err != nil {
 		if status.Code(err) == codes.NotFound {
-			ctx.AbortWithStatusJSON(http.StatusUnauthorized, ReturnMessage{Message: "user not found"})
+			ctx.AbortWithStatusJSON(http.StatusNotFound, ReturnMessage{Message: "user not found"})
 			return
 		} else {
-			ctx.AbortWithStatusJSON(http.StatusUnauthorized, ReturnMessage{Message: "something went wrong"})
+			ctx.AbortWithStatusJSON(http.StatusInternalServerError, ReturnMessage{Message: "something went wrong"})
 			return
 		}
 	}
 
 	ctx.JSON(http.StatusAccepted, &res)
 }
-
-// func (asc *UserServiceClient) DeleteMyAccount(ctx *gin.Context) {
-// 	// get id
-// 	id := ctx.Param("id")
-// 	userId, err := strconv.ParseInt(id, 10, 64)
-// 	if err != nil {
-// 		ctx.AbortWithError(http.StatusBadRequest, err)
-// 		return
-// 	}
-
-// 	res, err := asc.Client.DeleteMyProfile(context.Background(), &pb.DeleteMyAccountReq{Id: userId})
-// 	if err != nil {
-// 		logrus.Errorf("cannot connect to user rpc server, error: %v", err)
-// 		errors.RestError(ctx, err, "user_service")
-// 		return
-// 	}
-
-// 	ctx.JSON(http.StatusOK, res)
-// }
 
 func (asc *UserServiceClient) GetUserActivities(ctx *gin.Context) {
 	username := ctx.Param("user_name")
