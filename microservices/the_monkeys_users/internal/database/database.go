@@ -203,20 +203,20 @@ func (uh *uDBHandler) DeleteUserProfile(username string) error {
 	defer tx.Rollback()
 
 	var id int64
-	//using this username get id field from useraccount table
+	//using this username get id field from user account table
 	if err := tx.QueryRow(`
 			SELECT id FROM user_account where username = $1;`, username).Scan(&id); err != nil {
 		logrus.Errorf("can't get id by using username %s, error: %+v", username, err)
 		return nil
 	}
 
-	//using that id delete the row in userauthinfo table
+	//using that id delete the row in user auth info table
 	_, err = tx.Exec(`DELETE FROM user_auth_info WHERE user_id = $1`, id)
 	if err != nil {
 		return err
 	}
 
-	//using that id delete the row from useraccount table
+	//using that id delete the row from user account table
 	_, err = tx.Exec(`DELETE FROM user_account WHERE id = $1`, id)
 	if err != nil {
 		return err
@@ -375,7 +375,7 @@ func (uh *uDBHandler) AddBlogWithId(msg models.TheMonkeysMessage) error {
 
 func (uh *uDBHandler) GetUserActivities(userId int64) (*pb.UserActivityResp, error) {
 	uh.log.Infof("Retrieving user activity for: %v", userId)
-	activities := []*pb.UserActiviy{}
+	activities := []*pb.UserActivity{}
 	rows, err := uh.db.Query("SELECT description, timestamp FROM user_account_log WHERE user_id = $1 ORDER BY timestamp DESC;", userId)
 	if err != nil {
 		uh.log.Errorf("error retrieving user activities for user id %v, err: %v", userId, err)
@@ -390,7 +390,7 @@ func (uh *uDBHandler) GetUserActivities(userId int64) (*pb.UserActivityResp, err
 			uh.log.Errorf("cannot scan the user activity, err: %v", err)
 			return nil, status.Errorf(codes.Internal, "cannot scan the user activity")
 		}
-		activities = append(activities, &pb.UserActiviy{
+		activities = append(activities, &pb.UserActivity{
 			Description: desc,
 			Timestamp:   timestamp,
 		})

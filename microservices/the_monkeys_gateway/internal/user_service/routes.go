@@ -49,7 +49,9 @@ func RegisterUserRouter(router *gin.Engine, cfg *config.Config, authClient *auth
 		routes.DELETE("/:id", usc.DeleteUserProfile)
 	}
 
-	routes.GET("/activities/:user_name", usc.GetUserActivities)
+	{
+		routes.GET("/activities/:user_name", usc.GetUserActivities)
+	}
 
 	return usc
 }
@@ -200,22 +202,29 @@ func (usc *UserServiceClient) UpdateUserProfile(ctx *gin.Context) {
 }
 
 func (asc *UserServiceClient) DeleteUserProfile(ctx *gin.Context) {
-	username := ctx.Param("username")
+	username := ctx.Param("id")
 	tokenUsername := ctx.GetString("userName")
 
 	if username != tokenUsername {
-		ctx.AbortWithStatus(http.StatusUnauthorized)
+		ctx.AbortWithStatusJSON(http.StatusUnauthorized, ReturnMessage{Message: "you are unauthorized to perform this action"})
 		return
 	}
+
 	res, err := asc.Client.DeleteUserProfile(context.Background(), &pb.DeleteUserProfileReq{
 		Username: username,
 	})
-	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete user profile"})
-		return
-	}
-	ctx.JSON(http.StatusOK, res)
 
+	if err != nil {
+		if status.Code(err) == codes.NotFound {
+			ctx.AbortWithStatusJSON(http.StatusNotFound, ReturnMessage{Message: "no user/activity found"})
+			return
+		} else {
+			ctx.AbortWithStatusJSON(http.StatusInternalServerError, ReturnMessage{Message: "couldn't get the user's activities"})
+			return
+		}
+	}
+
+	ctx.JSON(http.StatusOK, res)
 }
 
 func (asc *UserServiceClient) GetAllTopics(ctx *gin.Context) {

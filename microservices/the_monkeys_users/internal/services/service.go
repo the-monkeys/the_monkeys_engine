@@ -186,15 +186,18 @@ func (us *UserSvc) DeleteUserProfile(ctx context.Context, req *pb.DeleteUserProf
 	// Check if username exits or not
 	_, err := us.dbConn.CheckIfUsernameExist(req.Username)
 	if err != nil {
-		us.log.Errorf("the user doesn't exists: %v", err)
-		return nil, err
+		us.log.Errorf("error while checking if the username exists for user %s, err: %v", req.Username, err)
+		if err == sql.ErrNoRows {
+			return nil, status.Errorf(codes.NotFound, fmt.Sprintf("user %s doesn't exist", req.Username))
+		}
+		return nil, status.Errorf(codes.Internal, "cannot get the user profile")
 	}
 
 	// Run delete user query
 	err = us.dbConn.DeleteUserProfile(req.Username)
 	if err != nil {
 		us.log.Errorf("could not delete the user profile: %v", err)
-		return nil, err
+		return nil, status.Errorf(codes.Internal, "cannot delete the user")
 	}
 
 	// Return the response
