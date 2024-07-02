@@ -73,6 +73,7 @@ type Config struct {
 	Email             Email             `mapstructure:"email"`
 	Authentication    Authentication    `mapstructure:"authentication"`
 	RabbitMQ          RabbitMQ          `mapstructure:"rabbitMQ"`
+	GoogleApiKey      GoogleAPI_KEY     `mapstructure:"google"`
 }
 
 // TODO: remove the print statement and add logger instead
@@ -91,6 +92,67 @@ func GetConfig() (*Config, error) {
 		logrus.Errorf("Unable to decode into struct, %v", err)
 		return config, err
 	}
+
+	logrus.Infof("Configuration file loaded: %+v", config) // Add this line to print the loaded configuration
+
+	var googleApiKey GoogleApiKey
+	err := ReadSecret("google", &googleApiKey)
+	if err != nil {
+		logrus.Errorf("Error reading secret from googleApiKey: %v", err)
+		return config, err
+	}
+
+	var primaryDBPassword PrimaryDBPassword
+	err = ReadSecret("db_password", &primaryDBPassword)
+	if err != nil {
+		logrus.Errorf("Error reading secret from primaryDBPassword: %v", err)
+		return config, err
+	}
+
+	var replicaOneDBPassword ReplicaOneDBPassword
+	err = ReadSecret("replica_db_password", &replicaOneDBPassword)
+	if err != nil {
+		logrus.Errorf("Error reading secret from replicaOneDBPassword: %v", err)
+		return config, err
+	}
+
+	var jWTSecret JWTSecret
+	err = ReadSecret("JWT", &jWTSecret)
+	if err != nil {
+		logrus.Errorf("Error reading secret from jWTSecret: %v", err)
+		return config, err
+	}
+
+	var opensearchPassword OpensearchPassword
+	err = ReadSecret("os_password", &opensearchPassword)
+	if err != nil {
+		logrus.Errorf("Error reading secret from opensearchPassword: %v", err)
+		return config, err
+	}
+
+	var emailPassword EmailPassword
+	err = ReadSecret("smtp_password", &emailPassword)
+	if err != nil {
+		logrus.Errorf("Error reading secret from emailPassword: %v", err)
+		return config, err
+	}
+
+	var rabbitMQPassword RabbitMQPassword
+	err = ReadSecret("rabbitPassword", &rabbitMQPassword)
+	if err != nil {
+		logrus.Errorf("Error reading secret from rabbitMQPassword: %v", err)
+		return config, err
+	}
+
+	config.JWT.SecretKey = jWTSecret.Key
+	config.Postgresql.PrimaryDB.DBPassword = primaryDBPassword.Key
+	config.Postgresql.Replica1.DBPassword = replicaOneDBPassword.Key
+	config.Opensearch.Password = opensearchPassword.Key
+	config.GoogleApiKey.API_KEY = googleApiKey.Key
+	config.RabbitMQ.Password = rabbitMQPassword.Key
+	config.Email.SMTPPassword = emailPassword.Key
+
+	logrus.Infof("config vlaue %v", config)
 
 	return config, nil
 }
