@@ -108,6 +108,7 @@ services:
       interval: 30s
       timeout: 10s
       retries: 5
+    restart: always
 
   rabbitmq:
     image: rabbitmq:3-management-alpine
@@ -130,14 +131,7 @@ services:
       interval: 30s
       timeout: 10s
       retries: 5
-    deploy:
-      resources:
-        limits:
-          cpus: '1.0'
-          memory: '512M'
-        reservations:
-          cpus: '0.5'
-          memory: '256M'
+    restart: always
 
   the_monkeys_gateway:
     container_name: "the-monkeys-gateway"
@@ -154,6 +148,7 @@ services:
       - "8081:8081"
     working_dir: /go/src/app
     command: go run microservices/the_monkeys_gateway/main.go
+    restart: always
 
   the_monkeys_authz:
     container_name: "the-monkeys-auth"
@@ -170,6 +165,7 @@ services:
       - "50051:50051"
     working_dir: /go/src/app
     command: go run microservices/the_monkeys_authz/main.go
+    restart: always
 
   the_monkeys_file_server:
     container_name: "the-monkeys-file-server"
@@ -188,6 +184,7 @@ services:
       - "50054:50054"
     working_dir: /go/src/app
     command: go run microservices/the_monkeys_file_storage/main.go
+    restart: always
 
   the_monkeys_user:
     container_name: "the-monkeys-user"
@@ -204,6 +201,7 @@ services:
       - "50053:50053"
     working_dir: /go/src/app
     command: go run microservices/the_monkeys_users/main.go
+    restart: always
 
   the_monkeys_blog:
     container_name: "the-monkeys-blog"
@@ -221,6 +219,7 @@ services:
       - "50052:50052"
     working_dir: /go/src/app
     command: go run microservices/the_monkeys_blog/main.go
+    restart: always
 
 networks:
   monkeys-network:
