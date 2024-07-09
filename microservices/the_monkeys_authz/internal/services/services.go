@@ -599,7 +599,7 @@ func (as *AuthzSvc) UpdateEmailId(ctx context.Context, req *pb.UpdateEmailIdReq)
 		Token:         token,
 		EmailVerified: false,
 		UserName:      user.Username,
-		Email:         user.Email,
+		Email:         req.NewEmail,
 		UserId:        user.Id,
 		FirstName:     user.FirstName,
 		LastName:      user.LastName,
