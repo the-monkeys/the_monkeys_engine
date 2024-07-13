@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"log"
 	"net/http"
 
@@ -73,20 +72,22 @@ func (asc *FileServiceClient) UploadBlogFile(ctx *gin.Context) {
 	// Get file from the form file section
 	file, fileHeader, err := ctx.Request.FormFile("file")
 	if err != nil {
-		ctx.AbortWithError(http.StatusBadRequest, err)
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 	defer file.Close()
 
 	// Read the file and make it slice of bytes
-	imageData, err := ioutil.ReadAll(file)
+	imageData, err := io.ReadAll(file)
 	if err != nil {
-		fmt.Println("Error reading image data:", err)
+		logrus.Errorf("Error reading image data: %v", err)
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
 	}
 
 	stream, err := asc.Client.UploadBlogFile(context.Background())
 	if err != nil {
-		ctx.AbortWithError(http.StatusInternalServerError, err)
+		ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
@@ -97,12 +98,14 @@ func (asc *FileServiceClient) UploadBlogFile(ctx *gin.Context) {
 	}
 	err = stream.Send(chunk)
 	if err != nil {
-		log.Fatal("cannot send file info to server: ", err, stream.RecvMsg(nil))
+		logrus.Errorf("cannot send file info to server: %v, error:  %v", stream.RecvMsg(nil), err)
+		ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
 	}
 
 	resp, err := stream.CloseAndRecv()
 	if err != nil {
-		ctx.AbortWithError(http.StatusInternalServerError, err)
+		ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
@@ -120,7 +123,7 @@ func (asc *FileServiceClient) GetBlogFile(ctx *gin.Context) {
 	})
 	if err != nil {
 		logrus.Errorf("cannot connect to user rpc server, error: %v", err)
-		_ = ctx.AbortWithError(http.StatusBadGateway, err)
+		ctx.AbortWithStatusJSON(http.StatusBadGateway, gin.H{"error": err.Error()})
 		return
 	}
 
@@ -147,7 +150,11 @@ func (asc *FileServiceClient) GetBlogFile(ctx *gin.Context) {
 	// ctx.Data(http.StatusOK, "application/octet-stream", resp.Data)
 
 	// ctx.JSON(http.StatusAccepted, "uploaded")
-	ctx.Writer.Write(resp.Data)
+	if _, err := ctx.Writer.Write(resp.Data); err != nil {
+		logrus.Errorf("failed to write response data, error: %v", err)
+		ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"message": "failed to write response data"})
+		return
+	}
 }
 
 func (asc *FileServiceClient) DeleteBlogFile(ctx *gin.Context) {
@@ -161,7 +168,7 @@ func (asc *FileServiceClient) DeleteBlogFile(ctx *gin.Context) {
 
 	if err != nil {
 		logrus.Errorf("cannot connect to user rpc server, error: %v", err)
-		_ = ctx.AbortWithError(http.StatusBadGateway, err)
+		ctx.AbortWithStatusJSON(http.StatusBadGateway, gin.H{"message": "Internal server error"})
 		return
 	}
 
@@ -175,20 +182,20 @@ func (asc *FileServiceClient) UploadProfilePic(ctx *gin.Context) {
 	// Get file from the form file section
 	file, fileHeader, err := ctx.Request.FormFile("profile_pic")
 	if err != nil {
-		ctx.AbortWithError(http.StatusBadRequest, err)
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 	defer file.Close()
 
 	// Read the file and make it slice of bytes
-	imageData, err := ioutil.ReadAll(file)
+	imageData, err := io.ReadAll(file)
 	if err != nil {
 		fmt.Println("Error reading image data:", err)
 	}
 
 	stream, err := asc.Client.UploadProfilePic(context.Background())
 	if err != nil {
-		ctx.AbortWithError(http.StatusInternalServerError, err)
+		ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
@@ -204,7 +211,7 @@ func (asc *FileServiceClient) UploadProfilePic(ctx *gin.Context) {
 
 	resp, err := stream.CloseAndRecv()
 	if err != nil {
-		ctx.AbortWithError(http.StatusInternalServerError, err)
+		ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
@@ -239,7 +246,11 @@ func (asc *FileServiceClient) GetProfilePic(ctx *gin.Context) {
 		return
 	}
 
-	ctx.Writer.Write(resp.Data)
+	if _, err = ctx.Writer.Write(resp.Data); err != nil {
+		logrus.Errorf("failed to write profile pic response for user_id: %s, error: %v", userID, err)
+		ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"message": "failed to write response data"})
+		return
+	}
 }
 
 func (asc *FileServiceClient) DeleteProfilePic(ctx *gin.Context) {
@@ -252,7 +263,7 @@ func (asc *FileServiceClient) DeleteProfilePic(ctx *gin.Context) {
 
 	if err != nil {
 		logrus.Errorf("cannot connect to user rpc server, error: %v", err)
-		_ = ctx.AbortWithError(http.StatusBadGateway, err)
+		ctx.AbortWithStatusJSON(http.StatusBadGateway, gin.H{"error": err.Error()})
 		return
 	}
 

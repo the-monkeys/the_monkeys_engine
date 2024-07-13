@@ -124,7 +124,12 @@ func (as *AuthzSvc) RegisterUser(ctx context.Context, req *pb.RegisterUserReques
 		as.logger.Errorf("failed to marshal message, error: %v", err)
 	}
 
-	go as.qConn.PublishMessage(as.config.RabbitMQ.Exchange, as.config.RabbitMQ.RoutingKeys[0], bx)
+	go func() {
+		err = as.qConn.PublishMessage(as.config.RabbitMQ.Exchange, as.config.RabbitMQ.RoutingKeys[0], bx)
+		if err != nil {
+			as.logger.Errorf("failed to publish message for user: %s, error: %v", user.Username, err)
+		}
+	}()
 
 	return &pb.RegisterUserResponse{
 		StatusCode:    http.StatusCreated,
@@ -469,7 +474,12 @@ func (as *AuthzSvc) UpdateUsername(ctx context.Context, req *pb.UpdateUsernameRe
 		return nil, status.Errorf(codes.Internal, "something went wrong")
 	}
 
-	go as.qConn.PublishMessage(as.config.RabbitMQ.Exchange, as.config.RabbitMQ.RoutingKeys[0], bx)
+	go func() {
+		err = as.qConn.PublishMessage(as.config.RabbitMQ.Exchange, as.config.RabbitMQ.RoutingKeys[0], bx)
+		if err != nil {
+			as.logger.Errorf("failed to publish message for user: %s for updating profile, error: %v", user.Username, err)
+		}
+	}()
 
 	user.IpAddress, user.Client = utils.IpClientConvert(req.Ip, req.Client)
 
@@ -587,7 +597,6 @@ func (as *AuthzSvc) UpdateEmailId(ctx context.Context, req *pb.UpdateEmailIdReq)
 	// Add a user log
 	go cache.AddUserLog(as.dbConn, user, constants.ChangedEmail, constants.ServiceAuth, constants.EventUpdateEmail, as.logger)
 
-	user.Email = req.NewEmail
 	token, err := as.jwt.GenerateToken(user)
 	if err != nil {
 		as.logger.Errorf(service_types.CannotCreateToken(user.Username, err))
@@ -600,7 +609,7 @@ func (as *AuthzSvc) UpdateEmailId(ctx context.Context, req *pb.UpdateEmailIdReq)
 		Token:         token,
 		EmailVerified: false,
 		UserName:      user.Username,
-		Email:         req.NewEmail,
+		Email:         user.Email,
 		UserId:        user.Id,
 		FirstName:     user.FirstName,
 		LastName:      user.LastName,
