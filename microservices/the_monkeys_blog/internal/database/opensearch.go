@@ -281,20 +281,23 @@ func (os *opensearchStorage) GetBlogDetailsById(ctx context.Context, blogId stri
 		return "", nil, err
 	}
 
-	for _, hit := range r["hits"].(map[string]interface{})["hits"].([]interface{}) {
-		source := hit.(map[string]interface{})["_source"].(map[string]interface{})
-		ownerAccountId := source["owner_account_id"].(string)
-		tagsInterface := source["tags"].([]interface{})
-		tags := make([]string, len(tagsInterface))
-		for i, tag := range tagsInterface {
-			tags[i] = tag.(string)
-		}
-		return ownerAccountId, tags, nil
+	hits := r["hits"].(map[string]interface{})["hits"].([]interface{})
+	if len(hits) == 0 {
+		return "", nil, fmt.Errorf("no matching blog found")
 	}
 
-	return "", nil, fmt.Errorf("No matching blog found")
-}
+	// Process the first hit
+	hit := hits[0]
+	source := hit.(map[string]interface{})["_source"].(map[string]interface{})
+	ownerAccountId := source["owner_account_id"].(string)
+	tagsInterface := source["tags"].([]interface{})
+	tags := make([]string, len(tagsInterface))
+	for i, tag := range tagsInterface {
+		tags[i] = tag.(string)
+	}
 
+	return ownerAccountId, tags, nil
+}
 func (os *opensearchStorage) GetPublishedBlogByTagsName(ctx context.Context, tags ...string) (*pb.GetBlogsByTagsNameRes, error) {
 	// Convert the tags slice to a JSON array
 	tagsJson, err := json.Marshal(tags)

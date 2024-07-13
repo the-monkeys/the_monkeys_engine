@@ -1,0 +1,141 @@
+{
+    "owner_account_id": "xD6Xp0RJHj2X6TJP",
+    "blog": {
+        "time": 1710737158827,
+        "blocks": [
+            {
+                "id": "mhTl6ghSkV",
+                "type": "paragraph",
+                "data": {
+                    "text": "Technology is evolving at an unprecedented pace, transforming the way we live, work, and interact with the world around us."
+                },
+                "author": ["xD6Xp0RJHj2X6TJP"],
+                "time": 17107371588
+            },
+            {
+                "id": "l98dyx3yjb",
+                "type": "header",
+                "data": {
+                    "text": "Communication",
+                    "level": 3
+                },
+                "author": ["xD6Xp0RJHj2X6TJP"],
+                "time": 17107371588
+            },
+            {
+                "id": "os_YI4eub4",
+                "type": "list",
+                "data": {
+                    "type": "unordered",
+                    "items": [
+                        "Instant messaging and video calls",
+                        "Social media platforms",
+                        "Collaborative tools for remote work"
+                    ]
+                },
+                "author": ["xD6Xp0RJHj2X6TJP"],
+                "time": 17107371588
+            },
+            {
+                "id": "1yKeXKxN7-",
+                "type": "header",
+                "data": {
+                    "text": "Healthcare",
+                    "level": 3
+                },
+                "author": ["xD6Xp0RJHj2X6TJP"],
+                "time": 17107371588
+            },
+            {
+                "id": "TcUNySG15P",
+                "type": "paragraph",
+                "data": {
+                    "text": "Advancements in medical technology have revolutionized patient care, from telemedicine to AI-driven diagnostics and robotic surgeries."
+                },
+                "author": ["xD6Xp0RJHj2X6TJP"],
+                "time": 17107371588
+            },
+            {
+                "id": "M3UXyblhAo",
+                "type": "header",
+                "data": {
+                    "text": "Smart Homes",
+                    "level": 3
+                },
+                "author": ["xD6Xp0RJHj2X6TJP"],
+                "time": 17107371588
+            },
+            {
+                "id": "KOcIofZ3Z1",
+                "type": "paragraph",
+                "data": {
+                    "text": "Home automation systems and IoT devices are making our homes more efficient, secure, and comfortable."
+                },
+                "author": ["xD6Xp0RJHj2X6TJP"],
+                "time": 17107371588
+            },
+            {
+                "id": "ksCokKAhQw",
+                "type": "paragraph",
+                "data": {
+                    "text": "From smart thermostats to automated lighting, technology is simplifying household management."
+                },
+                "author": ["xD6Xp0RJHj2X6TJP"],
+                "time": 17107371588
+            },
+            {
+                "id": "XKNT99-qqS",
+                "type": "attaches",
+                "data": {
+                    "file": {
+                        "url": "https://example.com/smart-home-guide.pdf",
+                        "size": 12902,
+                        "name": "smart-home-guide.pdf",
+                        "extension": "pdf"
+                    },
+                    "title": "Smart Home Guide"
+                },
+                "author": ["xD6Xp0RJHj2X6TJP"],
+                "time": 17107371588
+            },
+            {
+                "id": "7RosVX2kcH",
+                "type": "paragraph",
+                "data": {
+                    "text": "Voice assistants like Alexa and Google Home are becoming central to managing smart home ecosystems."
+                },
+                "author": ["xD6Xp0RJHj2X6TJP"],
+                "time": 17107371588
+            },
+            {
+                "id": "eq06PsNsab",
+                "type": "paragraph",
+                "data": {
+                    "text": "These advancements are not only convenient but also help in energy conservation and cost savings."
+                },
+                "author": ["xD6Xp0RJHj2X6TJP"],
+                "time": 17107371588
+            },
+            {
+                "id": "hZAjSnqYMX",
+                "type": "image",
+                "data": {
+                    "file": {
+                        "url": "https://example.com/smart-home-image.png"
+                    },
+                    "withBorder": false,
+                    "withBackground": false,
+                    "stretched": true,
+                    "caption": "Smart Home Technology"
+                },
+                "author": ["xD6Xp0RJHj2X6TJP"],
+                "time": 17107371588
+            }
+        ]
+    },
+    "tags": [
+        "technology",
+        "innovation",
+        "lifestyle"
+    ]
+}

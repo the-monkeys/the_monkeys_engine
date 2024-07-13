@@ -63,7 +63,10 @@ func ConsumeFromQueue(conn rabbitmq.Conn, conf config.RabbitMQ, log *logrus.Logg
 
 		switch user.Action {
 		case constants.USER_PROFILE_DIRECTORY_CREATE:
-			CreateUserFolder(user.Username)
+			err = CreateUserFolder(user.Username)
+			if err != nil {
+				logrus.Errorf("Failed to create user folder: %v", err)
+			}
 		case constants.USER_PROFILE_DIRECTORY_UPDATE:
 			err = UpdateUserFolder(user.Username, user.NewUsername)
 			if err != nil {

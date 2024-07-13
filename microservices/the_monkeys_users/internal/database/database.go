@@ -206,29 +206,45 @@ func (uh *uDBHandler) DeleteUserProfile(username string) error {
 	if err != nil {
 		return err
 	}
-	defer tx.Rollback()
+
+	defer func() {
+		if p := recover(); p != nil {
+			if err = tx.Rollback(); err != nil {
+				logrus.Errorf("Rollback failed: %v", err)
+			}
+			panic(p) // re-throw the panic after Rollback
+		} else if err != nil {
+			if err = tx.Rollback(); err != nil {
+				logrus.Errorf("Rollback failed: %v", err)
+			}
+		}
+	}()
 
 	var id int64
-	//using this username get id field from user account table
+	// Using this username get id field from user account table
 	if err := tx.QueryRow(`
-			SELECT id FROM user_account where username = $1;`, username).Scan(&id); err != nil {
+			SELECT id FROM user_account WHERE username = $1;`, username).Scan(&id); err != nil {
 		logrus.Errorf("can't get id by using username %s, error: %+v", username, err)
-		return nil
+		return err // returning error instead of nil
 	}
 
-	//using that id delete the row in user auth info table
+	// Using that id delete the row in user auth info table
 	_, err = tx.Exec(`DELETE FROM user_auth_info WHERE user_id = $1`, id)
 	if err != nil {
 		return err
 	}
 
-	//using that id delete the row from user account table
+	// Using that id delete the row from user account table
 	_, err = tx.Exec(`DELETE FROM user_account WHERE id = $1`, id)
 	if err != nil {
 		return err
 	}
 
-	tx.Commit()
+	err = tx.Commit()
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 

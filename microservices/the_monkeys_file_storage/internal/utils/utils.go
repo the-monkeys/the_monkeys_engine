@@ -12,7 +12,7 @@ import (
 
 func RemoveSpecialChar(val string) string {
 	// Define regular expression to match all special characters
-	reg, err := regexp.Compile("[^a-zA-Z0-9\\.]+")
+	reg, err := regexp.Compile(`[^a-zA-Z0-9.]+`)
 	if err != nil {
 		logrus.Error("cannot compile regexp")
 	}
