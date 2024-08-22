@@ -9,80 +9,79 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/opensearch-project/opensearch-go"
+	"github.com/elastic/go-elasticsearch/v8"
+	"github.com/elastic/go-elasticsearch/v8/esapi"
 	"github.com/opensearch-project/opensearch-go/opensearchapi"
 	"github.com/sirupsen/logrus"
 	"github.com/the-monkeys/the_monkeys/apis/serviceconn/gateway_blog/pb"
 	"github.com/the-monkeys/the_monkeys/microservices/the_monkeys_blog/internal/constants"
 )
 
-type OpensearchStorage interface {
-	DraftABlog(ctx context.Context, blog *pb.DraftBlogRequest) (*opensearchapi.Response, error)
+type ElasticsearchStorage interface {
+	DraftABlog(ctx context.Context, blog *pb.DraftBlogRequest) (*esapi.Response, error)
 	DoesBlogExist(ctx context.Context, blogID string) (bool, error)
-	PublishBlogById(ctx context.Context, blogId string) (*opensearchapi.Response, error)
+	PublishBlogById(ctx context.Context, blogId string) (*esapi.Response, error)
 	// GetBlogById(ctx context.Context, req *pb.GetBlogByIdReq) (*pb.GetBlogByIdRes, error)
 	GetBlogDetailsById(ctx context.Context, blogId string) (string, []string, error)
-	AchieveBlogById(ctx context.Context, blogId string) (*opensearchapi.Response, error)
+	AchieveBlogById(ctx context.Context, blogId string) (*esapi.Response, error)
 	GetPublishedBlogById(ctx context.Context, id string) (*pb.GetBlogByIdRes, error)
 	GetPublishedBlogByTagsName(ctx context.Context, id ...string) (*pb.GetBlogsByTagsNameRes, error)
 }
 
-type opensearchStorage struct {
-	client *opensearch.Client
+type elasticsearchStorage struct {
+	client *elasticsearch.Client
 	log    *logrus.Logger
 }
 
-func NewOpenSearchClient(url, username, password string, log *logrus.Logger) (OpensearchStorage, error) {
-	client, err := NewOSClient(url, username, password)
+func NewElasticsearchClient(url, username, password string, log *logrus.Logger) (ElasticsearchStorage, error) {
+	client, err := NewESClient(url, username, password)
 	if err != nil {
-		logrus.Errorf("Failed to connect to opensearch instance, error: %+v", err)
+		log.Errorf("Failed to connect to Elasticsearch instance, error: %+v", err)
 		return nil, err
 	}
 
-	return &opensearchStorage{
+	return &elasticsearchStorage{
 		client: client,
 		log:    log,
 	}, nil
 }
 
-func (os *opensearchStorage) DraftABlog(ctx context.Context, blog *pb.DraftBlogRequest) (*opensearchapi.Response, error) {
-	os.log.Infof("DraftABlog: received an article with id: %s", blog.BlogId)
-
+func (es *elasticsearchStorage) DraftABlog(ctx context.Context, blog *pb.DraftBlogRequest) (*esapi.Response, error) {
 	bs, err := json.Marshal(blog)
 	if err != nil {
-		os.log.Errorf("DraftABlog: cannot marshal the article, error: %v", err)
+		es.log.Errorf("DraftABlog: cannot marshal the blog, error: %v", err)
 		return nil, err
 	}
 
 	document := strings.NewReader(string(bs))
 
-	osReq := opensearchapi.IndexRequest{
-		Index:      constants.OpensearchArticleIndex,
+	req := esapi.IndexRequest{
+		Index:      constants.ElasticsearchBlogIndex,
 		DocumentID: blog.BlogId,
 		Body:       document,
 	}
 
-	insertResponse, err := osReq.Do(ctx, os.client)
+	insertResponse, err := req.Do(ctx, es.client)
 	if err != nil {
-		os.log.Errorf("DraftABlog: error while creating/drafting article, error: %+v", err)
+		es.log.Errorf("DraftABlog: error while indexing blog, error: %+v", err)
 		return insertResponse, err
 	}
 
 	if insertResponse.IsError() {
-		err = fmt.Errorf("DraftABlog: error creating an article, insert response: %+v", insertResponse)
-		os.log.Error(err)
+		err = fmt.Errorf("DraftABlog: error indexing blog, response: %+v", insertResponse)
+		es.log.Error(err)
 		return insertResponse, err
 	}
 
-	os.log.Infof("DraftABlog: successfully created an article for user: %s, insert response: %+v", blog.OwnerAccountId, insertResponse)
+	es.log.Infof("DraftABlog: successfully created blog for user: %s, response: %+v", blog.OwnerAccountId, insertResponse)
 	return insertResponse, nil
 }
 
-func (os *opensearchStorage) DoesBlogExist(ctx context.Context, blogID string) (bool, error) {
+func (os *elasticsearchStorage) DoesBlogExist(ctx context.Context, blogID string) (bool, error) {
 	os.log.Infof("Checking if a blog with id: %s exists", blogID)
 
 	osReq := opensearchapi.GetRequest{
-		Index:      constants.OpensearchArticleIndex,
+		Index:      constants.ElasticsearchBlogIndex,
 		DocumentID: blogID,
 	}
 
@@ -105,46 +104,47 @@ func (os *opensearchStorage) DoesBlogExist(ctx context.Context, blogID string) (
 	os.log.Infof("Blog with id: %s exists", blogID)
 	return true, nil
 }
-func (os *opensearchStorage) PublishBlogById(ctx context.Context, blogId string) (*opensearchapi.Response, error) {
+
+func (os *elasticsearchStorage) PublishBlogById(ctx context.Context, blogId string) (*esapi.Response, error) {
 	os.log.Infof("Publishing blog with id: %s", blogId)
 
-	// Define the update script
-	updateScript := `{
-		"script" : {
-			"source": "ctx._source.is_draft = params.is_draft",
-			"lang": "painless",
-			"params" : {
-				"is_draft" : false
-			}
-		}
-	}`
+	// // Define the update request using the "doc" field
+	// updateDoc := `{
+	// 	"doc": {
+	// 		"is_draft": false
+	// 	}
+	// }`
 
-	osReq := opensearchapi.UpdateRequest{
-		Index:      constants.OpensearchArticleIndex,
-		DocumentID: blogId,
-		Body:       strings.NewReader(updateScript),
-	}
+	// // Create the update request
+	// osReq := opensearchapi.UpdateRequest{
+	// 	Index:      constants.OpensearchArticleIndex,
+	// 	DocumentID: blogId,
+	// 	Body:       strings.NewReader(updateDoc),
+	// 	Refresh:    "true", // Optional: immediately refresh the index after updating
+	// }
 
-	updateResponse, err := osReq.Do(ctx, os.client)
-	if err != nil {
-		os.log.Errorf("Error while publishing blog, error: %+v", err)
-		return updateResponse, err
-	}
+	// // Perform the update request
+	// updateResponse, err := osReq.Do(ctx, os.client)
+	// if err != nil {
+	// 	os.log.Errorf("Error while publishing blog, error: %+v", err)
+	// 	return updateResponse, err
+	// }
 
-	if updateResponse.IsError() {
-		err = fmt.Errorf("error publishing blog, update response: %+v", updateResponse)
-		os.log.Error(err)
-		return updateResponse, err
-	}
+	// // Check if the update response contains an error
+	// if updateResponse.IsError() {
+	// 	err = fmt.Errorf("error publishing blog, update response: %s", updateResponse.String())
+	// 	os.log.Error(err)
+	// 	return updateResponse, err
+	// }
 
-	os.log.Infof("Successfully published blog with id: %s", blogId)
-	return updateResponse, nil
+	// os.log.Infof("Successfully published blog with id: %s", blogId)
+	return nil, nil
 }
 
-func (storage *opensearchStorage) GetPublishedBlogById(ctx context.Context, id string) (*pb.GetBlogByIdRes, error) {
+func (storage *elasticsearchStorage) GetPublishedBlogById(ctx context.Context, id string) (*pb.GetBlogByIdRes, error) {
 	res, err := storage.client.Search(
 		storage.client.Search.WithContext(context.Background()),
-		storage.client.Search.WithIndex(constants.OpensearchArticleIndex),
+		storage.client.Search.WithIndex(constants.ElasticsearchBlogIndex),
 		storage.client.Search.WithBody(strings.NewReader(fmt.Sprintf(`{
 			"query": {
 				"bool": {
@@ -211,43 +211,44 @@ func (storage *opensearchStorage) GetPublishedBlogById(ctx context.Context, id s
 	return blogRes, nil
 }
 
-func (os *opensearchStorage) AchieveBlogById(ctx context.Context, blogId string) (*opensearchapi.Response, error) {
+func (os *elasticsearchStorage) AchieveBlogById(ctx context.Context, blogId string) (*esapi.Response, error) {
 	os.log.Infof("archiving blog with id: %s", blogId)
 
-	// Define the update script
-	updateScript := `{
-		"script" : {
-			"source": "ctx._source.is_archive = params.is_archive",
-			"lang": "painless",
-			"params" : {
-				"is_archive" : true
-			}
-		}
-	}`
+	// // Define the update script
+	// updateScript := `{
+	// 	"script" : {
+	// 		"source": "ctx._source.is_archive = params.is_archive",
+	// 		"lang": "painless",
+	// 		"params" : {
+	// 			"is_archive" : true
+	// 		}
+	// 	}
+	// }`
 
-	osReq := opensearchapi.UpdateRequest{
-		Index:      constants.OpensearchArticleIndex,
-		DocumentID: blogId,
-		Body:       strings.NewReader(updateScript),
-	}
+	// osReq := opensearchapi.UpdateRequest{
+	// 	Index:      constants.OpensearchArticleIndex,
+	// 	DocumentID: blogId,
+	// 	Body:       strings.NewReader(updateScript),
+	// }
 
-	updateResponse, err := osReq.Do(ctx, os.client)
-	if err != nil {
-		os.log.Errorf("Error while archiving blog, error: %+v", err)
-		return updateResponse, err
-	}
+	// updateResponse, err := osReq.Do(ctx, os.client)
+	// if err != nil {
+	// 	os.log.Errorf("Error while archiving blog, error: %+v", err)
+	// 	return updateResponse, err
+	// }
 
-	if updateResponse.IsError() {
-		err = fmt.Errorf("error archiving blog, update response: %+v", updateResponse)
-		os.log.Error(err)
-		return updateResponse, err
-	}
+	// if updateResponse.IsError() {
+	// 	err = fmt.Errorf("error archiving blog, update response: %+v", updateResponse)
+	// 	os.log.Error(err)
+	// 	return updateResponse, err
+	// }
 
-	os.log.Infof("Successfully archiving blog with id: %s", blogId)
-	return updateResponse, nil
+	// os.log.Infof("Successfully archiving blog with id: %s", blogId)
+	// return updateResponse, nil
+	return nil, nil
 }
 
-func (os *opensearchStorage) GetBlogDetailsById(ctx context.Context, blogId string) (string, []string, error) {
+func (os *elasticsearchStorage) GetBlogDetailsById(ctx context.Context, blogId string) (string, []string, error) {
 	os.log.Infof("Fetching blog with id: %s", blogId)
 
 	// Define the search request
@@ -262,7 +263,7 @@ func (os *opensearchStorage) GetBlogDetailsById(ctx context.Context, blogId stri
 	}`, blogId)
 
 	osReq := opensearchapi.SearchRequest{
-		Index: []string{constants.OpensearchArticleIndex},
+		Index: []string{constants.ElasticsearchBlogIndex},
 		Body:  strings.NewReader(searchRequest),
 	}
 
@@ -308,7 +309,7 @@ func (os *opensearchStorage) GetBlogDetailsById(ctx context.Context, blogId stri
 	return ownerAccountId, tags, nil
 }
 
-func (os *opensearchStorage) GetPublishedBlogByTagsName(ctx context.Context, tags ...string) (*pb.GetBlogsByTagsNameRes, error) {
+func (os *elasticsearchStorage) GetPublishedBlogByTagsName(ctx context.Context, tags ...string) (*pb.GetBlogsByTagsNameRes, error) {
 	// Convert the tags slice to a JSON array
 	tagsJson, err := json.Marshal(tags)
 	if err != nil {
@@ -335,7 +336,7 @@ func (os *opensearchStorage) GetPublishedBlogByTagsName(ctx context.Context, tag
 	// Send the search request
 	res, err := os.client.Search(
 		os.client.Search.WithContext(context.Background()),
-		os.client.Search.WithIndex(constants.OpensearchArticleIndex),
+		os.client.Search.WithIndex(constants.ElasticsearchBlogIndex),
 		os.client.Search.WithBody(strings.NewReader(query)),
 		os.client.Search.WithPretty(),
 	)

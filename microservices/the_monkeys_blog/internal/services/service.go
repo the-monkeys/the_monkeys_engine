@@ -18,14 +18,14 @@ import (
 )
 
 type BlogService struct {
-	osClient database.OpensearchStorage
+	osClient database.ElasticsearchStorage
 	logger   *logrus.Logger
 	config   *config.Config
 	qConn    rabbitmq.Conn
 	pb.UnimplementedBlogServiceServer
 }
 
-func NewBlogService(client database.OpensearchStorage, logger *logrus.Logger, config *config.Config, qConn rabbitmq.Conn) *BlogService {
+func NewBlogService(client database.ElasticsearchStorage, logger *logrus.Logger, config *config.Config, qConn rabbitmq.Conn) *BlogService {
 	return &BlogService{
 		osClient: client,
 		logger:   logger,
