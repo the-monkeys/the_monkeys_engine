@@ -57,7 +57,7 @@ func RegisterBlogRouter(router *gin.Engine, cfg *config.Config, authClient *auth
 	routes.GET("/draft/:id", blogClient.DraftABlog)
 	routes.POST("/publish/:id", blogClient.PublishBlogById)
 	routes.POST("/archive/:id", blogClient.ArchiveBlogById)
-	// routes.DELETE("/delete/:id", blogCli.DeleteBlogById)
+	routes.DELETE("/delete/:id", blogClient.DeleteBlogById)
 
 	return blogClient
 }
@@ -165,6 +165,10 @@ func (asc *BlogServiceClient) GetBlogsByTagsName(ctx *gin.Context) {
 }
 
 func (asc *BlogServiceClient) Get100Blogs(ctx *gin.Context) {
+	ctx.JSON(http.StatusOK, map[string]string{"message": "This api is not implemented!"})
+}
+
+func (asc *BlogServiceClient) DeleteBlogById(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, map[string]string{"message": "This api is not implemented!"})
 }
 
