@@ -46,7 +46,7 @@ func RegisterBlogRouter(router *gin.Engine, cfg *config.Config, authClient *auth
 		Client: NewBlogServiceClient(cfg),
 	}
 	routes := router.Group("/api/v1/blog")
-	// routes.GET("/", blogCli.Get100Blogs)
+	routes.GET("/latest", blogClient.Get100Blogs)
 	routes.GET("/:id", blogClient.GetBlogById)
 	routes.GET("/tags", blogClient.GetBlogsByTagsName)
 	routes.GET("/news1", blogClient.GetNews1)
@@ -162,6 +162,10 @@ func (asc *BlogServiceClient) GetBlogsByTagsName(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusOK, resp)
+}
+
+func (asc *BlogServiceClient) Get100Blogs(ctx *gin.Context) {
+	ctx.JSON(http.StatusOK, map[string]string{"message": "This api is not implemented!"})
 }
 
 // func (asc *BlogServiceClient) CreateABlog(ctx *gin.Context) {
