@@ -132,13 +132,12 @@ func (blog *BlogService) GetPublishedBlogsByTagsName(ctx context.Context, req *p
 	return blog.osClient.GetPublishedBlogByTagsName(ctx, req.TagNames...)
 }
 
-// ********************************************************  Below function need to be re-written ********************************************************
-
-func (blog *BlogService) GetBlogById(ctx context.Context, req *pb.GetBlogByIdReq) (*pb.GetBlogByIdRes, error) {
+func (blog *BlogService) GetPublishedBlogById(ctx context.Context, req *pb.GetBlogByIdReq) (*pb.GetBlogByIdRes, error) {
 	blog.logger.Infof("fetching blog with id: %s", req.BlogId)
 	return blog.osClient.GetPublishedBlogById(ctx, req.BlogId)
 }
 
+// ********************************************************  Below function need to be re-written ********************************************************
 func (blog *BlogService) ArchivehBlogById(ctx context.Context, req *pb.ArchiveBlogReq) (*pb.ArchiveBlogResp, error) {
 	blog.logger.Infof("archiving the blog %s", req.BlogId)
 

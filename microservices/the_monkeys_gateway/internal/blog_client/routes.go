@@ -169,7 +169,7 @@ func (asc *BlogServiceClient) GetBlogsByTagsName(ctx *gin.Context) {
 	tags := Tags{}
 	if err := ctx.BindJSON(&tags); err != nil {
 		logrus.Errorf("error while marshalling tags: %v", err)
-		_ = ctx.AbortWithError(http.StatusBadRequest, err)
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"message": "tags aren't properly formatted"})
 		return
 	}
 
@@ -184,6 +184,19 @@ func (asc *BlogServiceClient) GetBlogsByTagsName(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusOK, resp)
+}
+
+func (svc *BlogServiceClient) GetPublishedBlogById(ctx *gin.Context) {
+	id := ctx.Param("id")
+
+	res, err := svc.Client.GetPublishedBlogById(context.Background(), &pb.GetBlogByIdReq{BlogId: id})
+	if err != nil {
+		logrus.Errorf("cannot get the blog, error: %v", err)
+		ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"message": "cannot get the blogs"})
+		return
+	}
+
+	ctx.JSON(http.StatusCreated, res)
 }
 
 // func (asc *BlogServiceClient) ArchiveBlogById(ctx *gin.Context) {
@@ -262,19 +275,6 @@ func (asc *BlogServiceClient) GetBlogsByTagsName(ctx *gin.Context) {
 
 // 	ctx.JSON(http.StatusCreated, response)
 // }
-
-func (svc *BlogServiceClient) GetPublishedBlogById(ctx *gin.Context) {
-	id := ctx.Param("id")
-
-	res, err := svc.Client.GetPublishedBlogById(context.Background(), &pb.GetBlogByIdReq{BlogId: id})
-	if err != nil {
-		logrus.Errorf("cannot get the blog from rpc server, error: %v", err)
-		_ = ctx.AbortWithError(http.StatusInternalServerError, err)
-		return
-	}
-
-	ctx.JSON(http.StatusCreated, res)
-}
 
 type NewsResponse struct {
 	Data interface{} `json:"data"`
