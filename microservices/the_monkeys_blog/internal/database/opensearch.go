@@ -20,9 +20,9 @@ import (
 type ElasticsearchStorage interface {
 	DraftABlog(ctx context.Context, blog *pb.DraftBlogRequest) (*esapi.Response, error)
 	GetDraftBlogsByOwnerAccountID(ctx context.Context, ownerAccountID string) (*pb.GetDraftBlogsRes, error)
-
 	DoesBlogExist(ctx context.Context, blogID string) (bool, error)
 	PublishBlogById(ctx context.Context, blogId string) (*esapi.Response, error)
+
 	// GetBlogById(ctx context.Context, req *pb.GetBlogByIdReq) (*pb.GetBlogByIdRes, error)
 	GetBlogDetailsById(ctx context.Context, blogId string) (string, []string, error)
 	AchieveBlogById(ctx context.Context, blogId string) (*esapi.Response, error)
@@ -186,68 +186,87 @@ func (es *elasticsearchStorage) GetDraftBlogsByOwnerAccountID(ctx context.Contex
 	return blogs, nil
 }
 
-func (os *elasticsearchStorage) DoesBlogExist(ctx context.Context, blogID string) (bool, error) {
-	os.log.Infof("Checking if a blog with id: %s exists", blogID)
+func (es *elasticsearchStorage) DoesBlogExist(ctx context.Context, blogID string) (bool, error) {
+	// Ensure blogID is not empty
+	if blogID == "" {
+		es.log.Error("DoesBlogExist: blogID is empty")
+		return false, fmt.Errorf("blogID cannot be empty")
+	}
 
-	osReq := opensearchapi.GetRequest{
+	// Create a Get request to check if the document exists
+	req := esapi.GetRequest{
 		Index:      constants.ElasticsearchBlogIndex,
 		DocumentID: blogID,
 	}
 
-	getResponse, err := osReq.Do(ctx, os.client)
+	// Execute the Get request
+	getResponse, err := req.Do(ctx, es.client)
 	if err != nil {
-		os.log.Errorf("Error while checking if blog exists, error: %+v", err)
+		es.log.Errorf("DoesBlogExist: error executing Get request, error: %+v", err)
 		return false, err
 	}
+	defer getResponse.Body.Close()
 
-	if getResponse.IsError() {
-		if getResponse.StatusCode == http.StatusNotFound {
-			os.log.Errorf("Blog with id: %s does not exist", blogID)
-			return false, fmt.Errorf("blog with id: %s does not exist", blogID)
-		}
-		err = fmt.Errorf("error checking if blog exists, get response: %+v", getResponse)
-		os.log.Error(err)
-		return false, err
+	// Check if the response indicates the document exists
+	if getResponse.StatusCode == http.StatusOK {
+		es.log.Infof("DoesBlogExist: blog with id %s exists", blogID)
+		return true, nil
+	} else if getResponse.StatusCode == http.StatusNotFound {
+		es.log.Infof("DoesBlogExist: blog with id %s does not exist", blogID)
+		return false, nil
 	}
 
-	os.log.Infof("Blog with id: %s exists", blogID)
-	return true, nil
+	// If the response is something else, log it as an error
+	err = fmt.Errorf("DoesBlogExist: unexpected status code %d", getResponse.StatusCode)
+	es.log.Error(err)
+	return false, err
 }
 
-func (os *elasticsearchStorage) PublishBlogById(ctx context.Context, blogId string) (*esapi.Response, error) {
-	os.log.Infof("Publishing blog with id: %s", blogId)
+func (es *elasticsearchStorage) PublishBlogById(ctx context.Context, blogId string) (*esapi.Response, error) {
+	// Ensure blogId is not empty
+	if blogId == "" {
+		es.log.Error("PublishBlogById: blogId is empty")
+		return nil, fmt.Errorf("blogId cannot be empty")
+	}
 
-	// // Define the update request using the "doc" field
-	// updateDoc := `{
-	// 	"doc": {
-	// 		"is_draft": false
-	// 	}
-	// }`
+	// Build the update query to set is_draft to false
+	updateScript := map[string]interface{}{
+		"script": map[string]interface{}{
+			"source": "ctx._source.is_draft = false",
+		},
+	}
 
-	// // Create the update request
-	// osReq := opensearchapi.UpdateRequest{
-	// 	Index:      constants.OpensearchArticleIndex,
-	// 	DocumentID: blogId,
-	// 	Body:       strings.NewReader(updateDoc),
-	// 	Refresh:    "true", // Optional: immediately refresh the index after updating
-	// }
+	// Marshal the update script to JSON
+	bs, err := json.Marshal(updateScript)
+	if err != nil {
+		es.log.Errorf("PublishBlogById: cannot marshal the update script, error: %v", err)
+		return nil, err
+	}
 
-	// // Perform the update request
-	// updateResponse, err := osReq.Do(ctx, os.client)
-	// if err != nil {
-	// 	os.log.Errorf("Error while publishing blog, error: %+v", err)
-	// 	return updateResponse, err
-	// }
+	// Create an update request
+	req := esapi.UpdateRequest{
+		Index:      constants.ElasticsearchBlogIndex,
+		DocumentID: blogId,
+		Body:       strings.NewReader(string(bs)),
+	}
 
-	// // Check if the update response contains an error
-	// if updateResponse.IsError() {
-	// 	err = fmt.Errorf("error publishing blog, update response: %s", updateResponse.String())
-	// 	os.log.Error(err)
-	// 	return updateResponse, err
-	// }
+	// Execute the update request
+	updateResponse, err := req.Do(ctx, es.client)
+	if err != nil {
+		es.log.Errorf("PublishBlogById: error executing update request, error: %+v", err)
+		return updateResponse, err
+	}
+	defer updateResponse.Body.Close()
 
-	// os.log.Infof("Successfully published blog with id: %s", blogId)
-	return &esapi.Response{StatusCode: 201}, nil
+	// Check if the response indicates an error
+	if updateResponse.IsError() {
+		err = fmt.Errorf("PublishBlogById: update query failed, response: %+v", updateResponse)
+		es.log.Error(err)
+		return updateResponse, err
+	}
+
+	es.log.Infof("PublishBlogById: successfully published blog with id: %s", blogId)
+	return updateResponse, nil
 }
 
 func (storage *elasticsearchStorage) GetPublishedBlogById(ctx context.Context, id string) (*pb.GetBlogByIdRes, error) {

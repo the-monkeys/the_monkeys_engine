@@ -98,21 +98,27 @@ func (blog *BlogService) GetDraftBlogs(ctx context.Context, req *pb.GetDraftBlog
 }
 
 func (blog *BlogService) PublishBlog(ctx context.Context, req *pb.PublishBlogReq) (*pb.PublishBlogResp, error) {
-	blog.logger.Infof("publishing the blog %s", req.BlogId)
+	blog.logger.Infof("The user has requested to publish the blog: %s", req.BlogId)
 
 	exists, err := blog.osClient.DoesBlogExist(ctx, req.BlogId)
-	if err != nil && !exists {
-		blog.logger.Errorf("cannot find the blog %s, error: %v", req.BlogId, err)
-		return nil, err
+	if err != nil {
+		blog.logger.Errorf("Error checking blog existence: %v", err)
+		return nil, status.Errorf(codes.Internal, "cannot get the blog for id: %s", req.BlogId)
 	}
 
-	updateResp, err := blog.osClient.PublishBlogById(ctx, req.BlogId)
-	if err != nil {
-		blog.logger.Errorf("cannot publish blog: %v", err)
-		return nil, err
+	if !exists {
+		blog.logger.Errorf("The blog with ID: %s doesn't exist", req.BlogId)
+		return nil, status.Errorf(codes.NotFound, "cannot find the blog for id: %s", req.BlogId)
 	}
+
+	_, err = blog.osClient.PublishBlogById(ctx, req.BlogId)
+	if err != nil {
+		blog.logger.Errorf("Error Publishing the blog: %s, error: %v", req.BlogId, err)
+		return nil, status.Errorf(codes.Internal, "cannot find the blog for id: %s", req.BlogId)
+	}
+
 	return &pb.PublishBlogResp{
-		Message: fmt.Sprintf("the blog %s has been published, status: %d", req.BlogId, updateResp.StatusCode),
+		Message: fmt.Sprintf("the blog %s has been published!", req.BlogId),
 	}, nil
 }
 

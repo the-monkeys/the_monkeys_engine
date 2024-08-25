@@ -56,7 +56,7 @@ func RegisterBlogRouter(router *gin.Engine, cfg *config.Config, authClient *auth
 
 	routes.Use(mware.AuthRequired)
 	routes.GET("/draft/:id", blogClient.DraftABlog)
-	routes.POST("/publish/:id", mware.CanPublish, blogClient.PublishBlogById)
+	routes.POST("/publish/:blog_id", mware.CanPublish, blogClient.PublishBlogById)
 	// routes.POST("/archive/:id", blogClient.ArchiveBlogById)
 	// routes.DELETE("/delete/:id", blogClient.DeleteBlogById)
 	routes.GET("/all/drafts/:acc_id", mware.CheckWriteAccess, blogClient.AllDrafts)
@@ -141,15 +141,25 @@ func (asc *BlogServiceClient) AllDrafts(ctx *gin.Context) {
 }
 
 func (asc *BlogServiceClient) PublishBlogById(ctx *gin.Context) {
-	id := ctx.Param("id")
+	id := ctx.Param("blog_id")
 	resp, err := asc.Client.PublishBlog(context.Background(), &pb.PublishBlogReq{
 		BlogId: id,
 	})
 
 	if err != nil {
-		logrus.Errorf("error while creating draft blog: %v", err)
-		_ = ctx.AbortWithError(http.StatusInternalServerError, err)
-		return
+		if status, ok := status.FromError(err); ok {
+			switch status.Code() {
+			case codes.NotFound:
+				ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"message": "the blog does not exist"})
+				return
+			case codes.Internal:
+				ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"message": "cannot get the draft blogs"})
+				return
+			default:
+				ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"message": "unknown error"})
+				return
+			}
+		}
 	}
 
 	ctx.JSON(http.StatusOK, resp)
