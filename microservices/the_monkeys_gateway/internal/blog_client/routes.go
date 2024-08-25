@@ -49,7 +49,7 @@ func RegisterBlogRouter(router *gin.Engine, cfg *config.Config, authClient *auth
 	routes := router.Group("/api/v1/blog")
 	// routes.GET("/latest", blogClient.Get100Blogs)
 	routes.GET("/:id", blogClient.GetPublishedBlogById)
-	// routes.GET("/tags", blogClient.GetBlogsByTagsName)
+	routes.GET("/tags", blogClient.GetBlogsByTagsName)
 	routes.GET("/news1", blogClient.GetNews1)
 	routes.GET("/news2", blogClient.GetNews2)
 	routes.GET("/news3", blogClient.GetNews3)
@@ -165,35 +165,32 @@ func (asc *BlogServiceClient) PublishBlogById(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, resp)
 }
 
+func (asc *BlogServiceClient) GetBlogsByTagsName(ctx *gin.Context) {
+	tags := Tags{}
+	if err := ctx.BindJSON(&tags); err != nil {
+		logrus.Errorf("error while marshalling tags: %v", err)
+		_ = ctx.AbortWithError(http.StatusBadRequest, err)
+		return
+	}
+
+	req := &pb.GetBlogsByTagsNameReq{}
+	req.TagNames = append(req.TagNames, tags.Tags...)
+
+	resp, err := asc.Client.GetPublishedBlogsByTagsName(context.Background(), req)
+	if err != nil {
+		logrus.Errorf("error while fetching the blog: %v", err)
+		ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"message": "cannot get the blogs"})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, resp)
+}
+
 // func (asc *BlogServiceClient) ArchiveBlogById(ctx *gin.Context) {
 // 	id := ctx.Param("id")
 // 	resp, err := asc.Client.ArchiveBlogById(context.Background(), &pb.ArchiveBlogReq{
 // 		BlogId: id,
 // 	})
-
-// 	if err != nil {
-// 		logrus.Errorf("error while creating draft blog: %v", err)
-// 		_ = ctx.AbortWithError(http.StatusInternalServerError, err)
-// 		return
-// 	}
-
-// 	ctx.JSON(http.StatusOK, resp)
-// }
-
-// func (asc *BlogServiceClient) GetBlogsByTagsName(ctx *gin.Context) {
-// 	tags := Tags{}
-// 	if err := ctx.BindJSON(&tags); err != nil {
-// 		logrus.Errorf("error while marshalling tags: %v", err)
-// 		_ = ctx.AbortWithError(http.StatusBadRequest, err)
-// 		return
-// 	}
-
-// 	req := &pb.GetBlogsByTagsNameReq{}
-// 	req.TagNames = append(req.TagNames, tags.Tags...)
-
-// 	fmt.Printf("req: %+v\n", req)
-
-// 	resp, err := asc.Client.GetBlogsByTagsName(context.Background(), req)
 
 // 	if err != nil {
 // 		logrus.Errorf("error while creating draft blog: %v", err)

@@ -122,6 +122,18 @@ func (blog *BlogService) PublishBlog(ctx context.Context, req *pb.PublishBlogReq
 	}, nil
 }
 
+func (blog *BlogService) GetPublishedBlogsByTagsName(ctx context.Context, req *pb.GetBlogsByTagsNameReq) (*pb.GetBlogsByTagsNameRes, error) {
+	blog.logger.Infof("fetching blogs with the tags: %s", req.TagNames)
+
+	for i := 0; i < len(req.TagNames); i++ {
+		req.TagNames[i] = strings.TrimSpace(req.TagNames[i])
+	}
+
+	return blog.osClient.GetPublishedBlogByTagsName(ctx, req.TagNames...)
+}
+
+// ********************************************************  Below function need to be re-written ********************************************************
+
 func (blog *BlogService) GetBlogById(ctx context.Context, req *pb.GetBlogByIdReq) (*pb.GetBlogByIdRes, error) {
 	blog.logger.Infof("fetching blog with id: %s", req.BlogId)
 	return blog.osClient.GetPublishedBlogById(ctx, req.BlogId)
@@ -144,15 +156,6 @@ func (blog *BlogService) ArchivehBlogById(ctx context.Context, req *pb.ArchiveBl
 	return &pb.ArchiveBlogResp{
 		Message: fmt.Sprintf("the blog %s has been archived, status: %d", req.BlogId, updateResp.StatusCode),
 	}, nil
-}
-func (blog *BlogService) GetBlogsByTagsName(ctx context.Context, req *pb.GetBlogsByTagsNameReq) (*pb.GetBlogsByTagsNameRes, error) {
-	blog.logger.Infof("fetching blog with tag: %s", req.TagNames)
-
-	for i := 0; i < len(req.TagNames); i++ {
-		req.TagNames[i] = strings.TrimSpace(req.TagNames[i])
-	}
-
-	return blog.osClient.GetPublishedBlogByTagsName(ctx, req.TagNames...)
 }
 
 // func (blog *BlogService) CreateABlog(ctx context.Context, req *pb.CreateBlogRequest) (*pb.CreateBlogResponse, error) {

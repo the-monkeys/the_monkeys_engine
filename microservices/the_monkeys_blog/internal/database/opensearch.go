@@ -22,12 +22,12 @@ type ElasticsearchStorage interface {
 	GetDraftBlogsByOwnerAccountID(ctx context.Context, ownerAccountID string) (*pb.GetDraftBlogsRes, error)
 	DoesBlogExist(ctx context.Context, blogID string) (bool, error)
 	PublishBlogById(ctx context.Context, blogId string) (*esapi.Response, error)
+	GetPublishedBlogByTagsName(ctx context.Context, tags ...string) (*pb.GetBlogsByTagsNameRes, error)
 
 	// GetBlogById(ctx context.Context, req *pb.GetBlogByIdReq) (*pb.GetBlogByIdRes, error)
 	GetBlogDetailsById(ctx context.Context, blogId string) (string, []string, error)
 	AchieveBlogById(ctx context.Context, blogId string) (*esapi.Response, error)
 	GetPublishedBlogById(ctx context.Context, id string) (*pb.GetBlogByIdRes, error)
-	GetPublishedBlogByTagsName(ctx context.Context, id ...string) (*pb.GetBlogsByTagsNameRes, error)
 }
 
 type elasticsearchStorage struct {
@@ -269,6 +269,111 @@ func (es *elasticsearchStorage) PublishBlogById(ctx context.Context, blogId stri
 	return updateResponse, nil
 }
 
+func (es *elasticsearchStorage) GetPublishedBlogByTagsName(ctx context.Context, tags ...string) (*pb.GetBlogsByTagsNameRes, error) {
+	// Ensure at least one tag is provided
+	if len(tags) == 0 {
+		es.log.Error("GetPublishedBlogByTagsName: no tags provided")
+		return nil, fmt.Errorf("at least one tag must be provided")
+	}
+
+	// Build the query to search for published blogs by tags
+	query := map[string]interface{}{
+		"query": map[string]interface{}{
+			"bool": map[string]interface{}{
+				"must": []map[string]interface{}{
+					{
+						"terms": map[string]interface{}{
+							"tags.keyword": tags,
+						},
+					},
+					{
+						"term": map[string]interface{}{
+							"is_draft": false,
+						},
+					},
+				},
+			},
+		},
+	}
+
+	// Marshal the query to JSON
+	bs, err := json.Marshal(query)
+	if err != nil {
+		es.log.Errorf("GetPublishedBlogByTagsName: cannot marshal the query, error: %v", err)
+		return nil, err
+	}
+
+	// Print the query for debugging
+	es.log.Infof("Executing query: %s", string(bs))
+
+	// Create a new search request with the query
+	req := esapi.SearchRequest{
+		Index: []string{constants.ElasticsearchBlogIndex},
+		Body:  strings.NewReader(string(bs)),
+	}
+
+	// Execute the search request
+	res, err := req.Do(ctx, es.client)
+	if err != nil {
+		es.log.Errorf("GetPublishedBlogByTagsName: error executing search request, error: %+v", err)
+		return nil, err
+	}
+	defer res.Body.Close()
+
+	// Check if the response indicates an error
+	if res.IsError() {
+		err = fmt.Errorf("GetPublishedBlogByTagsName: search query failed, response: %+v", res)
+		es.log.Error(err)
+		return nil, err
+	}
+
+	// Read the response body
+	bodyBytes, err := io.ReadAll(res.Body)
+	if err != nil {
+		es.log.Errorf("GetPublishedBlogByTagsName: error reading response body, error: %v", err)
+		return nil, err
+	}
+
+	// Parse the response body
+	var esResponse map[string]interface{}
+	if err := json.Unmarshal(bodyBytes, &esResponse); err != nil {
+		es.log.Errorf("GetPublishedBlogByTagsName: error decoding response body, error: %v", err)
+		return nil, err
+	}
+
+	// Extract the hits from the response
+	hits, ok := esResponse["hits"].(map[string]interface{})["hits"].([]interface{})
+	if !ok {
+		err := fmt.Errorf("GetPublishedBlogByTagsName: failed to parse hits from response")
+		es.log.Error(err)
+		return nil, err
+	}
+
+	// Convert the hits to a slice of GetBlogs
+	var blogs = &pb.GetBlogsByTagsNameRes{
+		TheBlogs: make([]*pb.GetBlogsByTags, 0, len(hits)),
+	}
+	for _, hit := range hits {
+		hitSource := hit.(map[string]interface{})["_source"]
+		hitBytes, err := json.Marshal(hitSource)
+		if err != nil {
+			es.log.Errorf("GetPublishedBlogByTagsName: error marshaling hit source, error: %v", err)
+			continue
+		}
+
+		var blog pb.GetBlogsByTags
+		if err := json.Unmarshal(hitBytes, &blog); err != nil {
+			es.log.Errorf("GetPublishedBlogByTagsName: error unmarshaling hit to GetBlogs, error: %v", err)
+			continue
+		}
+		blogs.TheBlogs = append(blogs.TheBlogs, &blog)
+	}
+
+	es.log.Infof("GetPublishedBlogByTagsName: successfully fetched %d published blogs for tags: %v", len(blogs.TheBlogs), tags)
+	return blogs, nil
+}
+
+// ********************************************************  Below function need to be re-written ********************************************************
 func (storage *elasticsearchStorage) GetPublishedBlogById(ctx context.Context, id string) (*pb.GetBlogByIdRes, error) {
 	res, err := storage.client.Search(
 		storage.client.Search.WithContext(context.Background()),
@@ -435,80 +540,6 @@ func (os *elasticsearchStorage) GetBlogDetailsById(ctx context.Context, blogId s
 	}
 
 	return ownerAccountId, tags, nil
-}
-
-func (os *elasticsearchStorage) GetPublishedBlogByTagsName(ctx context.Context, tags ...string) (*pb.GetBlogsByTagsNameRes, error) {
-	// Convert the tags slice to a JSON array
-	tagsJson, err := json.Marshal(tags)
-	if err != nil {
-		return nil, err
-	}
-
-	// Construct the query
-	query := fmt.Sprintf(`{
-        "query": {
-            "bool": {
-                "must": [
-                    { "terms": { "tags": %s } },
-                    { "term": { "is_draft": false } }
-                ],
-                "should": [
-                    { "bool": { "must_not": { "exists": { "field": "is_archive" } } } },
-                    { "term": { "is_archive": false } }
-                ],
-                "minimum_should_match": 1
-            }
-        }
-    }`, string(tagsJson))
-
-	// Send the search request
-	res, err := os.client.Search(
-		os.client.Search.WithContext(context.Background()),
-		os.client.Search.WithIndex(constants.ElasticsearchBlogIndex),
-		os.client.Search.WithBody(strings.NewReader(query)),
-		os.client.Search.WithPretty(),
-	)
-	if err != nil {
-		return nil, err
-	}
-	defer res.Body.Close()
-
-	// Read and unmarshal the response body
-	bodyBytes, err := io.ReadAll(res.Body)
-	if err != nil {
-		return nil, err
-	}
-	var source map[string]interface{}
-	err = json.Unmarshal(bodyBytes, &source)
-	if err != nil {
-		return nil, err
-	}
-
-	// Extract the hits
-	hits := source["hits"].(map[string]interface{})["hits"].([]interface{})
-	if len(hits) == 0 {
-		return nil, fmt.Errorf("no blogs found with tags: %v", tags)
-	}
-
-	// Unmarshal each hit into a GetBlogByTagNameRes struct
-	blogsRes := &pb.GetBlogsByTagsNameRes{}
-	for _, hit := range hits {
-		hitMap, ok := hit.(map[string]interface{})
-		if !ok {
-			return nil, fmt.Errorf("error converting hit to map[string]interface{}")
-		}
-		bx, err := json.MarshalIndent(hitMap["_source"], "", "\t")
-		if err != nil {
-			return nil, err
-		}
-		blogRes := &pb.GetBlogsByTags{}
-		if err = json.Unmarshal(bx, blogRes); err != nil {
-			return nil, err
-		}
-		blogsRes.TheBlogs = append(blogsRes.TheBlogs, blogRes)
-	}
-
-	return blogsRes, nil
 }
 
 // func (storage *opensearchStorage) GetBlogById(ctx context.Context, req *pb.GetBlogByIdReq) (*pb.GetBlogByIdRes, error) {
