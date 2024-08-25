@@ -19,6 +19,8 @@ import (
 
 type ElasticsearchStorage interface {
 	DraftABlog(ctx context.Context, blog *pb.DraftBlogRequest) (*esapi.Response, error)
+	GetDraftBlogsByOwnerAccountID(ctx context.Context, ownerAccountID string) (*pb.GetDraftBlogsRes, error)
+
 	DoesBlogExist(ctx context.Context, blogID string) (bool, error)
 	PublishBlogById(ctx context.Context, blogId string) (*esapi.Response, error)
 	// GetBlogById(ctx context.Context, req *pb.GetBlogByIdReq) (*pb.GetBlogByIdRes, error)
@@ -75,6 +77,113 @@ func (es *elasticsearchStorage) DraftABlog(ctx context.Context, blog *pb.DraftBl
 
 	es.log.Infof("DraftABlog: successfully created blog for user: %s, response: %+v", blog.OwnerAccountId, insertResponse)
 	return insertResponse, nil
+}
+
+func (es *elasticsearchStorage) GetDraftBlogsByOwnerAccountID(ctx context.Context, ownerAccountID string) (*pb.GetDraftBlogsRes, error) {
+	// Ensure ownerAccountID is properly set
+	if ownerAccountID == "" {
+		es.log.Error("GetDraftBlogsByOwnerAccountID: ownerAccountID is empty")
+		return nil, fmt.Errorf("ownerAccountID cannot be empty")
+	}
+
+	// Build the query to search for draft blogs by owner_account_id
+	query := map[string]interface{}{
+		"query": map[string]interface{}{
+			"bool": map[string]interface{}{
+				"must": []map[string]interface{}{
+					{
+						"term": map[string]interface{}{
+							"owner_account_id.keyword": ownerAccountID,
+						},
+					},
+					{
+						"term": map[string]interface{}{
+							"is_draft": true,
+						},
+					},
+				},
+			},
+		},
+	}
+
+	// Marshal the query to JSON
+	bs, err := json.Marshal(query)
+	if err != nil {
+		es.log.Errorf("GetDraftBlogsByOwnerAccountID: cannot marshal the query, error: %v", err)
+		return nil, err
+	}
+
+	// Print the query for debugging
+	es.log.Infof("Executing query: %s", string(bs))
+
+	// Create a new search request with the query
+	req := esapi.SearchRequest{
+		Index: []string{constants.ElasticsearchBlogIndex},
+		Body:  strings.NewReader(string(bs)),
+	}
+
+	// Execute the search request
+	res, err := req.Do(ctx, es.client)
+	if err != nil {
+		es.log.Errorf("GetDraftBlogsByOwnerAccountID: error executing search request, error: %+v", err)
+		return nil, err
+	}
+	defer res.Body.Close()
+
+	// Check if the response indicates an error
+	if res.IsError() {
+		err = fmt.Errorf("GetDraftBlogsByOwnerAccountID: search query failed, response: %+v", res)
+		es.log.Error(err)
+		return nil, err
+	}
+
+	// Read the response body
+	bodyBytes, err := io.ReadAll(res.Body)
+	if err != nil {
+		es.log.Errorf("GetDraftBlogsByOwnerAccountID: error reading response body, error: %v", err)
+		return nil, err
+	}
+
+	// Print the response body for debugging
+	// es.log.Infof("Search response body: %s", string(bodyBytes))
+
+	// Parse the response body
+	var esResponse map[string]interface{}
+	if err := json.Unmarshal(bodyBytes, &esResponse); err != nil {
+		es.log.Errorf("GetDraftBlogsByOwnerAccountID: error decoding response body, error: %v", err)
+		return nil, err
+	}
+
+	// Extract the hits from the response
+	hits, ok := esResponse["hits"].(map[string]interface{})["hits"].([]interface{})
+	if !ok {
+		err := fmt.Errorf("GetDraftBlogsByOwnerAccountID: failed to parse hits from response")
+		es.log.Error(err)
+		return nil, err
+	}
+
+	// Convert the hits to a slice of DraftBlogRequest
+	var blogs = &pb.GetDraftBlogsRes{
+		Blogs: make([]*pb.GetBlogs, 0, len(hits)),
+	}
+	for _, hit := range hits {
+		hitSource := hit.(map[string]interface{})["_source"]
+		hitBytes, err := json.Marshal(hitSource)
+		if err != nil {
+			es.log.Errorf("GetDraftBlogsByOwnerAccountID: error marshaling hit source, error: %v", err)
+			continue
+		}
+
+		var blog pb.GetBlogs
+		if err := json.Unmarshal(hitBytes, &blog); err != nil {
+			es.log.Errorf("GetDraftBlogsByOwnerAccountID: error unmarshaling hit to DraftBlogRequest, error: %v", err)
+			continue
+		}
+		blogs.Blogs = append(blogs.Blogs, &blog)
+	}
+
+	es.log.Infof("GetDraftBlogsByOwnerAccountID: successfully fetched %d draft blogs for owner_account_id: %s", len(blogs.Blogs), ownerAccountID)
+	return blogs, nil
 }
 
 func (os *elasticsearchStorage) DoesBlogExist(ctx context.Context, blogID string) (bool, error) {
@@ -138,7 +247,7 @@ func (os *elasticsearchStorage) PublishBlogById(ctx context.Context, blogId stri
 	// }
 
 	// os.log.Infof("Successfully published blog with id: %s", blogId)
-	return nil, nil
+	return &esapi.Response{StatusCode: 201}, nil
 }
 
 func (storage *elasticsearchStorage) GetPublishedBlogById(ctx context.Context, id string) (*pb.GetBlogByIdRes, error) {

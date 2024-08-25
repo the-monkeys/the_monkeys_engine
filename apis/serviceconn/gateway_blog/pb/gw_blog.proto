@@ -106,10 +106,30 @@ message GetBlogsByTagsNameRes {
     string error = 2;
 }
 
+message GetDraftBlogsReq {
+    string account_id = 1;
+    string email = 2;
+    string username = 3;
+}
+
+message GetBlogs {
+    string blog_id = 1;
+    string owner_account_id = 2;
+    Blog blog = 3;
+    repeated string tags = 6;
+}
+
+message GetDraftBlogsRes {
+    repeated GetBlogs blogs = 1;
+    string error = 2;
+}
+
 service BlogService {
     rpc DraftBlog(DraftBlogRequest) returns (BlogResponse);
     rpc PublishBlog(PublishBlogReq) returns (PublishBlogResp);
-    rpc GetBlogById(GetBlogByIdReq) returns (GetBlogByIdRes);
+    rpc GetPublishedBlogById(GetBlogByIdReq) returns (GetBlogByIdRes);
+    rpc GetDraftBlogById(GetBlogByIdReq) returns (GetBlogByIdRes);
     rpc ArchiveBlogById(ArchiveBlogReq) returns (ArchiveBlogResp);
-    rpc GetBlogsByTagsName(GetBlogsByTagsNameReq) returns (GetBlogsByTagsNameRes);
+    rpc GetPublishedBlogsByTagsName(GetBlogsByTagsNameReq) returns (GetBlogsByTagsNameRes);
+    rpc GetDraftBlogs(GetDraftBlogsReq) returns (GetDraftBlogsRes);
 }

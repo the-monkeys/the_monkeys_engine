@@ -81,6 +81,22 @@ func (blog *BlogService) DraftBlog(ctx context.Context, req *pb.DraftBlogRequest
 	}, nil
 }
 
+func (blog *BlogService) GetDraftBlogs(ctx context.Context, req *pb.GetDraftBlogsReq) (*pb.GetDraftBlogsRes, error) {
+	blog.logger.Infof("fetching draft blogs for account id %s", req.AccountId)
+	if req.AccountId == "" {
+		logrus.Error("account id cannot be empty")
+		return nil, status.Errorf(codes.InvalidArgument, "Account id cannot be empty")
+	}
+
+	res, err := blog.osClient.GetDraftBlogsByOwnerAccountID(ctx, req.AccountId)
+	if err != nil {
+		logrus.Errorf("error occurred while getting draft blogs for account id: %s, error: %v", req.AccountId, err)
+		return nil, status.Errorf(codes.Internal, "cannot get the draft blogs for account id: %s", req.AccountId)
+	}
+
+	return res, nil
+}
+
 func (blog *BlogService) PublishBlog(ctx context.Context, req *pb.PublishBlogReq) (*pb.PublishBlogResp, error) {
 	blog.logger.Infof("publishing the blog %s", req.BlogId)
 
