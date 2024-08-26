@@ -17,16 +17,6 @@ func SetMiddlewareJSON(next http.HandlerFunc) http.HandlerFunc {
 	}
 }
 
-func NewCorsMiddleware() gin.HandlerFunc {
-	return cors.New(cors.Config{
-		AllowOrigins:     []string{"*"}, // Allow all origins
-		AllowMethods:     []string{"GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS"},
-		AllowHeaders:     []string{"Origin", "Content-Type", "Authorization", "IP", "Client", "Content-Length", "Accept-Encoding", "X-CSRF-Token", "accept", "Cache-Control", "X-Requested-With"},
-		ExposeHeaders:    []string{"Content-Length"},
-		AllowCredentials: true,
-	})
-}
-
 func CORSMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
@@ -39,6 +29,26 @@ func CORSMiddleware() gin.HandlerFunc {
 		}
 		c.Next()
 	}
+}
+
+func TmpCORSMiddleware() gin.HandlerFunc {
+	config := cors.Config{
+		AllowOrigins:     []string{"*"},                                                // Allow all origins
+		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"}, // Allow all methods
+		AllowHeaders:     []string{"*"},                                                // Allow all headers
+		AllowCredentials: true,
+	}
+	return cors.New(config)
+}
+
+func NewCorsMiddleware() gin.HandlerFunc {
+	return cors.New(cors.Config{
+		AllowOrigins:     []string{"*"}, // Allow all origins
+		AllowMethods:     []string{"GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS"},
+		AllowHeaders:     []string{"Origin", "Content-Type", "Authorization", "IP", "Client", "Content-Length", "Accept-Encoding", "X-CSRF-Token", "accept", "Cache-Control", "X-Requested-With"},
+		ExposeHeaders:    []string{"Content-Length"},
+		AllowCredentials: true,
+	})
 }
 
 func LogRequestBody() gin.HandlerFunc {
