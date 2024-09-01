@@ -97,6 +97,40 @@ func (blog *BlogService) GetDraftBlogs(ctx context.Context, req *pb.GetDraftBlog
 	return res, nil
 }
 
+func (blog *BlogService) GetDraftBlogById(ctx context.Context, req *pb.GetBlogByIdReq) (*pb.GetBlogByIdRes, error) {
+	blog.logger.Infof("fetching blog with id: %s", req.BlogId)
+
+	res, err := blog.osClient.GetDraftedBlogByIdAndOwner(ctx, req.BlogId, req.OwnerAccountId)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "couldn't found the blog with blogId: %s and ownerAccountId: %s", req.BlogId, req.OwnerAccountId)
+	}
+
+	// Check if the response is nil, which indicates no blog was found
+	if res == nil {
+		return nil, status.Errorf(codes.NotFound, "no blog found with blogId: %s and ownerAccountId: %s", req.BlogId, req.OwnerAccountId)
+	}
+
+	return res, nil
+}
+
+func (blog *BlogService) GetPublishedBlogByIdAndOwnerId(ctx context.Context, req *pb.GetBlogByIdReq) (*pb.GetBlogByIdRes, error) {
+	blog.logger.Infof("fetching blog with id: %s", req.BlogId)
+
+	// Fetch the published blog by blog_id and owner_account_id
+	res, err := blog.osClient.GetPublishedBlogByIdAndOwner(ctx, req.BlogId, req.OwnerAccountId)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "couldn't fetch the blog with blogId: %s and ownerAccountId: %s", req.BlogId, req.OwnerAccountId)
+	}
+
+	// Check if the response is nil, which indicates no blog was found
+	if res == nil {
+		return nil, status.Errorf(codes.NotFound, "no blog found with blogId: %s and ownerAccountId: %s", req.BlogId, req.OwnerAccountId)
+	}
+
+	// Return the found blog
+	return res, nil
+}
+
 func (blog *BlogService) PublishBlog(ctx context.Context, req *pb.PublishBlogReq) (*pb.PublishBlogResp, error) {
 	blog.logger.Infof("The user has requested to publish the blog: %s", req.BlogId)
 

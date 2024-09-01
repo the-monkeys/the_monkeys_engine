@@ -53,24 +53,29 @@ func RegisterBlogRouter(router *gin.Engine, cfg *config.Config, authClient *auth
 	}
 	routes := router.Group("/api/v1/blog")
 	routes.GET("/latest", blogClient.GetLatest100Blogs)
-	routes.GET("/:id", blogClient.GetPublishedBlogById)
+	routes.GET("/:blog_id", blogClient.GetPublishedBlogById)
 	routes.GET("/tags", blogClient.GetBlogsByTagsName)
 	routes.GET("/news1", blogClient.GetNews1)
 	routes.GET("/news2", blogClient.GetNews2)
 	routes.GET("/news3", blogClient.GetNews3)
 
+	// Use AuthRequired for basic authorization
 	routes.Use(mware.AuthRequired)
-	routes.GET("/draft/:id", blogClient.DraftABlog)
-	routes.POST("/publish/:blog_id", mware.CanPublish, blogClient.PublishBlogById)
-	routes.POST("/archive/:id", blogClient.ArchiveBlogById)
+	routes.GET("/draft/:blog_id", blogClient.DraftABlog)
+
+	// Use AuthzRequired for routes needing access control
+	routes.POST("/publish/:blog_id", mware.AuthzRequired, blogClient.PublishBlogById)
+	routes.POST("/archive/:blog_id", mware.AuthzRequired, blogClient.ArchiveBlogById)
 	// routes.DELETE("/delete/:id", blogClient.DeleteBlogById)
-	routes.GET("/all/drafts/:acc_id", mware.CheckWriteAccess, blogClient.AllDrafts)
+	routes.GET("/all/drafts/:acc_id", mware.AuthzRequired, blogClient.AllDrafts)
+	routes.GET("/all/drafts/:acc_id/:blog_id", mware.AuthzRequired, blogClient.GetDraftBlogByAccId)
+	routes.GET("/all/published/:acc_id/:blog_id", mware.AuthzRequired, blogClient.GetPublishedBlogByAccId)
 
 	return blogClient
 }
 
 func (asc *BlogServiceClient) DraftABlog(ctx *gin.Context) {
-	id := ctx.Param("id")
+	id := ctx.Param("blog_id")
 
 	conn, err := upgrader.Upgrade(ctx.Writer, ctx.Request, nil)
 	if err != nil {
@@ -145,6 +150,84 @@ func (asc *BlogServiceClient) AllDrafts(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, res)
 }
 
+func (asc *BlogServiceClient) GetDraftBlogByAccId(ctx *gin.Context) {
+	// Extract account_id and blog_id from URL parameters
+	accID := ctx.Param("acc_id")
+	blogID := ctx.Param("blog_id")
+
+	// Ensure acc_id and blog_id are not empty
+	if accID == "" || blogID == "" {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "account id and blog id are required"})
+		return
+	}
+
+	// Fetch the drafted blog by blog_id and owner_account_id
+	blog, err := asc.Client.GetDraftBlogById(ctx, &pb.GetBlogByIdReq{
+		BlogId:         blogID,
+		OwnerAccountId: accID,
+	})
+	if err != nil {
+		if status, ok := status.FromError(err); ok {
+			switch status.Code() {
+			case codes.NotFound:
+				ctx.AbortWithStatusJSON(http.StatusNotFound, gin.H{"error": "drafted blog not found"})
+				return
+			case codes.Internal:
+				ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "failed to fetch drafted blog"})
+				return
+			default:
+				ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"message": "unknown error"})
+				return
+			}
+		}
+	}
+
+	// Return the drafted blog as a JSON response
+	ctx.JSON(http.StatusOK, blog)
+}
+
+func (asc *BlogServiceClient) GetPublishedBlogByAccId(ctx *gin.Context) {
+	// Extract account_id and blog_id from URL parameters
+	accID := ctx.Param("acc_id")
+	blogID := ctx.Param("blog_id")
+
+	// Ensure acc_id and blog_id are not empty
+	if accID == "" || blogID == "" {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "account id and blog id are required"})
+		return
+	}
+
+	// Fetch the published blog by blog_id and owner_account_id
+	blog, err := asc.Client.GetPublishedBlogByIdAndOwnerId(ctx, &pb.GetBlogByIdReq{
+		BlogId:         blogID,
+		OwnerAccountId: accID,
+	})
+	if err != nil {
+		if status, ok := status.FromError(err); ok {
+			switch status.Code() {
+			case codes.NotFound:
+				ctx.AbortWithStatusJSON(http.StatusNotFound, gin.H{"message": "published blog not found"})
+				return
+			case codes.Internal:
+				ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"message": "failed to fetch published blog"})
+				return
+			default:
+				ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"message": "unknown error"})
+				return
+			}
+		}
+	}
+
+	// If no blog is found, return a 404
+	if blog == nil {
+		ctx.JSON(http.StatusNotFound, gin.H{"error": "published blog not found"})
+		return
+	}
+
+	// Return the published blog as a JSON response
+	ctx.JSON(http.StatusOK, blog)
+}
+
 func (asc *BlogServiceClient) PublishBlogById(ctx *gin.Context) {
 	id := ctx.Param("blog_id")
 	resp, err := asc.Client.PublishBlog(context.Background(), &pb.PublishBlogReq{
@@ -155,7 +238,7 @@ func (asc *BlogServiceClient) PublishBlogById(ctx *gin.Context) {
 		if status, ok := status.FromError(err); ok {
 			switch status.Code() {
 			case codes.NotFound:
-				ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"message": "the blog does not exist"})
+				ctx.AbortWithStatusJSON(http.StatusNotFound, gin.H{"message": "the blog does not exist"})
 				return
 			case codes.Internal:
 				ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"message": "cannot get the draft blogs"})
@@ -192,7 +275,7 @@ func (asc *BlogServiceClient) GetBlogsByTagsName(ctx *gin.Context) {
 }
 
 func (svc *BlogServiceClient) GetPublishedBlogById(ctx *gin.Context) {
-	id := ctx.Param("id")
+	id := ctx.Param("blog_id")
 
 	res, err := svc.Client.GetPublishedBlogById(context.Background(), &pb.GetBlogByIdReq{BlogId: id})
 	if err != nil {
@@ -205,7 +288,7 @@ func (svc *BlogServiceClient) GetPublishedBlogById(ctx *gin.Context) {
 }
 
 func (asc *BlogServiceClient) ArchiveBlogById(ctx *gin.Context) {
-	id := ctx.Param("id")
+	id := ctx.Param("blog_id")
 	resp, err := asc.Client.ArchiveBlogById(context.Background(), &pb.ArchiveBlogReq{
 		BlogId: id,
 	})
