@@ -28,7 +28,8 @@ type BlogServiceClient interface {
 	GetDraftBlogById(ctx context.Context, in *GetBlogByIdReq, opts ...grpc.CallOption) (*GetBlogByIdRes, error)
 	ArchiveBlogById(ctx context.Context, in *ArchiveBlogReq, opts ...grpc.CallOption) (*ArchiveBlogResp, error)
 	GetPublishedBlogsByTagsName(ctx context.Context, in *GetBlogsByTagsNameReq, opts ...grpc.CallOption) (*GetBlogsByTagsNameRes, error)
-	GetDraftBlogs(ctx context.Context, in *GetDraftBlogsReq, opts ...grpc.CallOption) (*GetDraftBlogsRes, error)
+	GetDraftBlogsByAccId(ctx context.Context, in *GetBlogByIdReq, opts ...grpc.CallOption) (*GetDraftBlogsRes, error)
+	GetPublishedBlogsByAccID(ctx context.Context, in *GetBlogByIdReq, opts ...grpc.CallOption) (*GetPublishedBlogsRes, error)
 	GetLatest100Blogs(ctx context.Context, in *GetBlogsByTagsNameReq, opts ...grpc.CallOption) (*GetBlogsByTagsNameRes, error)
 	GetPublishedBlogByIdAndOwnerId(ctx context.Context, in *GetBlogByIdReq, opts ...grpc.CallOption) (*GetBlogByIdRes, error)
 }
@@ -95,9 +96,18 @@ func (c *blogServiceClient) GetPublishedBlogsByTagsName(ctx context.Context, in 
 	return out, nil
 }
 
-func (c *blogServiceClient) GetDraftBlogs(ctx context.Context, in *GetDraftBlogsReq, opts ...grpc.CallOption) (*GetDraftBlogsRes, error) {
+func (c *blogServiceClient) GetDraftBlogsByAccId(ctx context.Context, in *GetBlogByIdReq, opts ...grpc.CallOption) (*GetDraftBlogsRes, error) {
 	out := new(GetDraftBlogsRes)
-	err := c.cc.Invoke(ctx, "/blog_svc.BlogService/GetDraftBlogs", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/blog_svc.BlogService/GetDraftBlogsByAccId", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *blogServiceClient) GetPublishedBlogsByAccID(ctx context.Context, in *GetBlogByIdReq, opts ...grpc.CallOption) (*GetPublishedBlogsRes, error) {
+	out := new(GetPublishedBlogsRes)
+	err := c.cc.Invoke(ctx, "/blog_svc.BlogService/GetPublishedBlogsByAccID", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -132,7 +142,8 @@ type BlogServiceServer interface {
 	GetDraftBlogById(context.Context, *GetBlogByIdReq) (*GetBlogByIdRes, error)
 	ArchiveBlogById(context.Context, *ArchiveBlogReq) (*ArchiveBlogResp, error)
 	GetPublishedBlogsByTagsName(context.Context, *GetBlogsByTagsNameReq) (*GetBlogsByTagsNameRes, error)
-	GetDraftBlogs(context.Context, *GetDraftBlogsReq) (*GetDraftBlogsRes, error)
+	GetDraftBlogsByAccId(context.Context, *GetBlogByIdReq) (*GetDraftBlogsRes, error)
+	GetPublishedBlogsByAccID(context.Context, *GetBlogByIdReq) (*GetPublishedBlogsRes, error)
 	GetLatest100Blogs(context.Context, *GetBlogsByTagsNameReq) (*GetBlogsByTagsNameRes, error)
 	GetPublishedBlogByIdAndOwnerId(context.Context, *GetBlogByIdReq) (*GetBlogByIdRes, error)
 	mustEmbedUnimplementedBlogServiceServer()
@@ -160,8 +171,11 @@ func (UnimplementedBlogServiceServer) ArchiveBlogById(context.Context, *ArchiveB
 func (UnimplementedBlogServiceServer) GetPublishedBlogsByTagsName(context.Context, *GetBlogsByTagsNameReq) (*GetBlogsByTagsNameRes, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetPublishedBlogsByTagsName not implemented")
 }
-func (UnimplementedBlogServiceServer) GetDraftBlogs(context.Context, *GetDraftBlogsReq) (*GetDraftBlogsRes, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetDraftBlogs not implemented")
+func (UnimplementedBlogServiceServer) GetDraftBlogsByAccId(context.Context, *GetBlogByIdReq) (*GetDraftBlogsRes, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetDraftBlogsByAccId not implemented")
+}
+func (UnimplementedBlogServiceServer) GetPublishedBlogsByAccID(context.Context, *GetBlogByIdReq) (*GetPublishedBlogsRes, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetPublishedBlogsByAccID not implemented")
 }
 func (UnimplementedBlogServiceServer) GetLatest100Blogs(context.Context, *GetBlogsByTagsNameReq) (*GetBlogsByTagsNameRes, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetLatest100Blogs not implemented")
@@ -290,20 +304,38 @@ func _BlogService_GetPublishedBlogsByTagsName_Handler(srv interface{}, ctx conte
 	return interceptor(ctx, in, info, handler)
 }
 
-func _BlogService_GetDraftBlogs_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetDraftBlogsReq)
+func _BlogService_GetDraftBlogsByAccId_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetBlogByIdReq)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(BlogServiceServer).GetDraftBlogs(ctx, in)
+		return srv.(BlogServiceServer).GetDraftBlogsByAccId(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/blog_svc.BlogService/GetDraftBlogs",
+		FullMethod: "/blog_svc.BlogService/GetDraftBlogsByAccId",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(BlogServiceServer).GetDraftBlogs(ctx, req.(*GetDraftBlogsReq))
+		return srv.(BlogServiceServer).GetDraftBlogsByAccId(ctx, req.(*GetBlogByIdReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _BlogService_GetPublishedBlogsByAccID_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetBlogByIdReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BlogServiceServer).GetPublishedBlogsByAccID(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/blog_svc.BlogService/GetPublishedBlogsByAccID",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BlogServiceServer).GetPublishedBlogsByAccID(ctx, req.(*GetBlogByIdReq))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -376,8 +408,12 @@ var BlogService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _BlogService_GetPublishedBlogsByTagsName_Handler,
 		},
 		{
-			MethodName: "GetDraftBlogs",
-			Handler:    _BlogService_GetDraftBlogs_Handler,
+			MethodName: "GetDraftBlogsByAccId",
+			Handler:    _BlogService_GetDraftBlogsByAccId_Handler,
+		},
+		{
+			MethodName: "GetPublishedBlogsByAccID",
+			Handler:    _BlogService_GetPublishedBlogsByAccID_Handler,
 		},
 		{
 			MethodName: "GetLatest100Blogs",

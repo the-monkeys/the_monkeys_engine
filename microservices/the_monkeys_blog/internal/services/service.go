@@ -81,17 +81,33 @@ func (blog *BlogService) DraftBlog(ctx context.Context, req *pb.DraftBlogRequest
 	}, nil
 }
 
-func (blog *BlogService) GetDraftBlogs(ctx context.Context, req *pb.GetDraftBlogsReq) (*pb.GetDraftBlogsRes, error) {
-	blog.logger.Infof("fetching draft blogs for account id %s", req.AccountId)
-	if req.AccountId == "" {
+func (blog *BlogService) GetDraftBlogsByAccId(ctx context.Context, req *pb.GetBlogByIdReq) (*pb.GetDraftBlogsRes, error) {
+	blog.logger.Infof("fetching draft blogs for account id %s", req.OwnerAccountId)
+	if req.OwnerAccountId == "" {
 		logrus.Error("account id cannot be empty")
 		return nil, status.Errorf(codes.InvalidArgument, "Account id cannot be empty")
 	}
 
-	res, err := blog.osClient.GetDraftBlogsByOwnerAccountID(ctx, req.AccountId)
+	res, err := blog.osClient.GetDraftBlogsByOwnerAccountID(ctx, req.OwnerAccountId)
 	if err != nil {
-		logrus.Errorf("error occurred while getting draft blogs for account id: %s, error: %v", req.AccountId, err)
-		return nil, status.Errorf(codes.Internal, "cannot get the draft blogs for account id: %s", req.AccountId)
+		logrus.Errorf("error occurred while getting draft blogs for account id: %s, error: %v", req.OwnerAccountId, err)
+		return nil, status.Errorf(codes.Internal, "cannot get the draft blogs for account id: %s", req.OwnerAccountId)
+	}
+
+	return res, nil
+}
+
+func (blog *BlogService) GetPublishedBlogsByAccID(ctx context.Context, req *pb.GetBlogByIdReq) (*pb.GetPublishedBlogsRes, error) {
+	blog.logger.Infof("fetching published blogs for account id %s", req.OwnerAccountId)
+	if req.OwnerAccountId == "" {
+		logrus.Error("account id cannot be empty")
+		return nil, status.Errorf(codes.InvalidArgument, "Account id cannot be empty")
+	}
+
+	res, err := blog.osClient.GetPublishedBlogsByOwnerAccountID(ctx, req.OwnerAccountId)
+	if err != nil {
+		logrus.Errorf("error occurred while getting published blogs for account id: %s, error: %v", req.OwnerAccountId, err)
+		return nil, status.Errorf(codes.Internal, "cannot get the published blogs for account id: %s", req.OwnerAccountId)
 	}
 
 	return res, nil

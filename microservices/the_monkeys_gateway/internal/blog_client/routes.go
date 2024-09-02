@@ -68,8 +68,9 @@ func RegisterBlogRouter(router *gin.Engine, cfg *config.Config, authClient *auth
 	routes.POST("/archive/:blog_id", mware.AuthzRequired, blogClient.ArchiveBlogById)
 	// routes.DELETE("/delete/:id", blogClient.DeleteBlogById)
 	routes.GET("/all/drafts/:acc_id", mware.AuthzRequired, blogClient.AllDrafts)
-	routes.GET("/all/drafts/:acc_id/:blog_id", mware.AuthzRequired, blogClient.GetDraftBlogByAccId)
-	routes.GET("/all/published/:acc_id/:blog_id", mware.AuthzRequired, blogClient.GetPublishedBlogByAccId)
+	routes.GET("/all/publishes/:acc_id", mware.AuthzRequired, blogClient.AllPublishesByAccountId)
+	routes.GET("/drafts/:acc_id/:blog_id", mware.AuthzRequired, blogClient.GetDraftBlogByAccId)
+	routes.GET("/published/:acc_id/:blog_id", mware.AuthzRequired, blogClient.GetPublishedBlogByAccId)
 
 	return blogClient
 }
@@ -125,10 +126,36 @@ func (asc *BlogServiceClient) DraftABlog(ctx *gin.Context) {
 func (asc *BlogServiceClient) AllDrafts(ctx *gin.Context) {
 	accId := ctx.Param("acc_id")
 
-	res, err := asc.Client.GetDraftBlogs(context.Background(), &pb.GetDraftBlogsReq{
-		AccountId: accId,
-		Email:     "",
-		Username:  "",
+	res, err := asc.Client.GetDraftBlogsByAccId(context.Background(), &pb.GetBlogByIdReq{
+		OwnerAccountId: accId,
+		// Email:          "",
+		// Username:       "",
+	})
+
+	if err != nil {
+		if status, ok := status.FromError(err); ok {
+			switch status.Code() {
+			case codes.InvalidArgument:
+				ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"message": "incomplete request, please provide correct input parameters"})
+				return
+			case codes.Internal:
+				ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"message": "cannot fetch the draft blogs"})
+				return
+			default:
+				ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"message": "unknown error"})
+				return
+			}
+		}
+	}
+
+	ctx.JSON(http.StatusOK, res)
+}
+
+func (asc *BlogServiceClient) AllPublishesByAccountId(ctx *gin.Context) {
+	accId := ctx.Param("acc_id")
+
+	res, err := asc.Client.GetPublishedBlogsByAccID(context.Background(), &pb.GetBlogByIdReq{
+		OwnerAccountId: accId,
 	})
 
 	if err != nil {
