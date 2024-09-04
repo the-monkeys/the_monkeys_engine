@@ -14,6 +14,7 @@ import (
 	"github.com/the-monkeys/the_monkeys/apis/serviceconn/gateway_blog/pb"
 	"github.com/the-monkeys/the_monkeys/config"
 	"github.com/the-monkeys/the_monkeys/microservices/the_monkeys_gateway/internal/auth"
+	"github.com/the-monkeys/the_monkeys/microservices/the_monkeys_gateway/utils"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/credentials/insecure"
@@ -256,9 +257,17 @@ func (asc *BlogServiceClient) GetPublishedBlogByAccId(ctx *gin.Context) {
 }
 
 func (asc *BlogServiceClient) PublishBlogById(ctx *gin.Context) {
+	// Check permissions:
+	if !utils.CheckUserAccessInContext(ctx, "Publish") {
+		ctx.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"message": "you are not allowed to perform this action"})
+		return
+	}
+	accId := ctx.GetString("accountId")
+
 	id := ctx.Param("blog_id")
 	resp, err := asc.Client.PublishBlog(context.Background(), &pb.PublishBlogReq{
-		BlogId: id,
+		BlogId:    id,
+		AccountId: accId,
 	})
 
 	if err != nil {

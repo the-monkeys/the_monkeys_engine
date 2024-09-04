@@ -76,13 +76,11 @@ func (c *AuthMiddlewareConfig) AuthzRequired(ctx *gin.Context) {
 	blogID := ctx.Param("blog_id")
 	userName := res.UserName
 	email := ctx.Param("email")
-	accountID := ctx.Param("account_id")
-	// userID := ctx.Param("user_id")
 
 	accessResp, err := c.svc.Client.CheckAccessLevel(context.Background(), &pb.AccessCheckReq{
 		// Token:     res,
 		Email:     email,
-		AccountId: accountID,
+		AccountId: res.AccountId,
 		UserName:  userName,
 		BlogId:    blogID,
 	})
@@ -92,7 +90,7 @@ func (c *AuthMiddlewareConfig) AuthzRequired(ctx *gin.Context) {
 		ctx.AbortWithStatusJSON(http.StatusUnauthorized, Authorization{AuthorizationStatus: false, Error: "unauthorized"})
 		return
 	}
-
+	ctx.Set("accountId", res.AccountId)
 	ctx.Set("user_access_level", accessResp.Access)
 
 	ctx.Next()

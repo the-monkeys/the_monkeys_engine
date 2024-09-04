@@ -61,6 +61,7 @@ message Tunes {
 
 message PublishBlogReq {
     string blog_id = 1;
+    string account_id = 2;
 }
 
 message PublishBlogResp {
