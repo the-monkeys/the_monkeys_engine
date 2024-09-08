@@ -187,6 +187,46 @@ CREATE TABLE IF NOT EXISTS blog_permissions (
     FOREIGN KEY (user_id) REFERENCES user_account(id) ON DELETE CASCADE ON UPDATE NO ACTION
 );
 
+-- Table to store co-author invites
+CREATE TABLE IF NOT EXISTS co_author_invites (
+    id SERIAL PRIMARY KEY,
+    blog_id BIGINT NOT NULL, -- Reference to the blog
+    inviter_id BIGINT NOT NULL, -- Reference to the user (owner or admin) sending the invite
+    invitee_id BIGINT NOT NULL, -- Reference to the user being invited as a co-author
+    invite_status VARCHAR(50) NOT NULL DEFAULT 'pending', -- Can be 'pending', 'accepted', or 'rejected'
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    responded_at TIMESTAMP,
+    FOREIGN KEY (blog_id) REFERENCES blog(id) ON DELETE CASCADE ON UPDATE NO ACTION,
+    FOREIGN KEY (inviter_id) REFERENCES user_account(id) ON DELETE CASCADE ON UPDATE NO ACTION,
+    FOREIGN KEY (invitee_id) REFERENCES user_account(id) ON DELETE CASCADE ON UPDATE NO ACTION
+);
+
+-- Table to store accepted co-author permissions
+CREATE TABLE IF NOT EXISTS co_author_permissions (
+    id SERIAL PRIMARY KEY,
+    blog_id BIGINT NOT NULL, -- Reference to the blog
+    co_author_id BIGINT NOT NULL, -- The invited user who accepted the invitation
+    role_id BIGINT NOT NULL, -- Reference to the user role ('Editor', 'Viewer', etc.)
+    granted_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (blog_id) REFERENCES blog(id) ON DELETE CASCADE ON UPDATE NO ACTION,
+    FOREIGN KEY (co_author_id) REFERENCES user_account(id) ON DELETE CASCADE ON UPDATE NO ACTION,
+    FOREIGN KEY (role_id) REFERENCES user_role(id) ON DELETE CASCADE ON UPDATE NO ACTION
+);
+
+
+-- Table to track actions related to co-author invitations and permissions
+CREATE TABLE IF NOT EXISTS co_author_activity_log (
+    id SERIAL PRIMARY KEY,
+    blog_id BIGINT NOT NULL, -- Reference to the blog
+    co_author_id BIGINT, -- Reference to the invited user (nullable in case of deletion logs)
+    action VARCHAR(50) NOT NULL, -- 'invited', 'accepted', 'rejected', 'removed'
+    performed_by BIGINT NOT NULL, -- Reference to the user who performed the action (inviter or owner/admin)
+    action_timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (blog_id) REFERENCES blog(id) ON DELETE CASCADE ON UPDATE NO ACTION,
+    FOREIGN KEY (co_author_id) REFERENCES user_account(id) ON DELETE SET NULL ON UPDATE NO ACTION,
+    FOREIGN KEY (performed_by) REFERENCES user_account(id) ON DELETE CASCADE ON UPDATE NO ACTION
+);
+
 -- Creating blog bookmarks table
 CREATE TABLE IF NOT EXISTS blog_bookmarks (
     id SERIAL PRIMARY KEY,

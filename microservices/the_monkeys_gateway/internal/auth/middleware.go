@@ -90,6 +90,7 @@ func (c *AuthMiddlewareConfig) AuthzRequired(ctx *gin.Context) {
 		ctx.AbortWithStatusJSON(http.StatusUnauthorized, Authorization{AuthorizationStatus: false, Error: "unauthorized"})
 		return
 	}
+
 	ctx.Set("accountId", res.AccountId)
 	ctx.Set("user_access_level", accessResp.Access)
 

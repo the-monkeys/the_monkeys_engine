@@ -183,7 +183,10 @@ func (as *AuthzSvc) CheckAccessLevel(ctx context.Context, req *pb.AccessCheckReq
 	resp, err := as.dbConn.GetUserAccessForABlog(req.AccountId, req.BlogId)
 	if err == sql.ErrNoRows {
 		as.logger.Errorf("blog with id %s not found", req.BlogId)
-		return nil, status.Errorf(codes.NotFound, "unauthorized to perform this action")
+		return &pb.AccessCheckRes{
+			Access:     []string{constants.PermissionCreate},
+			StatusCode: http.StatusOK,
+		}, nil
 	} else if err != nil {
 		as.logger.Errorf("error in access level: %v", err)
 		return nil, status.Errorf(codes.Unauthenticated, "unauthorized to perform this action")

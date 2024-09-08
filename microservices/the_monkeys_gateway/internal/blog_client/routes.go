@@ -13,6 +13,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/the-monkeys/the_monkeys/apis/serviceconn/gateway_blog/pb"
 	"github.com/the-monkeys/the_monkeys/config"
+	"github.com/the-monkeys/the_monkeys/constants"
 	"github.com/the-monkeys/the_monkeys/microservices/the_monkeys_gateway/internal/auth"
 	"github.com/the-monkeys/the_monkeys/microservices/the_monkeys_gateway/utils"
 	"google.golang.org/grpc"
@@ -62,7 +63,7 @@ func RegisterBlogRouter(router *gin.Engine, cfg *config.Config, authClient *auth
 
 	// Use AuthRequired for basic authorization
 	routes.Use(mware.AuthRequired)
-	routes.GET("/draft/:blog_id", blogClient.DraftABlog)
+	routes.GET("/draft/:blog_id", mware.AuthzRequired, blogClient.DraftABlog)
 
 	// Use AuthzRequired for routes needing access control
 	routes.POST("/publish/:blog_id", mware.AuthzRequired, blogClient.PublishBlogById)
@@ -78,10 +79,24 @@ func RegisterBlogRouter(router *gin.Engine, cfg *config.Config, authClient *auth
 
 func (asc *BlogServiceClient) DraftABlog(ctx *gin.Context) {
 	id := ctx.Param("blog_id")
+	logrus.Info("***************************************************************")
+	// Check permissions:
+	if !utils.CheckUserAccessInContext(ctx, constants.PermissionEdit) || !utils.CheckUserAccessInContext(ctx, constants.PermissionCreate) {
+		ctx.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"message": "you are not allowed to perform this action"})
+		return
+	}
 
+	// Upgrade the connection to WebSocket
 	conn, err := upgrader.Upgrade(ctx.Writer, ctx.Request, nil)
 	if err != nil {
 		logrus.Errorf("error upgrading connection: %v", err)
+		ctx.AbortWithStatus(http.StatusInternalServerError)
+		return
+	}
+
+	if asc.Client == nil {
+		logrus.Errorf("BlogServiceClient is not initialized")
+		ctx.AbortWithStatus(http.StatusInternalServerError)
 		return
 	}
 
@@ -95,9 +110,10 @@ func (asc *BlogServiceClient) DraftABlog(ctx *gin.Context) {
 
 		// Unmarshal the received message into the Blog struct
 		var draftBlog *pb.DraftBlogRequest
+
 		err = json.Unmarshal(msg, &draftBlog)
 		if err != nil {
-			logrus.Errorf("Error un marshalling message: %v", err)
+			logrus.Errorf("Error unmarshalling message: %v", err)
 			return
 		}
 
@@ -111,7 +127,7 @@ func (asc *BlogServiceClient) DraftABlog(ctx *gin.Context) {
 
 		response, err := json.Marshal(resp)
 		if err != nil {
-			logrus.Println("Error un marshalling response message:", err)
+			logrus.Println("Error marshalling response message:", err)
 			return
 		}
 
