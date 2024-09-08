@@ -81,6 +81,18 @@ func (blog *BlogService) DraftBlog(ctx context.Context, req *pb.DraftBlogRequest
 	}, nil
 }
 
+func (blog *BlogService) CheckIfBlogsExist(ctx context.Context, req *pb.GetBlogByIdReq) (*pb.BlogExistsRes, error) {
+	exists, err := blog.osClient.DoesBlogExist(ctx, req.BlogId)
+	if err != nil {
+		blog.logger.Errorf("cannot find the blog with id: %s, error: %v", req.BlogId, err)
+		return nil, status.Errorf(codes.NotFound, "cannot find the blog with id")
+	}
+
+	return &pb.BlogExistsRes{
+		BlogExists: exists,
+	}, nil
+}
+
 func (blog *BlogService) GetDraftBlogsByAccId(ctx context.Context, req *pb.GetBlogByIdReq) (*pb.GetDraftBlogsRes, error) {
 	blog.logger.Infof("fetching draft blogs for account id %s", req.OwnerAccountId)
 	if req.OwnerAccountId == "" {

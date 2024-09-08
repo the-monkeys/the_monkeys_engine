@@ -132,6 +132,10 @@ message GetPublishedBlogsRes {
     string error = 2;
 }
 
+message BlogExistsRes {
+    bool blog_exists = 1;
+}
+
 service BlogService {
     rpc DraftBlog(DraftBlogRequest) returns (BlogResponse);
     rpc PublishBlog(PublishBlogReq) returns (PublishBlogResp); // By blog id
@@ -143,4 +147,6 @@ service BlogService {
     rpc GetPublishedBlogsByAccID(GetBlogByIdReq) returns (GetPublishedBlogsRes);
     rpc GetLatest100Blogs(GetBlogsByTagsNameReq) returns (GetBlogsByTagsNameRes);
     rpc GetPublishedBlogByIdAndOwnerId(GetBlogByIdReq) returns (GetBlogByIdRes);
+
+    rpc CheckIfBlogsExist(GetBlogByIdReq) returns (BlogExistsRes);
 }

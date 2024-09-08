@@ -32,6 +32,7 @@ type BlogServiceClient interface {
 	GetPublishedBlogsByAccID(ctx context.Context, in *GetBlogByIdReq, opts ...grpc.CallOption) (*GetPublishedBlogsRes, error)
 	GetLatest100Blogs(ctx context.Context, in *GetBlogsByTagsNameReq, opts ...grpc.CallOption) (*GetBlogsByTagsNameRes, error)
 	GetPublishedBlogByIdAndOwnerId(ctx context.Context, in *GetBlogByIdReq, opts ...grpc.CallOption) (*GetBlogByIdRes, error)
+	CheckIfBlogsExist(ctx context.Context, in *GetBlogByIdReq, opts ...grpc.CallOption) (*BlogExistsRes, error)
 }
 
 type blogServiceClient struct {
@@ -132,6 +133,15 @@ func (c *blogServiceClient) GetPublishedBlogByIdAndOwnerId(ctx context.Context, 
 	return out, nil
 }
 
+func (c *blogServiceClient) CheckIfBlogsExist(ctx context.Context, in *GetBlogByIdReq, opts ...grpc.CallOption) (*BlogExistsRes, error) {
+	out := new(BlogExistsRes)
+	err := c.cc.Invoke(ctx, "/blog_svc.BlogService/CheckIfBlogsExist", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // BlogServiceServer is the server API for BlogService service.
 // All implementations must embed UnimplementedBlogServiceServer
 // for forward compatibility
@@ -146,6 +156,7 @@ type BlogServiceServer interface {
 	GetPublishedBlogsByAccID(context.Context, *GetBlogByIdReq) (*GetPublishedBlogsRes, error)
 	GetLatest100Blogs(context.Context, *GetBlogsByTagsNameReq) (*GetBlogsByTagsNameRes, error)
 	GetPublishedBlogByIdAndOwnerId(context.Context, *GetBlogByIdReq) (*GetBlogByIdRes, error)
+	CheckIfBlogsExist(context.Context, *GetBlogByIdReq) (*BlogExistsRes, error)
 	mustEmbedUnimplementedBlogServiceServer()
 }
 
@@ -182,6 +193,9 @@ func (UnimplementedBlogServiceServer) GetLatest100Blogs(context.Context, *GetBlo
 }
 func (UnimplementedBlogServiceServer) GetPublishedBlogByIdAndOwnerId(context.Context, *GetBlogByIdReq) (*GetBlogByIdRes, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetPublishedBlogByIdAndOwnerId not implemented")
+}
+func (UnimplementedBlogServiceServer) CheckIfBlogsExist(context.Context, *GetBlogByIdReq) (*BlogExistsRes, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CheckIfBlogsExist not implemented")
 }
 func (UnimplementedBlogServiceServer) mustEmbedUnimplementedBlogServiceServer() {}
 
@@ -376,6 +390,24 @@ func _BlogService_GetPublishedBlogByIdAndOwnerId_Handler(srv interface{}, ctx co
 	return interceptor(ctx, in, info, handler)
 }
 
+func _BlogService_CheckIfBlogsExist_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetBlogByIdReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BlogServiceServer).CheckIfBlogsExist(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/blog_svc.BlogService/CheckIfBlogsExist",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BlogServiceServer).CheckIfBlogsExist(ctx, req.(*GetBlogByIdReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // BlogService_ServiceDesc is the grpc.ServiceDesc for BlogService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -422,6 +454,10 @@ var BlogService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetPublishedBlogByIdAndOwnerId",
 			Handler:    _BlogService_GetPublishedBlogByIdAndOwnerId_Handler,
+		},
+		{
+			MethodName: "CheckIfBlogsExist",
+			Handler:    _BlogService_CheckIfBlogsExist_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

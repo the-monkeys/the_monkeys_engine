@@ -3,6 +3,7 @@ package blog_client
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
 	"sync"
@@ -80,10 +81,34 @@ func RegisterBlogRouter(router *gin.Engine, cfg *config.Config, authClient *auth
 func (asc *BlogServiceClient) DraftABlog(ctx *gin.Context) {
 	id := ctx.Param("blog_id")
 	logrus.Info("***************************************************************")
-	// Check permissions:
-	if !utils.CheckUserAccessInContext(ctx, constants.PermissionEdit) || !utils.CheckUserAccessInContext(ctx, constants.PermissionCreate) {
-		ctx.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"message": "you are not allowed to perform this action"})
-		return
+
+	// Check if blog exists
+	resp, err := asc.Client.CheckIfBlogsExist(context.Background(), &pb.GetBlogByIdReq{
+		BlogId: id,
+	})
+	if err != nil {
+		if status, ok := status.FromError(err); ok {
+			switch status.Code() {
+			case codes.InvalidArgument:
+				ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"message": "incomplete request, please provide correct input parameters"})
+				return
+			case codes.Internal:
+				ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"message": "cannot fetch the draft blogs"})
+				return
+			default:
+				ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"message": "unknown error"})
+				return
+			}
+		}
+	}
+
+	if resp.BlogExists {
+		if !utils.CheckUserAccessInContext(ctx, constants.PermissionEdit) {
+			ctx.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"message": "you are not allowed to perform this action"})
+			return
+		}
+
+		fmt.Println("The user has edit access")
 	}
 
 	// Upgrade the connection to WebSocket
