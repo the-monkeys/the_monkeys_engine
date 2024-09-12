@@ -3,7 +3,6 @@ package blog_client
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"io"
 	"net/http"
 	"sync"
@@ -58,29 +57,29 @@ func RegisterBlogRouter(router *gin.Engine, cfg *config.Config, authClient *auth
 	routes.GET("/latest", blogClient.GetLatest100Blogs)
 	routes.GET("/:blog_id", blogClient.GetPublishedBlogById)
 	routes.GET("/tags", blogClient.GetBlogsByTagsName)
+	routes.GET("/all/publishes/:acc_id", blogClient.AllPublishesByAccountId)
+	routes.GET("/published/:acc_id/:blog_id", blogClient.GetPublishedBlogByAccId)
 	routes.GET("/news1", blogClient.GetNews1)
 	routes.GET("/news2", blogClient.GetNews2)
 	routes.GET("/news3", blogClient.GetNews3)
 
 	// Use AuthRequired for basic authorization
 	routes.Use(mware.AuthRequired)
-	routes.GET("/draft/:blog_id", mware.AuthzRequired, blogClient.DraftABlog)
 
 	// Use AuthzRequired for routes needing access control
+	routes.GET("/draft/:blog_id", mware.AuthzRequired, blogClient.DraftABlog)
+
 	routes.POST("/publish/:blog_id", mware.AuthzRequired, blogClient.PublishBlogById)
 	routes.POST("/archive/:blog_id", mware.AuthzRequired, blogClient.ArchiveBlogById)
-	// routes.DELETE("/delete/:id", blogClient.DeleteBlogById)
-	routes.GET("/all/drafts/:acc_id", mware.AuthzRequired, blogClient.AllDrafts)
-	routes.GET("/all/publishes/:acc_id", mware.AuthzRequired, blogClient.AllPublishesByAccountId)
+	routes.DELETE("/:id", blogClient.DeleteBlogById)
+	routes.GET("/all/drafts/:acc_id", blogClient.AllDrafts)
 	routes.GET("/drafts/:acc_id/:blog_id", mware.AuthzRequired, blogClient.GetDraftBlogByAccId)
-	routes.GET("/published/:acc_id/:blog_id", mware.AuthzRequired, blogClient.GetPublishedBlogByAccId)
 
 	return blogClient
 }
 
 func (asc *BlogServiceClient) DraftABlog(ctx *gin.Context) {
 	id := ctx.Param("blog_id")
-	logrus.Info("***************************************************************")
 
 	// Check if blog exists
 	resp, err := asc.Client.CheckIfBlogsExist(context.Background(), &pb.GetBlogByIdReq{
@@ -107,8 +106,6 @@ func (asc *BlogServiceClient) DraftABlog(ctx *gin.Context) {
 			ctx.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"message": "you are not allowed to perform this action"})
 			return
 		}
-
-		fmt.Println("The user has edit access")
 	}
 
 	// Upgrade the connection to WebSocket
@@ -166,8 +163,19 @@ func (asc *BlogServiceClient) DraftABlog(ctx *gin.Context) {
 }
 
 func (asc *BlogServiceClient) AllDrafts(ctx *gin.Context) {
+	// Check permissions:
+	// if !utils.CheckUserAccessInContext(ctx, constants.PermissionEdit) {
+	// 	ctx.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"message": "you are not allowed to perform this action"})
+	// 	return
+	// }
+
+	tokenAccountId := ctx.GetString("accountId")
 	accId := ctx.Param("acc_id")
 
+	if tokenAccountId != accId {
+		ctx.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"message": "you are not allowed to perform this action"})
+		return
+	}
 	res, err := asc.Client.GetDraftBlogsByAccId(context.Background(), &pb.GetBlogByIdReq{
 		OwnerAccountId: accId,
 		// Email:          "",
@@ -220,6 +228,12 @@ func (asc *BlogServiceClient) AllPublishesByAccountId(ctx *gin.Context) {
 }
 
 func (asc *BlogServiceClient) GetDraftBlogByAccId(ctx *gin.Context) {
+	// Check permissions:
+	if !utils.CheckUserAccessInContext(ctx, constants.PermissionEdit) {
+		ctx.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"message": "you are not allowed to perform this action"})
+		return
+	}
+
 	// Extract account_id and blog_id from URL parameters
 	accID := ctx.Param("acc_id")
 	blogID := ctx.Param("blog_id")
@@ -365,6 +379,12 @@ func (svc *BlogServiceClient) GetPublishedBlogById(ctx *gin.Context) {
 }
 
 func (asc *BlogServiceClient) ArchiveBlogById(ctx *gin.Context) {
+	// Check permissions:
+	if !utils.CheckUserAccessInContext(ctx, "Archive") {
+		ctx.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"message": "you are not allowed to perform this action"})
+		return
+	}
+
 	id := ctx.Param("blog_id")
 	resp, err := asc.Client.ArchiveBlogById(context.Background(), &pb.ArchiveBlogReq{
 		BlogId: id,
@@ -410,9 +430,14 @@ func (asc *BlogServiceClient) GetLatest100Blogs(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, res)
 }
 
-// func (asc *BlogServiceClient) DeleteBlogById(ctx *gin.Context) {
-// 	ctx.JSON(http.StatusOK, map[string]string{"message": "This api is not implemented!"})
-// }
+func (asc *BlogServiceClient) DeleteBlogById(ctx *gin.Context) {
+	// Check permissions to Delete
+	if !utils.CheckUserAccessInContext(ctx, "Delete") {
+		ctx.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"message": "you are not allowed to perform this action"})
+		return
+	}
+	ctx.JSON(http.StatusOK, map[string]string{"message": "This api is not implemented!"})
+}
 
 // ******************************************************* Third Party API ************************************************
 
