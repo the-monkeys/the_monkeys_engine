@@ -237,6 +237,29 @@ CREATE TABLE IF NOT EXISTS blog_bookmarks (
     FOREIGN KEY (blog_id) REFERENCES blog(id) ON DELETE CASCADE ON UPDATE NO ACTION
 );
 
+-- Table to store notification types
+CREATE TABLE IF NOT EXISTS notification_type (
+    id SERIAL PRIMARY KEY,
+    notification_name VARCHAR(100) NOT NULL UNIQUE,  -- E.g., 'Co-author invite', 'Blog liked', 'Comment on blog'
+    description TEXT -- Optional description of the notification type
+);
+
+-- Table to store notifications for users
+CREATE TABLE IF NOT EXISTS notifications (
+    id SERIAL PRIMARY KEY,
+    user_id BIGINT NOT NULL, -- The user receiving the notification
+    notification_type_id INTEGER NOT NULL, -- Type of notification (e.g., co-author invite, blog liked, etc.)
+    message TEXT NOT NULL, -- Customizable message for the notification
+    related_blog_id BIGINT, -- Optional reference to a related blog, if applicable
+    related_user_id BIGINT, -- Optional reference to a related user (e.g., the one who liked or commented)
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, -- When the notification was created
+    seen BOOLEAN DEFAULT FALSE, -- Whether the user has seen the notification
+    FOREIGN KEY (user_id) REFERENCES user_account(id) ON DELETE CASCADE ON UPDATE NO ACTION,
+    FOREIGN KEY (notification_type_id) REFERENCES notification_type(id) ON DELETE CASCADE ON UPDATE NO ACTION,
+    FOREIGN KEY (related_blog_id) REFERENCES blog(id) ON DELETE SET NULL ON UPDATE NO ACTION,
+    FOREIGN KEY (related_user_id) REFERENCES user_account(id) ON DELETE SET NULL ON UPDATE NO ACTION
+);
+
 -- Creating credentials table (note: in a production environment, sensitive data should be stored securely using encryption)
 CREATE TABLE IF NOT EXISTS user_credentials (
     id SERIAL PRIMARY KEY,

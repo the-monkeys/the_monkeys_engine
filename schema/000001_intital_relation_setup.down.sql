@@ -10,6 +10,12 @@ DROP TABLE IF EXISTS co_author_invites;
 -- Dropping blog_bookmarks table
 DROP TABLE IF EXISTS blog_bookmarks;
 
+-- Dropping notifications table (added in the new design)
+DROP TABLE IF EXISTS notifications;
+
+-- Dropping notification_type table (added in the new design)
+DROP TABLE IF EXISTS notification_type;
+
 -- Dropping blog_permissions table
 DROP TABLE IF EXISTS blog_permissions;
 
@@ -63,4 +69,3 @@ DROP TABLE IF EXISTS user_role;
 
 -- Dropping user_status table
 DROP TABLE IF EXISTS user_status;
-

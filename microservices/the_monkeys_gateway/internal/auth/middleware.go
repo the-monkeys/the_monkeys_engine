@@ -54,6 +54,7 @@ func (c *AuthMiddlewareConfig) validateToken(ctx *gin.Context) (*pb.ValidateResp
 	}
 
 	ctx.Set("userName", res.UserName)
+	ctx.Set("accountId", res.AccountId)
 	return res, nil
 }
 
