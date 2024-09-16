@@ -38,8 +38,10 @@ type UserDb interface {
 	// Update queries
 	UpdateUserProfile(username string, dbUserInfo *models.UserProfileRes) error
 	UpdateBlogStatusToPublish(blogId string, status string) error
+
 	// Delete queries
 	DeleteUserProfile(username string) error
+	RemoveUserInterest(interests []string, username string) error
 }
 
 type uDBHandler struct {
@@ -612,4 +614,51 @@ func (uh *uDBHandler) GetUserInterest(username string) ([]string, error) {
 
 	uh.log.Infof("Successfully fetched interests for user: %s", username)
 	return interests, nil
+}
+
+func (uh *uDBHandler) RemoveUserInterest(interests []string, username string) error {
+	// Start a transaction
+	tx, err := uh.db.Begin()
+	if err != nil {
+		uh.log.Errorf("Failed to start transaction: %+v", err)
+		return err
+	}
+
+	// Step 1: Fetch the user ID based on username
+	var userId int64
+	err = tx.QueryRow(`SELECT id FROM user_account WHERE username = $1`, username).Scan(&userId)
+	if err != nil {
+		uh.log.Errorf("Failed to fetch user ID for username: %s, error: %+v", username, err)
+		tx.Rollback() // rollback transaction on error
+		return err
+	}
+
+	// Step 2: Iterate over the interests and remove them from the user_interest table
+	for _, interest := range interests {
+		// Fetch the topic ID based on the interest description
+		var topicId int
+		err = tx.QueryRow(`SELECT id FROM topics WHERE description = $1`, interest).Scan(&topicId)
+		if err != nil {
+			uh.log.Errorf("Failed to fetch topic ID for interest: %s, error: %+v", interest, err)
+			tx.Rollback() // rollback transaction on error
+			return err
+		}
+
+		// Remove the user's interest from the user_interest table
+		_, err = tx.Exec(`DELETE FROM user_interest WHERE user_id = $1 AND topics_id = $2`, userId, topicId)
+		if err != nil {
+			uh.log.Errorf("Failed to remove user interest for username: %s and interest: %s, error: %+v", username, interest, err)
+			tx.Rollback() // rollback transaction on error
+			return err
+		}
+	}
+
+	// Step 3: Commit the transaction
+	if err := tx.Commit(); err != nil {
+		uh.log.Errorf("Failed to commit transaction: %+v", err)
+		return err
+	}
+
+	uh.log.Infof("Successfully removed interests for user: %s", username)
+	return nil
 }
