@@ -36,6 +36,7 @@ message UserProfileRes {
     string linkedin = 15;
     string twitter = 16;
     string github = 17;
+    repeated string topics = 18;
 }
 
 message UserActivityReq {

@@ -72,15 +72,47 @@ func NewUserDbHandler(cfg *config.Config, log *logrus.Logger) (UserDb, error) {
 // To get User Profile
 func (uh *uDBHandler) GetUserProfile(username string) (*models.UserAccount, error) {
 	var tmu models.UserAccount
-	if err := uh.db.QueryRow(`
-        SELECT username, first_name, last_name, bio, avatar_url, created_at, address, linkedin, github, twitter, instagram 
-        FROM user_account WHERE username = $1;`, username).
-		Scan(&tmu.UserName, &tmu.FirstName, &tmu.LastName, &tmu.Bio, &tmu.AvatarUrl, &tmu.CreatedAt,
-			&tmu.Address, &tmu.LinkedIn, &tmu.Github, &tmu.Twitter, &tmu.Instagram); err != nil {
-		logrus.Errorf("can't find a user existing with this profile id  %s, error: %+v", username, err)
+
+	// Step 1: Fetch user profile information from the user_account table
+	err := uh.db.QueryRow(`
+		SELECT id, username, first_name, last_name, bio, avatar_url, created_at, address, linkedin, github, twitter, instagram 
+		FROM user_account WHERE username = $1;`, username).
+		Scan(&tmu.Id, &tmu.UserName, &tmu.FirstName, &tmu.LastName, &tmu.Bio, &tmu.AvatarUrl, &tmu.CreatedAt,
+			&tmu.Address, &tmu.LinkedIn, &tmu.Github, &tmu.Twitter, &tmu.Instagram)
+
+	if err != nil {
+		uh.log.Errorf("Can't find a user with username %s, error: %+v", username, err)
 		return nil, err
 	}
 
+	// Step 2: Fetch user's interests by joining user_interest and topics tables
+	rows, err := uh.db.Query(`
+		SELECT t.description 
+		FROM topics t
+		JOIN user_interest ui ON t.id = ui.topics_id
+		WHERE ui.user_id = $1;`, tmu.Id)
+
+	if err != nil {
+		uh.log.Errorf("Error fetching interests for user ID %d, error: %+v", tmu.Id, err)
+		return nil, err
+	}
+	defer rows.Close()
+
+	// Step 3: Collect the interests into the UserAccount struct
+	var interests []string
+	for rows.Next() {
+		var interest string
+		if err := rows.Scan(&interest); err != nil {
+			uh.log.Errorf("Error scanning interest for user ID %d, error: %+v", tmu.Id, err)
+			return nil, err
+		}
+		interests = append(interests, interest)
+	}
+
+	// Assign interests to the user's profile
+	tmu.Interests = interests
+
+	uh.log.Infof("Successfully fetched profile and interests for user: %s", username)
 	return &tmu, nil
 }
 
@@ -131,22 +163,56 @@ func (uh *uDBHandler) CheckIfUsernameExist(username string) (*models.TheMonkeysU
 
 func (uh *uDBHandler) GetMyProfile(username string) (*models.UserProfileRes, error) {
 	var profile models.UserProfileRes
-	if err := uh.db.QueryRow(`
-			SELECT ua.account_id, ua.username, ua.first_name, ua.last_name, ua.email, ua.date_of_birth,
-			ua.bio, ua.avatar_url, ua.created_at, ua.updated_at, ua.address, ua.contact_number, us.status,
-			ua.view_permission, ua.linkedin, ua.github, ua.twitter, ua.instagram 
-			FROM user_account ua
-			INNER JOIN user_status us ON us.id = ua.user_status
-			WHERE ua.username = $1;
-		`, username).
+
+	// Step 1: Fetch user profile information
+	err := uh.db.QueryRow(`
+		SELECT ua.account_id, ua.username, ua.first_name, ua.last_name, ua.email, ua.date_of_birth,
+		ua.bio, ua.avatar_url, ua.created_at, ua.updated_at, ua.address, ua.contact_number, us.status,
+		ua.view_permission, ua.linkedin, ua.github, ua.twitter, ua.instagram 
+		FROM user_account ua
+		INNER JOIN user_status us ON us.id = ua.user_status
+		WHERE ua.username = $1;
+	`, username).
 		Scan(&profile.AccountId, &profile.Username, &profile.FirstName, &profile.LastName, &profile.Email,
 			&profile.DateOfBirth, &profile.Bio, &profile.AvatarUrl, &profile.CreatedAt, &profile.UpdatedAt,
 			&profile.Address, &profile.ContactNumber, &profile.UserStatus, &profile.ViewPermission,
-			&profile.LinkedIn, &profile.Github, &profile.Twitter, &profile.Instagram); err != nil {
-		logrus.Errorf("can't find a user profile existing with username %s, error: %+v", username, err)
+			&profile.LinkedIn, &profile.Github, &profile.Twitter, &profile.Instagram)
+
+	if err != nil {
+		logrus.Errorf("can't find a user profile with username %s, error: %+v", username, err)
 		return nil, err
 	}
 
+	// Step 2: Fetch user's interests by joining user_interest and topics tables
+	rows, err := uh.db.Query(`
+		SELECT t.description 
+		FROM topics t
+		JOIN user_interest ui ON t.id = ui.topics_id
+		JOIN user_account ua ON ua.id = ui.user_id
+		WHERE ua.username = $1;
+	`, username)
+
+	if err != nil {
+		logrus.Errorf("Error fetching interests for username %s, error: %+v", username, err)
+		return nil, err
+	}
+	defer rows.Close()
+
+	// Step 3: Collect the interests into the UserProfileRes struct
+	var interests []string
+	for rows.Next() {
+		var interest string
+		if err := rows.Scan(&interest); err != nil {
+			logrus.Errorf("Error scanning interest for user %s, error: %+v", username, err)
+			return nil, err
+		}
+		interests = append(interests, interest)
+	}
+
+	// Assign the collected interests to the profile
+	profile.Interests = interests
+
+	logrus.Infof("Successfully fetched profile and interests for user: %s", username)
 	return &profile, nil
 }
 

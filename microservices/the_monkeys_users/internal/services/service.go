@@ -62,6 +62,7 @@ func (us *UserSvc) GetUserProfile(ctx context.Context, req *pb.UserProfileReq) (
 			Instagram: userProfile.Instagram.String,
 			Twitter:   userProfile.Twitter.String,
 			Github:    userProfile.Github.String,
+			Topics:    userProfile.Interests,
 		}, nil
 
 	}
@@ -83,6 +84,7 @@ func (us *UserSvc) GetUserProfile(ctx context.Context, req *pb.UserProfileReq) (
 		}
 		return nil, status.Errorf(codes.Internal, "cannot get the user profile")
 	}
+	fmt.Printf("userDetails: %+v\n", userDetails)
 
 	return &pb.UserProfileRes{
 		AccountId:     userDetails.AccountId,
@@ -101,6 +103,7 @@ func (us *UserSvc) GetUserProfile(ctx context.Context, req *pb.UserProfileReq) (
 		Instagram:     userDetails.Instagram.String,
 		Twitter:       userDetails.Twitter.String,
 		Github:        userDetails.Github.String,
+		Topics:        userDetails.Interests,
 	}, err
 }
 
