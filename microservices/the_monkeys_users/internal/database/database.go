@@ -23,6 +23,7 @@ type UserDb interface {
 	CreateUserLog(user *models.UserLogs, description string) error
 	AddBlogWithId(models.TheMonkeysMessage) error
 	AddBlogPermission(models.TheMonkeysMessage) error
+	AddUserInterest(interest []string, username string) error
 
 	// Get queries
 	CheckIfEmailExist(email string) (*models.TheMonkeysUser, error)
@@ -33,7 +34,7 @@ type UserDb interface {
 	GetAllTopicsFromDb() (*pb.GetTopicsResponse, error)
 	GetAllCategories() (*pb.GetAllCategoriesRes, error)
 	GetUserActivities(userId int64) (*pb.UserActivityResp, error)
-
+	GetUserInterest(username string) ([]string, error)
 	// Update queries
 	UpdateUserProfile(username string, dbUserInfo *models.UserProfileRes) error
 	UpdateBlogStatusToPublish(blogId string, status string) error
@@ -457,4 +458,92 @@ func (uh *uDBHandler) CheckIfAccIdExist(accountId string) (*models.TheMonkeysUse
 	}
 
 	return &tmu, nil
+}
+
+func (uh *uDBHandler) AddUserInterest(interests []string, username string) error {
+	// Start a transaction
+	tx, err := uh.db.Begin()
+	if err != nil {
+		uh.log.Errorf("Failed to start transaction: %+v", err)
+		return err
+	}
+
+	// Step 1: Fetch the user ID based on username
+	var userId int64
+	err = tx.QueryRow(`SELECT id FROM user_account WHERE username = $1`, username).Scan(&userId)
+	if err != nil {
+		uh.log.Errorf("Failed to fetch user ID for username: %s, error: %+v", username, err)
+		tx.Rollback() // rollback transaction on error
+		return err
+	}
+
+	// Step 2: Iterate over the interests and insert them into the user_interest table
+	for _, interest := range interests {
+		// Fetch the topic ID based on the interest description
+		var topicId int
+		err = tx.QueryRow(`SELECT id FROM topics WHERE description = $1`, interest).Scan(&topicId)
+		if err != nil {
+			uh.log.Errorf("Failed to fetch topic ID for interest: %s, error: %+v", interest, err)
+			tx.Rollback() // rollback transaction on error
+			return err
+		}
+
+		// Insert into user_interest table
+		_, err = tx.Exec(`INSERT INTO user_interest (user_id, topics_id) VALUES ($1, $2)`, userId, topicId)
+		if err != nil {
+			uh.log.Errorf("Failed to insert user interest for username: %s and interest: %s, error: %+v", username, interest, err)
+			tx.Rollback() // rollback transaction on error
+			return err
+		}
+	}
+
+	// Step 3: Commit the transaction
+	if err := tx.Commit(); err != nil {
+		uh.log.Errorf("Failed to commit transaction: %+v", err)
+		return err
+	}
+
+	uh.log.Infof("Successfully added interests for user: %s", username)
+	return nil
+}
+
+func (uh *uDBHandler) GetUserInterest(username string) ([]string, error) {
+	// Step 1: Fetch the user ID based on username
+	var userId int64
+	err := uh.db.QueryRow(`SELECT id FROM user_account WHERE username = $1`, username).Scan(&userId)
+	if err != nil {
+		uh.log.Errorf("Failed to fetch user ID for username: %s, error: %+v", username, err)
+		return nil, err
+	}
+
+	// Step 2: Fetch the user's interests (topics) based on user_id
+	rows, err := uh.db.Query(`
+        SELECT t.description 
+        FROM topics t
+        JOIN user_interest ui ON t.id = ui.topics_id
+        WHERE ui.user_id = $1`, userId)
+	if err != nil {
+		uh.log.Errorf("Failed to fetch user interests for user ID: %d, error: %+v", userId, err)
+		return nil, err
+	}
+	defer rows.Close()
+
+	// Step 3: Collect the descriptions of the topics
+	var interests []string
+	for rows.Next() {
+		var description string
+		if err := rows.Scan(&description); err != nil {
+			uh.log.Errorf("Failed to scan topic description, error: %+v", err)
+			return nil, err
+		}
+		interests = append(interests, description)
+	}
+
+	if err := rows.Err(); err != nil {
+		uh.log.Errorf("Error iterating over user interests, error: %+v", err)
+		return nil, err
+	}
+
+	uh.log.Infof("Successfully fetched interests for user: %s", username)
+	return interests, nil
 }

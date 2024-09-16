@@ -34,6 +34,7 @@ type BlogServiceClient interface {
 	GetPublishedBlogByIdAndOwnerId(ctx context.Context, in *GetBlogByIdReq, opts ...grpc.CallOption) (*GetBlogByIdRes, error)
 	CheckIfBlogsExist(ctx context.Context, in *GetBlogByIdReq, opts ...grpc.CallOption) (*BlogExistsRes, error)
 	DeleteABlogByBlogId(ctx context.Context, in *DeleteBlogReq, opts ...grpc.CallOption) (*DeleteBlogResp, error)
+	DraftBlogV2(ctx context.Context, in *DraftBlogV2Req, opts ...grpc.CallOption) (*BlogV2Response, error)
 }
 
 type blogServiceClient struct {
@@ -152,6 +153,15 @@ func (c *blogServiceClient) DeleteABlogByBlogId(ctx context.Context, in *DeleteB
 	return out, nil
 }
 
+func (c *blogServiceClient) DraftBlogV2(ctx context.Context, in *DraftBlogV2Req, opts ...grpc.CallOption) (*BlogV2Response, error) {
+	out := new(BlogV2Response)
+	err := c.cc.Invoke(ctx, "/blog_svc.BlogService/DraftBlogV2", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // BlogServiceServer is the server API for BlogService service.
 // All implementations must embed UnimplementedBlogServiceServer
 // for forward compatibility
@@ -168,6 +178,7 @@ type BlogServiceServer interface {
 	GetPublishedBlogByIdAndOwnerId(context.Context, *GetBlogByIdReq) (*GetBlogByIdRes, error)
 	CheckIfBlogsExist(context.Context, *GetBlogByIdReq) (*BlogExistsRes, error)
 	DeleteABlogByBlogId(context.Context, *DeleteBlogReq) (*DeleteBlogResp, error)
+	DraftBlogV2(context.Context, *DraftBlogV2Req) (*BlogV2Response, error)
 	mustEmbedUnimplementedBlogServiceServer()
 }
 
@@ -210,6 +221,9 @@ func (UnimplementedBlogServiceServer) CheckIfBlogsExist(context.Context, *GetBlo
 }
 func (UnimplementedBlogServiceServer) DeleteABlogByBlogId(context.Context, *DeleteBlogReq) (*DeleteBlogResp, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DeleteABlogByBlogId not implemented")
+}
+func (UnimplementedBlogServiceServer) DraftBlogV2(context.Context, *DraftBlogV2Req) (*BlogV2Response, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DraftBlogV2 not implemented")
 }
 func (UnimplementedBlogServiceServer) mustEmbedUnimplementedBlogServiceServer() {}
 
@@ -440,6 +454,24 @@ func _BlogService_DeleteABlogByBlogId_Handler(srv interface{}, ctx context.Conte
 	return interceptor(ctx, in, info, handler)
 }
 
+func _BlogService_DraftBlogV2_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DraftBlogV2Req)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BlogServiceServer).DraftBlogV2(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/blog_svc.BlogService/DraftBlogV2",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BlogServiceServer).DraftBlogV2(ctx, req.(*DraftBlogV2Req))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // BlogService_ServiceDesc is the grpc.ServiceDesc for BlogService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -494,6 +526,10 @@ var BlogService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "DeleteABlogByBlogId",
 			Handler:    _BlogService_DeleteABlogByBlogId_Handler,
+		},
+		{
+			MethodName: "DraftBlogV2",
+			Handler:    _BlogService_DraftBlogV2_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

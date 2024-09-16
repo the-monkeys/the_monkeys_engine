@@ -19,6 +19,7 @@ const (
 	ChangedEmail                 = "Changed Email"
 	ChangedVisibilityToAnonymous = "Changed Visibility to Anonymous"
 	ChangedVisibilityToPublic    = "Changed Visibility to Public"
+	FollowedTopics               = "Followed topics: %v"
 
 	AddedInstagram = "Added Instagram"
 	AddedTwitter   = "Added Twitter"
