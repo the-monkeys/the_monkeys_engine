@@ -52,7 +52,8 @@ func RegisterUserRouter(router *gin.Engine, cfg *config.Config, authClient *auth
 
 	{
 		routes.GET("/activities/:user_name", usc.GetUserActivities)
-		routes.PUT("/topics/:user_name", usc.FollowTopic)
+		routes.PUT("/follow-topics/:user_name", usc.FollowTopic)
+		routes.PUT("/un-follow-topics/:user_name", usc.UnFollowTopic)
 	}
 
 	// Invite and un invite as coauthor
@@ -268,7 +269,46 @@ func (asc *UserServiceClient) FollowTopic(ctx *gin.Context) {
 		return
 	}
 
-	res, err := asc.Client.FollowTopics(context.Background(), &pb.FollowTopicReq{
+	res, err := asc.Client.FollowTopics(context.Background(), &pb.TopicActionReq{
+		Username: username,
+		Topic:    req.Topics,
+	})
+
+	if err != nil {
+		if status, ok := status.FromError(err); ok {
+			switch status.Code() {
+			case codes.InvalidArgument:
+				ctx.AbortWithStatusJSON(http.StatusNotFound, gin.H{"message": "invalid request body"})
+				return
+			case codes.NotFound:
+				ctx.AbortWithStatusJSON(http.StatusNotFound, gin.H{"message": "the user does not exist"})
+				return
+			default:
+				ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"message": "something went wrong"})
+				return
+			}
+		}
+	}
+
+	ctx.JSON(http.StatusOK, &res)
+}
+
+func (asc *UserServiceClient) UnFollowTopic(ctx *gin.Context) {
+	username := ctx.Param("user_name")
+
+	if username != ctx.GetString("userName") {
+		ctx.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"message": "you are not allow to perform this action"})
+		return
+	}
+
+	var req FollowTopic
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		logrus.Errorf("error while getting the update data: %v", err)
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "Invalid request body"})
+		return
+	}
+
+	res, err := asc.Client.UnFollowTopics(context.Background(), &pb.TopicActionReq{
 		Username: username,
 		Topic:    req.Topics,
 	})
