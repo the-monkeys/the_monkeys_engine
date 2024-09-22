@@ -9,6 +9,8 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
 	"github.com/the-monkeys/the_monkeys/apis/serviceconn/gateway_authz/pb"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 type AuthMiddlewareConfig struct {
@@ -87,20 +89,68 @@ func (c *AuthMiddlewareConfig) AuthzRequired(ctx *gin.Context) {
 	})
 
 	if err != nil || accessResp.StatusCode != http.StatusOK {
-		logrus.Errorf("Error in authorization: %v\n", err)
-		ctx.AbortWithStatusJSON(http.StatusUnauthorized, Authorization{AuthorizationStatus: false, Error: "unauthorized"})
-		return
+		if status, ok := status.FromError(err); ok {
+			switch status.Code() {
+			case codes.Unauthenticated:
+				ctx.AbortWithStatusJSON(http.StatusUnauthorized, Authorization{AuthorizationStatus: false, Error: "you are not authorized to perform this action now"})
+				return
+			default:
+				ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"message": "something went wrong"})
+				return
+			}
+		}
 	}
+
+	fmt.Printf("res: %+v\n", accessResp)
 
 	ctx.Set("accountId", res.AccountId)
 	ctx.Set("user_access_level", accessResp.Access)
+	ctx.Set("user_role", accessResp.Role)
 
+	fmt.Printf("accessResp.Role: %v\n", accessResp.Role)
 	ctx.Next()
 }
 
-func (c *AuthMiddlewareConfig) CanPublish(ctx *gin.Context) {
-	// TODO: Check if the user can publish access
-	logrus.Infof("The user has published access to the blog!")
+// Middleware to check authorization with specific access level
+func (c *AuthMiddlewareConfig) BlogsAuthorization(ctx *gin.Context) {
+	res, err := c.validateToken(ctx)
+	if err != nil {
+		return
+	}
+
+	blogID := ctx.Param("blog_id")
+	userName := res.UserName
+	email := ctx.Param("email")
+	// ids := ctx.Query("ids")
+	// blogIds := strings.Split(ids, ",")
+
+	accessResp, err := c.svc.Client.CheckAccessLevel(context.Background(), &pb.AccessCheckReq{
+		// Token:     res,
+		Email:     email,
+		AccountId: res.AccountId,
+		UserName:  userName,
+		BlogId:    blogID,
+	})
+
+	if err != nil || accessResp.StatusCode != http.StatusOK {
+		if status, ok := status.FromError(err); ok {
+			switch status.Code() {
+			case codes.Unauthenticated:
+				ctx.AbortWithStatusJSON(http.StatusUnauthorized, Authorization{AuthorizationStatus: false, Error: "you are not authorized to perform this action now"})
+				return
+			default:
+				ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"message": "something went wrong"})
+				return
+			}
+		}
+	}
+
+	fmt.Printf("res: %+v\n", accessResp)
+	ctx.Set("accountId", res.AccountId)
+	ctx.Set("user_access_level", accessResp.Access)
+	ctx.Set("user_role", accessResp.Role)
+
+	fmt.Printf("accessResp.Role: %v\n", accessResp.Role)
 	ctx.Next()
 }
 
