@@ -64,6 +64,9 @@ func RegisterUserRouter(router *gin.Engine, cfg *config.Config, authClient *auth
 		routes.POST("/revoke-invite/:blog_id/", mware.AuthzRequired, usc.RevokeInviteCoAuthor)
 		routes.GET("/all-blogs/:username", usc.GetBlogsByUserName)
 	}
+	{
+		routes.POST("/topics", usc.CreateNewTopics)
+	}
 
 	return usc
 }
@@ -460,4 +463,37 @@ func (asc *UserServiceClient) GetBlogsByUserName(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusOK, &res)
+}
+
+func (asc *UserServiceClient) CreateNewTopics(ctx *gin.Context) {
+	userName := ctx.GetString("userName")
+
+	var req Topics
+
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "Invalid request body"})
+		return
+	}
+
+	res, err := asc.Client.CreateNewTopics(context.Background(), &pb.CreateTopicsReq{
+		Topics:   req.Topics,
+		Category: req.Category,
+		Username: userName,
+		Ip:       ctx.Request.Header.Get("Ip"),
+		Client:   ctx.Request.Header.Get("Client"),
+	})
+
+	if err != nil {
+		if status, ok := status.FromError(err); ok {
+			switch status.Code() {
+			case codes.InvalidArgument:
+				ctx.AbortWithStatusJSON(http.StatusNotFound, gin.H{"message": "invalid request body"})
+				return
+			default:
+				ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"message": "something went wrong"})
+				return
+			}
+		}
+	}
+	ctx.JSON(http.StatusOK, res)
 }

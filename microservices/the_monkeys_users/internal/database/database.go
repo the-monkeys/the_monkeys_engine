@@ -24,6 +24,7 @@ type UserDb interface {
 	AddBlogWithId(models.TheMonkeysMessage) error
 	AddUserInterest(interest []string, username string) error
 	AddPermissionToAUser(blogId string, userId int64, inviterID string, permissionType string) error
+	CreateNewTopics(topics []string, category, username string) error
 
 	// Get queries
 	CheckIfEmailExist(email string) (*models.TheMonkeysUser, error)

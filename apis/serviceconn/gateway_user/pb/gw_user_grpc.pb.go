@@ -31,6 +31,7 @@ const (
 	UserService_InviteCoAuthor_FullMethodName        = "/auth_svc.UserService/InviteCoAuthor"
 	UserService_RevokeCoAuthorAccess_FullMethodName  = "/auth_svc.UserService/RevokeCoAuthorAccess"
 	UserService_GetBlogsByUserName_FullMethodName    = "/auth_svc.UserService/GetBlogsByUserName"
+	UserService_CreateNewTopics_FullMethodName       = "/auth_svc.UserService/CreateNewTopics"
 )
 
 // UserServiceClient is the client API for UserService service.
@@ -54,6 +55,7 @@ type UserServiceClient interface {
 	// Revoke co author invitation access
 	RevokeCoAuthorAccess(ctx context.Context, in *CoAuthorAccessReq, opts ...grpc.CallOption) (*CoAuthorAccessRes, error)
 	GetBlogsByUserName(ctx context.Context, in *BlogsByUserNameReq, opts ...grpc.CallOption) (*BlogsByUserNameRes, error)
+	CreateNewTopics(ctx context.Context, in *CreateTopicsReq, opts ...grpc.CallOption) (*CreateTopicsRes, error)
 }
 
 type userServiceClient struct {
@@ -184,6 +186,16 @@ func (c *userServiceClient) GetBlogsByUserName(ctx context.Context, in *BlogsByU
 	return out, nil
 }
 
+func (c *userServiceClient) CreateNewTopics(ctx context.Context, in *CreateTopicsReq, opts ...grpc.CallOption) (*CreateTopicsRes, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(CreateTopicsRes)
+	err := c.cc.Invoke(ctx, UserService_CreateNewTopics_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // UserServiceServer is the server API for UserService service.
 // All implementations must embed UnimplementedUserServiceServer
 // for forward compatibility.
@@ -205,6 +217,7 @@ type UserServiceServer interface {
 	// Revoke co author invitation access
 	RevokeCoAuthorAccess(context.Context, *CoAuthorAccessReq) (*CoAuthorAccessRes, error)
 	GetBlogsByUserName(context.Context, *BlogsByUserNameReq) (*BlogsByUserNameRes, error)
+	CreateNewTopics(context.Context, *CreateTopicsReq) (*CreateTopicsRes, error)
 	mustEmbedUnimplementedUserServiceServer()
 }
 
@@ -250,6 +263,9 @@ func (UnimplementedUserServiceServer) RevokeCoAuthorAccess(context.Context, *CoA
 }
 func (UnimplementedUserServiceServer) GetBlogsByUserName(context.Context, *BlogsByUserNameReq) (*BlogsByUserNameRes, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetBlogsByUserName not implemented")
+}
+func (UnimplementedUserServiceServer) CreateNewTopics(context.Context, *CreateTopicsReq) (*CreateTopicsRes, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CreateNewTopics not implemented")
 }
 func (UnimplementedUserServiceServer) mustEmbedUnimplementedUserServiceServer() {}
 func (UnimplementedUserServiceServer) testEmbeddedByValue()                     {}
@@ -488,6 +504,24 @@ func _UserService_GetBlogsByUserName_Handler(srv interface{}, ctx context.Contex
 	return interceptor(ctx, in, info, handler)
 }
 
+func _UserService_CreateNewTopics_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateTopicsReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserServiceServer).CreateNewTopics(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: UserService_CreateNewTopics_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserServiceServer).CreateNewTopics(ctx, req.(*CreateTopicsReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // UserService_ServiceDesc is the grpc.ServiceDesc for UserService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -542,6 +576,10 @@ var UserService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetBlogsByUserName",
 			Handler:    _UserService_GetBlogsByUserName_Handler,
+		},
+		{
+			MethodName: "CreateNewTopics",
+			Handler:    _UserService_CreateNewTopics_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

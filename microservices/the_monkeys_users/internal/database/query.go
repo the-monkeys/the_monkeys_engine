@@ -206,3 +206,56 @@ func (uh *uDBHandler) GetBlogsByAccountId(accountId string) (*pb.BlogsByUserName
 		Blogs: blogs,
 	}, nil
 }
+
+func (uh *uDBHandler) CreateNewTopics(topics []string, category, username string) error {
+	// Start a transaction
+	tx, err := uh.db.Begin()
+	if err != nil {
+		uh.log.Errorf("Failed to start transaction: %+v", err)
+		return err
+	}
+
+	// Step 1: Fetch the user ID based on username
+	var userId int64
+	err = tx.QueryRow(`SELECT id FROM user_account WHERE username = $1`, username).Scan(&userId)
+	if err != nil {
+		uh.log.Errorf("Failed to fetch user ID for username: %s, error: %+v", username, err)
+		tx.Rollback() // rollback transaction on error
+		return err
+	}
+
+	// Step 2: Iterate over the interests and insert them into the user_interest table
+	for _, topic := range topics {
+		// Check if the user is already following this interest
+		var exists int
+		err = tx.QueryRow(`SELECT COUNT(1) FROM topics WHERE description = $1`, topic).Scan(&exists)
+		if err != nil {
+			uh.log.Errorf("Failed to check if the topic already exists: %s, error: %+v", topic, err)
+			tx.Rollback() // rollback transaction on error
+			return err
+		}
+
+		// If the user is already following the interest, skip the insert and log it
+		if exists > 0 {
+			uh.log.Infof("Topic %s already exists", topic)
+			continue
+		}
+
+		// Insert into user_interest table for interests not already followed
+		_, err = tx.Exec(`INSERT INTO topics (description, category, user_id) VALUES ($1, $2, $3)`, topic, category, userId)
+		if err != nil {
+			uh.log.Errorf("Failed to insert topic %s for username: %s, error: %+v", topic, username, err)
+			tx.Rollback() // rollback transaction on error
+			return err
+		}
+	}
+
+	// Step 4: Commit the transaction
+	if err := tx.Commit(); err != nil {
+		uh.log.Errorf("Failed to commit transaction: %+v", err)
+		return err
+	}
+
+	uh.log.Infof("Successfully added new interests for user: %s", username)
+	return nil
+}

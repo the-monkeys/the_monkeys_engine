@@ -410,7 +410,7 @@ func (us *UserSvc) RevokeCoAuthorAccess(ctx context.Context, req *pb.CoAuthorAcc
 
 	userLog.IpAddress, userLog.Client = utils.IpClientConvert(req.Ip, req.Client)
 
-	go cache.AddUserLog(us.dbConn, userLog, fmt.Sprintf(constants.RevokedCoAuthorRequest, req.Username, req.BlogId), constants.ServiceUser, constants.RemoveCoAuthor, us.log)
+	go cache.AddUserLog(us.dbConn, userLog, fmt.Sprintf(constants.RevokedCoAuthorRequest, req.Username, req.BlogId), constants.ServiceUser, constants.EventRemoveCoAuthor, us.log)
 
 	return &pb.CoAuthorAccessRes{
 		Message: fmt.Sprintf("%s has been removed from co-author", req.Username),
@@ -431,4 +431,35 @@ func (us *UserSvc) GetBlogsByUserName(ctx context.Context, req *pb.BlogsByUserNa
 	}
 
 	return resp, nil
+}
+
+func (us *UserSvc) CreateNewTopics(ctx context.Context, req *pb.CreateTopicsReq) (*pb.CreateTopicsRes, error) {
+	us.log.Infof("fetching co-authors for user: %s", req.Username)
+	if len(req.Topics) == 0 {
+		us.log.Errorf("user %s has entered no topic", req.Username)
+		return nil, status.Errorf(codes.InvalidArgument, "there is no topic")
+	}
+
+	err := us.dbConn.CreateNewTopics(req.Topics, req.Category, req.Username)
+	if err != nil {
+		us.log.Errorf("error while fetching co-authors for user %s, err: %v", req.Username, err)
+		if err == sql.ErrNoRows {
+			return nil, status.Errorf(codes.NotFound, fmt.Sprintf("co-authors for user %s doesn't exist", req.Username))
+		}
+
+		return nil, status.Errorf(codes.Internal, "something went wrong")
+	}
+
+	usa, _ := us.dbConn.CheckIfUsernameExist(req.Username)
+
+	userLog := &models.UserLogs{
+		AccountId: usa.AccountId,
+	}
+
+	go cache.AddUserLog(us.dbConn, userLog, fmt.Sprintf(constants.CreatedTopics, req.Topics), constants.ServiceUser, constants.EventCreateTopics, us.log)
+
+	return &pb.CreateTopicsRes{
+		Status:  http.StatusOK,
+		Message: fmt.Sprintf("topics %v has been created successfully", req.Topics),
+	}, nil
 }

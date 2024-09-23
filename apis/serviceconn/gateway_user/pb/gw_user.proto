@@ -193,6 +193,20 @@ message BlogsByUserNameRes{
     repeated Blog blogs = 1;
 }
 
+message CreateTopicsReq {
+    repeated string topics = 1;
+    string category = 2;
+    string username = 3;
+    string ip = 4;
+    string client = 5;
+}
+
+message CreateTopicsRes {
+    int32 status = 1;
+    string message = 2;
+    string error = 3;
+}
+
 service UserService {
     rpc GetUserActivities(UserActivityReq) returns (UserActivityResp) {}
     rpc GetUserProfile(UserProfileReq) returns (UserProfileRes) {}
@@ -213,5 +227,6 @@ service UserService {
     // Revoke co author invitation access
     rpc RevokeCoAuthorAccess(CoAuthorAccessReq) returns (CoAuthorAccessRes) {}
     rpc GetBlogsByUserName(BlogsByUserNameReq) returns (BlogsByUserNameRes) {}
+    rpc CreateNewTopics(CreateTopicsReq) returns (CreateTopicsRes) {}
 }
 
