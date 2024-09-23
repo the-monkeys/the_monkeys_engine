@@ -61,7 +61,7 @@ func RegisterUserRouter(router *gin.Engine, cfg *config.Config, authClient *auth
 	// Invite and un invite as coauthor
 	{
 		routes.POST("/invite/:blog_id/", mware.AuthzRequired, usc.InviteCoAuthor)
-		routes.POST("/revoke-invite/:blog_id/", usc.RevokeInviteCoAuthor)
+		routes.POST("/revoke-invite/:blog_id/", mware.AuthzRequired, usc.RevokeInviteCoAuthor)
 		routes.GET("/all-blogs/:username", usc.GetBlogsByUserName)
 	}
 
@@ -387,7 +387,48 @@ func (asc *UserServiceClient) InviteCoAuthor(ctx *gin.Context) {
 }
 
 func (asc *UserServiceClient) RevokeInviteCoAuthor(ctx *gin.Context) {
+	blogId := ctx.Param("blog_id")
+	userName := ctx.GetString("userName")
+	// Check permissions:
+	if !utils.CheckUserRoleInContext(ctx, constants.RoleOwner) {
+		ctx.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"message": "you are not allowed to perform this action"})
+		return
+	}
+	// accId := ctx.GetString("accountId")
 
+	var req CoAuthor
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "Invalid request body"})
+		return
+	}
+
+	res, err := asc.Client.RevokeCoAuthorAccess(context.Background(), &pb.CoAuthorAccessReq{
+		AccountId:         req.AccountId,
+		Username:          req.Username,
+		Email:             req.Email,
+		Ip:                req.Ip,
+		Client:            req.Client,
+		BlogOwnerUsername: userName,
+		BlogId:            blogId,
+	})
+
+	if err != nil {
+		if status, ok := status.FromError(err); ok {
+			switch status.Code() {
+			case codes.InvalidArgument:
+				ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"message": "invalid request body"})
+				return
+			case codes.NotFound:
+				ctx.AbortWithStatusJSON(http.StatusNotFound, gin.H{"message": "the user/blog does not exist"})
+				return
+			default:
+				ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"message": "something went wrong"})
+				return
+			}
+		}
+	}
+
+	ctx.JSON(http.StatusOK, &res)
 }
 
 func (asc *UserServiceClient) GetBlogsByUserName(ctx *gin.Context) {

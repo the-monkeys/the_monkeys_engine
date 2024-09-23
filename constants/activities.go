@@ -37,7 +37,7 @@ const (
 	ShareBlog                = "Shared a Blog with %s"
 	TransferredBlogOwnership = "Transferred Blog Ownership to %s"
 	InvitedAsACoAuthor       = "Invited %s as a Co-Author for blog id %s"
-	RevokedCoAuthorRequest   = "Revoked as a Co-Author sent to %s"
+	RevokedCoAuthorRequest   = "Removed %s from Co-Author for blog id %s"
 	RemovedFromCoAuthor      = "Removed %s from Co-Author"
 	GotInvitedAsACoAuthor    = "Invited by %s as a Co-Author"
 	GotRemovedFromCoAuthor   = "Removed by %s form a Co-Author"

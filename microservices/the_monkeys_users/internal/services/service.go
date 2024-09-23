@@ -366,7 +366,6 @@ func (us *UserSvc) InviteCoAuthor(ctx context.Context, req *pb.CoAuthorAccessReq
 		return nil, status.Errorf(codes.Internal, "something went wrong")
 	}
 
-	fmt.Printf("resp*****: %+v\n", resp)
 	// Invite the co-author
 	if err := us.dbConn.AddPermissionToAUser(req.BlogId, resp.Id, req.BlogOwnerUsername, constants.RoleEditor); err != nil {
 		logrus.Errorf("error while inviting the co-author: %v", err)
@@ -386,13 +385,39 @@ func (us *UserSvc) InviteCoAuthor(ctx context.Context, req *pb.CoAuthorAccessReq
 	}, nil
 }
 func (us *UserSvc) RevokeCoAuthorAccess(ctx context.Context, req *pb.CoAuthorAccessReq) (*pb.CoAuthorAccessRes, error) {
-	panic("implement me")
+	us.log.Infof("user %s has requested to invite %s as a co-author.", req.BlogOwnerUsername, req.Username)
+	resp, err := us.dbConn.CheckIfUsernameExist(req.Username)
+	if err != nil {
+		logrus.Errorf("error while checking if the username exists for user %s, err: %v", req.Username, err)
+		if err == sql.ErrNoRows {
+			return nil, status.Errorf(codes.NotFound, fmt.Sprintf("user %s doesn't exist", req.Username))
+		}
+		return nil, status.Errorf(codes.Internal, "something went wrong")
+	}
+
+	// Invite the co-author
+	if err := us.dbConn.RevokeBlogPermissionFromAUser(req.BlogId, resp.Id, constants.RoleEditor); err != nil {
+		logrus.Errorf("error while inviting the co-author: %v", err)
+		return nil, status.Errorf(codes.Internal, "something went wrong")
+	}
+
+	userLog := &models.UserLogs{
+		AccountId: resp.AccountId,
+	}
+
+	userLog.IpAddress, userLog.Client = utils.IpClientConvert(req.Ip, req.Client)
+
+	go cache.AddUserLog(us.dbConn, userLog, fmt.Sprintf(constants.RevokedCoAuthorRequest, req.Username, req.BlogId), constants.ServiceUser, constants.RemoveCoAuthor, us.log)
+
+	return &pb.CoAuthorAccessRes{
+		Message: fmt.Sprintf("%s has been removed from co-author", req.Username),
+	}, nil
 }
 
 func (us *UserSvc) GetBlogsByUserName(ctx context.Context, req *pb.BlogsByUserNameReq) (*pb.BlogsByUserNameRes, error) {
 	us.log.Infof("fetching blogs for user: %s", req.Username)
 
-	resp, err := us.dbConn.GetBlogsByUserName(req.Username)
+	resp, err := us.dbConn.GetBlogsByAccountId(req.Username)
 	if err != nil {
 		us.log.Errorf("error while fetching blogs for user %s, err: %v", req.Username, err)
 		if err == sql.ErrNoRows {
