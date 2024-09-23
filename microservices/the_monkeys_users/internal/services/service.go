@@ -372,8 +372,9 @@ func (us *UserSvc) InviteCoAuthor(ctx context.Context, req *pb.CoAuthorAccessReq
 		return nil, status.Errorf(codes.Internal, "something went wrong")
 	}
 
+	usa, _ := us.dbConn.CheckIfUsernameExist(req.BlogOwnerUsername)
 	userLog := &models.UserLogs{
-		AccountId: resp.AccountId,
+		AccountId: usa.AccountId,
 	}
 
 	userLog.IpAddress, userLog.Client = utils.IpClientConvert(req.Ip, req.Client)
@@ -401,8 +402,10 @@ func (us *UserSvc) RevokeCoAuthorAccess(ctx context.Context, req *pb.CoAuthorAcc
 		return nil, status.Errorf(codes.Internal, "something went wrong")
 	}
 
+	usa, _ := us.dbConn.CheckIfUsernameExist(req.BlogOwnerUsername)
+
 	userLog := &models.UserLogs{
-		AccountId: resp.AccountId,
+		AccountId: usa.AccountId,
 	}
 
 	userLog.IpAddress, userLog.Client = utils.IpClientConvert(req.Ip, req.Client)

@@ -23,7 +23,7 @@ type UserServiceClient struct {
 }
 
 func NewUserServiceClient(cfg *config.Config) pb.UserServiceClient {
-	cc, err := grpc.Dial(cfg.Microservices.TheMonkeysUser, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	cc, err := grpc.NewClient(cfg.Microservices.TheMonkeysUser, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		logrus.Errorf("cannot dial to grpc user server: %v", err)
 	}

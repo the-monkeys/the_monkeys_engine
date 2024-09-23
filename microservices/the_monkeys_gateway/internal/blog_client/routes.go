@@ -41,7 +41,7 @@ type BlogServiceClient struct {
 }
 
 func NewBlogServiceClient(cfg *config.Config) pb.BlogServiceClient {
-	cc, err := grpc.Dial(cfg.Microservices.TheMonkeysBlog, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	cc, err := grpc.NewClient(cfg.Microservices.TheMonkeysBlog, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		logrus.Errorf("cannot dial to blog server: %v", err)
 	}
