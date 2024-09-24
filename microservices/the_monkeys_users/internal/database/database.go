@@ -39,6 +39,7 @@ type UserDb interface {
 	GetBlogsByUserName(username string) (*pb.BlogsByUserNameRes, error)
 	GetBlogsByUserIdWithEditorAccess(accountId int64) (*pb.BlogsByUserNameRes, error)
 	GetBlogsByAccountId(accountId string) (*pb.BlogsByUserNameRes, error)
+	GetCoAuthorBlogsByAccountId(accountId string) (*pb.BlogsByUserNameRes, error)
 
 	// Update queries
 	UpdateUserProfile(username string, dbUserInfo *models.UserProfileRes) error

@@ -175,6 +175,14 @@ func (us *UserSvc) UpdateUserProfile(ctx context.Context, req *pb.UpdateUserProf
 	}, err
 }
 
+// TODO: Design a pipeline
+// 1. Delete all the blogs of the user
+// 2. Delete all the comments of the user
+// 3. Delete all the likes of the user
+// 4. Delete all the user interests
+// 5. Delete the topics of the user
+// 6. Send User a mail
+// 8. Delete the user
 func (us *UserSvc) DeleteUserProfile(ctx context.Context, req *pb.DeleteUserProfileReq) (*pb.DeleteUserProfileRes, error) {
 	us.log.Infof("user %s has requested to delete the  profile.", req.Username)
 
@@ -385,6 +393,7 @@ func (us *UserSvc) InviteCoAuthor(ctx context.Context, req *pb.CoAuthorAccessReq
 		Message: fmt.Sprintf("%s has been invited as a co-author", req.Username),
 	}, nil
 }
+
 func (us *UserSvc) RevokeCoAuthorAccess(ctx context.Context, req *pb.CoAuthorAccessReq) (*pb.CoAuthorAccessRes, error) {
 	us.log.Infof("user %s has requested to invite %s as a co-author.", req.BlogOwnerUsername, req.Username)
 	resp, err := us.dbConn.CheckIfUsernameExist(req.Username)
@@ -420,7 +429,7 @@ func (us *UserSvc) RevokeCoAuthorAccess(ctx context.Context, req *pb.CoAuthorAcc
 func (us *UserSvc) GetBlogsByUserName(ctx context.Context, req *pb.BlogsByUserNameReq) (*pb.BlogsByUserNameRes, error) {
 	us.log.Infof("fetching blogs for user: %s", req.Username)
 
-	resp, err := us.dbConn.GetBlogsByAccountId(req.Username)
+	resp, err := us.dbConn.GetCoAuthorBlogsByAccountId(req.Username)
 	if err != nil {
 		us.log.Errorf("error while fetching blogs for user %s, err: %v", req.Username, err)
 		if err == sql.ErrNoRows {
@@ -455,7 +464,7 @@ func (us *UserSvc) CreateNewTopics(ctx context.Context, req *pb.CreateTopicsReq)
 	userLog := &models.UserLogs{
 		AccountId: usa.AccountId,
 	}
-
+	userLog.IpAddress, userLog.Client = utils.IpClientConvert(req.Ip, req.Client)
 	go cache.AddUserLog(us.dbConn, userLog, fmt.Sprintf(constants.CreatedTopics, req.Topics), constants.ServiceUser, constants.EventCreateTopics, us.log)
 
 	return &pb.CreateTopicsRes{
