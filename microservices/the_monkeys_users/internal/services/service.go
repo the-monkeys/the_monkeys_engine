@@ -426,20 +426,38 @@ func (us *UserSvc) RevokeCoAuthorAccess(ctx context.Context, req *pb.CoAuthorAcc
 	}, nil
 }
 
-func (us *UserSvc) GetBlogsByUserName(ctx context.Context, req *pb.BlogsByUserNameReq) (*pb.BlogsByUserNameRes, error) {
-	us.log.Infof("fetching blogs for user: %s", req.Username)
+func (us *UserSvc) GetBlogsByUserIds(ctx context.Context, req *pb.BlogsByUserIdsReq) (*pb.BlogsByUserNameRes, error) {
+	us.log.Infof("fetching blogs for user: %s", req.AccountId)
 
-	resp, err := us.dbConn.GetCoAuthorBlogsByAccountId(req.Username)
-	if err != nil {
-		us.log.Errorf("error while fetching blogs for user %s, err: %v", req.Username, err)
-		if err == sql.ErrNoRows {
-			return nil, status.Errorf(codes.NotFound, fmt.Sprintf("blogs for user %s doesn't exist", req.Username))
+	switch req.Type {
+	case "colab":
+		resp, err := us.dbConn.GetCoAuthorBlogsByAccountId(req.AccountId)
+		if err != nil {
+			us.log.Errorf("error while fetching blogs for user %s, err: %v", req.Username, err)
+			if err == sql.ErrNoRows {
+				return nil, status.Errorf(codes.NotFound, fmt.Sprintf("blogs for user %s doesn't exist", req.Username))
+			}
+
+			return nil, status.Errorf(codes.Internal, "something went wrong")
 		}
 
-		return nil, status.Errorf(codes.Internal, "something went wrong")
-	}
+		return resp, nil
 
-	return resp, nil
+	case "bookmark":
+		resp, err := us.dbConn.GetBookmarkBlogsByAccountId(req.AccountId)
+		if err != nil {
+			us.log.Errorf("error while fetching blogs for user %s, err: %v", req.Username, err)
+			if err == sql.ErrNoRows {
+				return nil, status.Errorf(codes.NotFound, fmt.Sprintf("blogs for user %s doesn't exist", req.Username))
+			}
+
+			return nil, status.Errorf(codes.Internal, "something went wrong")
+		}
+
+		return resp, nil
+	default:
+		return nil, status.Errorf(codes.Internal, "We don't support this operation")
+	}
 }
 
 func (us *UserSvc) CreateNewTopics(ctx context.Context, req *pb.CreateTopicsReq) (*pb.CreateTopicsRes, error) {

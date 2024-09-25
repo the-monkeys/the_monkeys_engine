@@ -82,7 +82,7 @@ func RegisterBlogRouter(router *gin.Engine, cfg *config.Config, authClient *auth
 
 	routes.GET("/my-drafts/:blog_id", mware.AuthzRequired, blogClient.GetDraftBlogByBlogId)
 
-	// routes.GET("/ids", blogClient.GetAllBlogsByBlogIds)
+	routes.GET("/all/bookmarks", blogClient.GetBookmarks)
 
 	routes.DELETE("/:blog_id", mware.AuthzRequired, blogClient.DeleteBlogById)
 
@@ -223,7 +223,7 @@ func (asc *BlogServiceClient) AllCollabBlogs(ctx *gin.Context) {
 	}
 
 	// Get all the drafted blogs
-	uc, err := asc.userCli.GetColabBlogs(accId)
+	uc, err := asc.userCli.GetBlogsIds(accId, "colab")
 	if err != nil {
 		logrus.Errorf("cannot get the colab blogs, error: %v", err)
 		if status, ok := status.FromError(err); ok {
@@ -555,6 +555,58 @@ func (asc *BlogServiceClient) DeleteBlogById(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusOK, res)
+}
+
+func (asc *BlogServiceClient) GetBookmarks(ctx *gin.Context) {
+	tokenAccountId := ctx.GetString("accountId")
+
+	// Get all the drafted blogs
+	uc, err := asc.userCli.GetBlogsIds(tokenAccountId, "bookmark")
+	if err != nil {
+		logrus.Errorf("cannot get the bookmarked blogs, error: %v", err)
+		if status, ok := status.FromError(err); ok {
+			switch status.Code() {
+			case codes.NotFound:
+				ctx.AbortWithStatusJSON(http.StatusNotFound, gin.H{"message": "cannot find the bookmarked blogs"})
+				return
+			case codes.Internal:
+				ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"message": "cannot get the bookmarked blogs"})
+				return
+			default:
+				ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"message": "unknown error"})
+				return
+			}
+		}
+	}
+
+	fmt.Printf("uc: %+v\n", uc)
+
+	blogId := []string{}
+
+	for _, blog := range uc.Blogs {
+		blogId = append(blogId, blog.BlogId)
+	}
+
+	resp, err := asc.Client.GetAllBlogsByBlogIds(context.Background(), &pb.GetBlogsByBlogIds{
+		BlogIds: blogId,
+	})
+	if err != nil {
+		if status, ok := status.FromError(err); ok {
+			switch status.Code() {
+			case codes.NotFound:
+				ctx.AbortWithStatusJSON(http.StatusNotFound, gin.H{"message": "the bookmarks do not exist"})
+				return
+			case codes.Internal:
+				ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"message": "cannot find the bookmarks"})
+				return
+			default:
+				ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"message": "unknown error"})
+				return
+			}
+		}
+	}
+
+	ctx.JSON(http.StatusOK, resp)
 }
 
 // TODO: Add access control over this function for all blogs

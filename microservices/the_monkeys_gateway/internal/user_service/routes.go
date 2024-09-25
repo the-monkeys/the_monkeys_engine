@@ -445,7 +445,7 @@ func (asc *UserServiceClient) GetBlogsByUserName(ctx *gin.Context) {
 		return
 	}
 
-	res, err := asc.Client.GetBlogsByUserName(context.Background(), &pb.BlogsByUserNameReq{
+	res, err := asc.Client.GetBlogsByUserIds(context.Background(), &pb.BlogsByUserIdsReq{
 		Username: username,
 	})
 

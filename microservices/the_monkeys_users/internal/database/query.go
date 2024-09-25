@@ -366,3 +366,62 @@ func (uh *uDBHandler) RemoveBookmarkFromBlog(blogId string, userId int64) error 
 	uh.log.Infof("Successfully removed bookmark from blog %s for user %d", blogId, userId)
 	return nil
 }
+
+// -- Creating blog bookmarks table
+// CREATE TABLE IF NOT EXISTS blog_bookmarks (
+//
+//	id SERIAL PRIMARY KEY,
+//	user_id BIGINT NOT NULL,
+//	blog_id BIGINT NOT NULL,
+//	created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+//	FOREIGN KEY (user_id) REFERENCES user_account(id) ON DELETE CASCADE ON UPDATE NO ACTION,
+//	FOREIGN KEY (blog_id) REFERENCES blog(id) ON DELETE CASCADE ON UPDATE NO ACTION
+//
+// );
+func (uh *uDBHandler) GetBookmarkBlogsByAccountId(accountId string) (*pb.BlogsByUserNameRes, error) {
+	// Step 1: Prepare the query
+	query := `
+	SELECT b.id, b.blog_id, ua.username
+	FROM blog b
+	JOIN blog_bookmarks bb ON b.id = bb.blog_id  -- Use 'b' here instead of 'blog'
+	JOIN user_account ua ON bb.user_id = ua.id
+	WHERE ua.account_id = $1;
+	`
+
+	// Step 2: Execute the query
+	rows, err := uh.db.Query(query, accountId)
+	if err != nil {
+		uh.log.Errorf("Error fetching blogs for username %s, error: %+v", accountId, err)
+		return nil, err
+	}
+	defer rows.Close()
+
+	// Step 3: Collect the results into a slice of Blog structs
+	var blogs []*pb.Blog
+	for rows.Next() {
+		var blog models.Blog
+		err := rows.Scan(&blog.Id, &blog.BlogId, &blog.Username)
+		if err != nil {
+			uh.log.Errorf("Error scanning blog data for username %s, error: %+v", accountId, err)
+			return nil, err
+		}
+		pbBlog := &pb.Blog{
+			Id:       blog.Id,
+			BlogId:   blog.BlogId,
+			Username: blog.Username,
+		}
+		blogs = append(blogs, pbBlog)
+	}
+
+	// Step 4: Check for errors after iterating over the rows
+	if err := rows.Err(); err != nil {
+		uh.log.Errorf("Row iteration error while fetching blogs for username %s, error: %+v", accountId, err)
+		return nil, err
+	}
+
+	uh.log.Infof("Successfully fetched blogs for user: %s", accountId)
+	return &pb.BlogsByUserNameRes{
+		Blogs: blogs,
+	}, nil
+
+}

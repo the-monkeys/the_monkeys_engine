@@ -177,8 +177,10 @@ message CoAuthorAccessRes {
     string message = 6;
 }
 
-message BlogsByUserNameReq{
+message BlogsByUserIdsReq{
     string username = 1;
+    string type = 2;
+    string account_id = 3;
 }
 
 message Blog {
@@ -242,7 +244,7 @@ service UserService {
     // Reject co author invitation
     // Revoke co author invitation access
     rpc RevokeCoAuthorAccess(CoAuthorAccessReq) returns (CoAuthorAccessRes) {}
-    rpc GetBlogsByUserName(BlogsByUserNameReq) returns (BlogsByUserNameRes) {}
+    rpc GetBlogsByUserIds(BlogsByUserIdsReq) returns (BlogsByUserNameRes) {}
     rpc CreateNewTopics(CreateTopicsReq) returns (CreateTopicsRes) {}
 }
 
