@@ -310,3 +310,59 @@ func (uh *uDBHandler) GetCoAuthorBlogsByAccountId(accountId string) (*pb.BlogsBy
 		Blogs: blogs,
 	}, nil
 }
+
+func (uh *uDBHandler) BookMarkABlog(blogId string, userId int64) error {
+	blogIdInt := 0
+	err := uh.db.QueryRow(`SELECT id FROM blog WHERE blog_id = $1`, blogId).Scan(&blogIdInt)
+	if err != nil {
+		uh.log.Errorf("Failed to fetch blog ID for blogId: %s, error: %+v", blogId, err)
+		return err
+	}
+
+	var exists int
+	err = uh.db.QueryRow(`SELECT COUNT(1) FROM blog_bookmarks WHERE user_id = $1 AND blog_id = $2`, userId, blogIdInt).Scan(&exists)
+	if err != nil {
+		uh.log.Errorf("Failed to check if the bookmark already exists: %s, error: %+v", blogId, err)
+		return err
+	}
+
+	if exists > 0 {
+		uh.log.Infof("bookmark already exists")
+		return nil
+	}
+
+	query := `
+		INSERT INTO blog_bookmarks (user_id, blog_id) VALUES ($1, $2);
+	`
+
+	_, err = uh.db.Exec(query, userId, blogIdInt)
+	if err != nil {
+		uh.log.Errorf("Error bookmarking blog %s for user %d, error: %+v", blogId, userId, err)
+		return err
+	}
+
+	uh.log.Infof("Successfully bookmarked blog %s for user %d", blogId, userId)
+	return nil
+}
+
+func (uh *uDBHandler) RemoveBookmarkFromBlog(blogId string, userId int64) error {
+	blogIdInt := 0
+	err := uh.db.QueryRow(`SELECT id FROM blog WHERE blog_id = $1`, blogId).Scan(&blogIdInt)
+	if err != nil {
+		uh.log.Errorf("Failed to fetch blog ID for blogId: %s, error: %+v", blogId, err)
+		return err
+	}
+
+	query := `
+		DELETE FROM blog_bookmarks WHERE user_id = $1 AND blog_id = $2;
+	`
+
+	_, err = uh.db.Exec(query, userId, blogIdInt)
+	if err != nil {
+		uh.log.Errorf("Error removing bookmark from blog %s for user %d, error: %+v", blogId, userId, err)
+		return err
+	}
+
+	uh.log.Infof("Successfully removed bookmark from blog %s for user %d", blogId, userId)
+	return nil
+}

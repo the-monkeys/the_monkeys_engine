@@ -48,4 +48,6 @@ const (
 	PublishedABlogAsCoAuthor = "Published a Blog as a Co-Author"
 	ArchivedABlogAsCoAuthor  = "Archived a Blog as a Co-Author"
 	DraftedABlogAsCoAuthor   = "Drafted a Blog as a Co-Author"
+	BookMarkedBlog           = "Bookmarked a Blog, blog id %s"
+	RemoveBookMark           = "Removed Bookmark from a Blog, blog id %s"
 )

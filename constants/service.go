@@ -16,6 +16,8 @@ const (
 	EventFollowTopics      = "event-follow-topics"
 	EventUnFollowTopics    = "event-un-follow-topics"
 	EventCreateTopics      = "event-create-topics"
+	EventBookMarkBlog      = "event-bookmark-blog"
+	EventRemoveBookMark    = "event-remove-bookmark"
 
 	EventCreatedBlog    = "event-created-blog"
 	EventPublishedBlog  = "event-published-blog"

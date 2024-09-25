@@ -472,3 +472,59 @@ func (us *UserSvc) CreateNewTopics(ctx context.Context, req *pb.CreateTopicsReq)
 		Message: fmt.Sprintf("topics %v has been created successfully", req.Topics),
 	}, nil
 }
+
+func (us *UserSvc) BookMarkBlog(ctx context.Context, req *pb.BookMarkReq) (*pb.BookMarkRes, error) {
+	user, err := us.dbConn.CheckIfUsernameExist(req.Username)
+	if err != nil {
+		logrus.Errorf("error while checking if the username exists for user %s, err: %v", req.Username, err)
+		if err == sql.ErrNoRows {
+			return nil, status.Errorf(codes.NotFound, fmt.Sprintf("user %s doesn't exist", req.Username))
+		}
+		return nil, status.Errorf(codes.Internal, "cannot get the user profile")
+	}
+
+	err = us.dbConn.BookMarkABlog(req.BlogId, user.Id)
+	if err != nil {
+		logrus.Errorf("error while bookmarking the blog: %v", err)
+		return nil, status.Errorf(codes.Internal, "something went wrong")
+	}
+
+	userLog := &models.UserLogs{
+		AccountId: user.AccountId,
+	}
+	userLog.IpAddress, userLog.Client = utils.IpClientConvert(req.Ip, req.Client)
+	go cache.AddUserLog(us.dbConn, userLog, fmt.Sprintf(constants.BookMarkedBlog, req.BlogId), constants.ServiceUser, constants.EventBookMarkBlog, us.log)
+
+	return &pb.BookMarkRes{
+		Status:  http.StatusOK,
+		Message: fmt.Sprintf("blog %v has been bookmarked successfully", req.BlogId),
+	}, nil
+}
+
+func (us *UserSvc) RemoveBookMark(ctx context.Context, req *pb.BookMarkReq) (*pb.BookMarkRes, error) {
+	user, err := us.dbConn.CheckIfUsernameExist(req.Username)
+	if err != nil {
+		logrus.Errorf("error while checking if the username exists for user %s, err: %v", req.Username, err)
+		if err == sql.ErrNoRows {
+			return nil, status.Errorf(codes.NotFound, fmt.Sprintf("user %s doesn't exist", req.Username))
+		}
+		return nil, status.Errorf(codes.Internal, "cannot get the user profile")
+	}
+
+	err = us.dbConn.RemoveBookmarkFromBlog(req.BlogId, user.Id)
+	if err != nil {
+		logrus.Errorf("error while removing the bookmark from the blog: %v", err)
+		return nil, status.Errorf(codes.Internal, "something went wrong")
+	}
+
+	userLog := &models.UserLogs{
+		AccountId: user.AccountId,
+	}
+	userLog.IpAddress, userLog.Client = utils.IpClientConvert(req.Ip, req.Client)
+	go cache.AddUserLog(us.dbConn, userLog, fmt.Sprintf(constants.RemoveBookMark, req.BlogId), constants.ServiceUser, constants.EventRemoveBookMark, us.log)
+
+	return &pb.BookMarkRes{
+		Status:  http.StatusOK,
+		Message: fmt.Sprintf("blog %v has been removed from bookmark successfully", req.BlogId),
+	}, nil
+}
